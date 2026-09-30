@@ -42,6 +42,11 @@ import {
   getSmartSectionOffsetY,
   type SectionTemplate,
 } from '../../constants/templates';
+import { Shapes, Smile, Upload, ClipboardPaste } from 'lucide-react';
+import { SHAPE_DEFINITIONS } from '../../utils/shapeDefinitions';
+import { EMOJI_CATALOG } from '../../constants/emojiCatalog';
+import { STOCK_IMAGES } from '../../constants/stockMedia';
+import type { ShapeKind } from '../../types/editor';
 
 interface ElementToolItem {
   type: ElementType;
@@ -134,6 +139,10 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
     updatePageSettings,
     addElement,
     addElements,
+    insertCustomImage,
+    insertShape,
+    insertEmoji,
+    pasteElement,
     selectedElementId,
     selectElement,
     toggleLock,
@@ -150,10 +159,13 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
   const activeTab = propActiveTab || internalTab;
   const setActiveTab = propSetActiveTab || setInternalTab;
 
-  // Elements Sub-tab: 'primitives' vs 'templates'
-  const [elementsSubTab, setElementsSubTab] = useState<'primitives' | 'templates'>('templates');
+  // Elements Sub-tabs: primitives | shapes | emojis | media | templates
+  const [elementsSubTab, setElementsSubTab] = useState<'primitives' | 'shapes' | 'emojis' | 'media' | 'templates'>('primitives');
   const [templateCategoryFilter, setTemplateCategoryFilter] = useState<string>('all');
   const [templateSearchQuery, setTemplateSearchQuery] = useState<string>('');
+  const [emojiSearch, setEmojiSearch] = useState<string>('');
+  const [emojiCategory, setEmojiCategory] = useState<string>('All');
+  const uploadFileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleOpenTemplates = () => {
@@ -550,29 +562,95 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
       {/* Tab 1: Clean Categorized Elements & Pre-Built Section Templates */}
       {activeTab === 'elements' && (
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Sub-Switch: Primitives vs Pre-Built Sections */}
+          {/* Sub-Switch: Primitives vs Shapes vs Emojis vs Media vs Sections */}
           <div className="p-2 border-b border-[#1e2434] bg-[#0c0e14]">
-            <div className="flex bg-[#141824] p-0.5 rounded-lg border border-[#232c3f] gap-0.5">
+            {/* Hidden File Input for Image Upload */}
+            <input
+              ref={uploadFileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                  const dataUrl = event.target?.result as string;
+                  if (!dataUrl) return;
+                  insertCustomImage(dataUrl, file.name ? `Image (${file.name})` : 'Uploaded Image');
+                  showToast(`Uploaded "${file.name}" to canvas! 📸`, 'success');
+                };
+                reader.readAsDataURL(file);
+                e.target.value = '';
+              }}
+            />
+
+            <div className="flex bg-[#141824] p-0.5 rounded-lg border border-[#232c3f] gap-0.5 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => setElementsSubTab('primitives')}
-                className={`flex-1 py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1.5 ${
+                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
                   elementsSubTab === 'primitives'
                     ? 'bg-indigo-600 text-white font-semibold shadow-sm'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
+                title="Basic Elements"
               >
                 <Grid className="w-3 h-3 text-indigo-300" />
-                <span>Primitives</span>
+                <span>Basic</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setElementsSubTab('shapes')}
+                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
+                  elementsSubTab === 'shapes'
+                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+                title="Geometric & Symbol Shapes"
+              >
+                <Shapes className="w-3 h-3 text-purple-300" />
+                <span>Shapes</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setElementsSubTab('emojis')}
+                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
+                  elementsSubTab === 'emojis'
+                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+                title="Emoji Stickers"
+              >
+                <Smile className="w-3 h-3 text-amber-300" />
+                <span>Emojis</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setElementsSubTab('media')}
+                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
+                  elementsSubTab === 'media'
+                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+                title="Upload & Stock Media"
+              >
+                <ImageIcon className="w-3 h-3 text-emerald-300" />
+                <span>Media</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setElementsSubTab('templates')}
-                className={`flex-1 py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1.5 ${
+                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
                   elementsSubTab === 'templates'
                     ? 'bg-indigo-600 text-white font-semibold shadow-sm'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
+                title="Pre-built Section Templates"
               >
                 <Sparkles className="w-3 h-3 text-amber-300" />
                 <span>Sections</span>
@@ -618,6 +696,190 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Sub-View B: Shapes Catalog */}
+          {elementsSubTab === 'shapes' && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400/90 px-1">
+                Geometric & Symbol Shapes
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {(Object.keys(SHAPE_DEFINITIONS) as ShapeKind[]).map((kind) => {
+                  const def = SHAPE_DEFINITIONS[kind];
+                  return (
+                    <button
+                      key={kind}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('application/studio-shape-kind', kind);
+                        e.dataTransfer.effectAllowed = 'copy';
+                      }}
+                      onClick={() => insertShape(kind)}
+                      className="flex flex-col items-center justify-center p-3 rounded-xl border border-[#242c3e] bg-[#141824] hover:bg-[#1a2233] hover:border-purple-500/60 hover:shadow-[0_4px_16px_rgba(168,85,247,0.22)] transition-all text-center group cursor-grab active:cursor-grabbing"
+                      title={`Click or drag onto canvas to add ${def.label}`}
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#0f131f] border border-[#263148] flex items-center justify-center group-hover:scale-110 group-hover:border-purple-500/50 transition-all mb-2 shadow-inner">
+                        <svg viewBox={def.viewBox} className="w-7 h-7" style={{ color: def.defaultColor }}>
+                          {kind === 'circle' && <circle cx="50" cy="50" r="44" fill="currentColor" />}
+                          {kind === 'rectangle' && <rect x="8" y="8" width="84" height="84" fill="currentColor" />}
+                          {kind === 'rounded-rect' && <rect x="8" y="8" width="84" height="84" rx="18" fill="currentColor" />}
+                          {kind === 'pill' && <rect x="6" y="14" width="148" height="52" rx="26" fill="currentColor" />}
+                          {kind === 'triangle' && <polygon points="50,10 90,90 10,90" fill="currentColor" />}
+                          {kind === 'star' && <polygon points="50,8 63,36 94,36 69,56 78,88 50,68 22,88 31,56 6,36 37,36" fill="currentColor" />}
+                          {kind === 'diamond' && <polygon points="50,8 92,50 50,92 8,50" fill="currentColor" />}
+                          {kind === 'heart' && <path d="M50,84 C22,60 8,46 8,30 C8,16 18,8 31,8 C39,8 46,12 50,18 C54,12 61,8 69,8 C82,8 92,16 92,30 C92,46 78,60 50,84 Z" fill="currentColor" />}
+                          {kind === 'hexagon' && <polygon points="50,8 90,29 90,71 50,92 10,71 10,29" fill="currentColor" />}
+                          {kind === 'arrow-right' && <path d="M12,38 L56,38 L56,20 L88,50 L56,80 L56,62 L12,62 Z" fill="currentColor" />}
+                        </svg>
+                      </div>
+                      <span className="text-xs font-semibold text-zinc-200 group-hover:text-white">
+                        {def.label}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 mt-0.5">
+                        {def.category}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Sub-View C: Emojis Catalog */}
+          {elementsSubTab === 'emojis' && (
+            <div className="flex-1 flex flex-col overflow-hidden p-3 space-y-3">
+              {/* Search */}
+              <div className="relative">
+                <Search className="w-3 h-3 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search emojis (rocket, fire, star)..."
+                  value={emojiSearch}
+                  onChange={(e) => setEmojiSearch(e.target.value)}
+                  className="w-full bg-[#141824] border border-[#232c3f] rounded-lg pl-7 pr-2.5 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Category Filter Pills */}
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1">
+                {['All', 'Popular', 'Tech & Code', 'Launch & Growth', 'Business', 'Reactions', 'Badges'].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setEmojiCategory(cat)}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors ${
+                      emojiCategory === cat
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        : 'bg-[#141824] text-zinc-400 hover:text-zinc-200 border border-[#232c3f]'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Emojis Grid */}
+              <div className="flex-1 overflow-y-auto grid grid-cols-4 gap-2 pr-1">
+                {EMOJI_CATALOG.filter((item) => {
+                  const matchesCat = emojiCategory === 'All' || item.category === emojiCategory;
+                  const q = emojiSearch.toLowerCase().trim();
+                  const matchesQ = !q || item.emoji.includes(q) || item.name.toLowerCase().includes(q) || item.keywords.toLowerCase().includes(q);
+                  return matchesCat && matchesQ;
+                }).map((item, idx) => (
+                  <button
+                    key={idx}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('application/studio-emoji', item.emoji);
+                      e.dataTransfer.effectAllowed = 'copy';
+                    }}
+                    onClick={() => insertEmoji(item.emoji)}
+                    className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-[#242c3e] bg-[#141824] hover:bg-[#1d2334] hover:border-amber-500/50 hover:scale-105 transition-all text-center group cursor-grab active:cursor-grabbing"
+                    title={`Click or drag "${item.name}" onto canvas`}
+                  >
+                    <span className="text-2xl mb-1 group-hover:scale-110 transition-transform select-none">
+                      {item.emoji}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 group-hover:text-zinc-200 truncate w-full">
+                      {item.name.split(' ')[0]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sub-View D: Media & Image Upload */}
+          {elementsSubTab === 'media' && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-4">
+              {/* Upload Dropzone */}
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/90 px-1 mb-2">
+                  Upload Own Image
+                </div>
+                <div
+                  onClick={() => uploadFileInputRef.current?.click()}
+                  className="border-2 border-dashed border-[#263148] hover:border-emerald-500/60 bg-[#121622] hover:bg-[#181e2e] rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all group shadow-inner"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-2 group-hover:scale-110 transition-transform">
+                    <Upload className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-semibold text-zinc-200 group-hover:text-white">
+                    Choose an image file
+                  </span>
+                  <span className="text-[10px] text-zinc-400 mt-1">
+                    PNG, JPG, SVG, WebP, GIF from your computer
+                  </span>
+                </div>
+              </div>
+
+              {/* Paste from Clipboard */}
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-sky-400/90 px-1 mb-2">
+                  Clipboard Paste
+                </div>
+                <button
+                  type="button"
+                  onClick={() => pasteElement()}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 text-xs font-semibold transition-all group"
+                >
+                  <ClipboardPaste className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span>Paste Image / Text (Cmd+V)</span>
+                </button>
+              </div>
+
+              {/* Curated Stock Photos */}
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400/90 px-1 mb-2">
+                  Curated Stock Photos
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {STOCK_IMAGES.map((img) => (
+                    <button
+                      key={img.id}
+                      onClick={() => insertCustomImage(img.url, img.name)}
+                      className="relative rounded-xl overflow-hidden border border-[#242c3e] hover:border-indigo-500 group aspect-[4/3] text-left"
+                    >
+                      <img
+                        src={img.thumbnail}
+                        alt={img.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      <div className="absolute bottom-1.5 left-2 right-2 text-white">
+                        <span className="text-[10px] font-semibold block truncate drop-shadow-md">
+                          {img.name}
+                        </span>
+                        <span className="text-[8px] text-zinc-400 font-mono">
+                          {img.category}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 

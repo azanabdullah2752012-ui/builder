@@ -17,10 +17,13 @@ import {
   ShieldCheck,
   LogOut,
   User,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 import { ExportModal } from '../Modals/ExportModal';
 import { DatabaseModal } from '../Modals/DatabaseModal';
 import { ProfileModal } from '../Modals/ProfileModal';
+import { OnboardingModal } from '../Modals/OnboardingModal';
 
 export const EditorHeader: React.FC = () => {
   const {
@@ -38,6 +41,10 @@ export const EditorHeader: React.FC = () => {
     toggleLeftSidebar,
     rightSidebarOpen,
     toggleRightSidebar,
+    editorComplexity,
+    setEditorComplexity,
+    showOnboarding,
+    setShowOnboarding,
     currentUser,
     logout,
   } = useEditor();
@@ -196,46 +203,90 @@ export const EditorHeader: React.FC = () => {
           </div>
         </div>
 
-        {/* Center Section: Sleek Dark Segmented Viewport Switcher */}
-        <div className="flex items-center bg-[#101420] p-1 rounded-lg border border-[#232c3f] gap-1 shadow-inner">
-          <button
-            onClick={() => setViewportMode('desktop')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] transition-all ${
-              viewportMode === 'desktop'
-                ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-            }`}
-            title="Desktop (1200px)"
-          >
-            <Monitor className="w-3.5 h-3.5" />
-            <span>Desktop</span>
-          </button>
-          <button
-            onClick={() => setViewportMode('tablet')}
-            className={`flex items-center px-2.5 py-1 rounded-md text-[11px] transition-all ${
-              viewportMode === 'tablet'
-                ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-            }`}
-            title="Tablet (768px)"
-          >
-            <Tablet className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => setViewportMode('mobile')}
-            className={`flex items-center px-2.5 py-1 rounded-md text-[11px] transition-all ${
-              viewportMode === 'mobile'
-                ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-            }`}
-            title="Phone (390px)"
-          >
-            <Smartphone className="w-3.5 h-3.5" />
-          </button>
+        {/* Center Section: Viewport Switcher + Simple/Pro Mode Toggle */}
+        <div className="flex items-center gap-2">
+          {/* Simple vs Pro Mode Pill Toggle */}
+          <div className="flex items-center bg-[#101420] p-0.5 rounded-lg border border-[#232c3f] shadow-inner">
+            <button
+              type="button"
+              onClick={() => setEditorComplexity('simple')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                editorComplexity === 'simple'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="Simple Mode: Clean, focused canvas with essential controls (recommended for beginners)"
+            >
+              <Sparkles className="w-3 h-3 text-emerald-200" />
+              <span>Simple</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditorComplexity('pro')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                editorComplexity === 'pro'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="Pro Mode: Advanced CSS, responsive flexbox, page navigation ribbon, and full inspector"
+            >
+              <Zap className="w-3 h-3 text-amber-300" />
+              <span>Pro</span>
+            </button>
+          </div>
+
+          {/* Sleek Dark Segmented Viewport Switcher */}
+          <div className="flex items-center bg-[#101420] p-1 rounded-lg border border-[#232c3f] gap-1 shadow-inner">
+            <button
+              onClick={() => setViewportMode('desktop')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] transition-all ${
+                viewportMode === 'desktop'
+                  ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+              }`}
+              title="Desktop (1200px)"
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span>Desktop</span>
+            </button>
+            <button
+              onClick={() => setViewportMode('tablet')}
+              className={`flex items-center px-2.5 py-1 rounded-md text-[11px] transition-all ${
+                viewportMode === 'tablet'
+                  ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+              }`}
+              title="Tablet (768px)"
+            >
+              <Tablet className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setViewportMode('mobile')}
+              className={`flex items-center px-2.5 py-1 rounded-md text-[11px] transition-all ${
+                viewportMode === 'mobile'
+                  ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+              }`}
+              title="Phone (390px)"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        {/* Right Section: Preview, Export Code, Inspector & User Profile */}
+        {/* Right Section: Guide, Preview, Export Code, Inspector & User Profile */}
         <div className="flex items-center gap-2">
+          {/* Quick 3-Step Guide Tour Button */}
+          <button
+            type="button"
+            onClick={() => setShowOnboarding(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#262f44] bg-[#151926] text-zinc-300 hover:text-white hover:border-amber-400/40 hover:bg-[#1c2233] text-xs transition-all shadow-sm"
+            title="Open 3-Step Guided Tour & Starter Templates"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span className="hidden sm:inline font-medium">Guide</span>
+          </button>
+
           {/* Admin Database & Supabase Studio Button - Strictly Admin Only */}
           {currentUser?.role === 'admin' && (
             <button
@@ -305,8 +356,9 @@ export const EditorHeader: React.FC = () => {
                   <div className="px-2.5 py-2 border-b border-[#222226] mb-1.5">
                     <div className="font-semibold text-white truncate">{currentUser.name}</div>
                     <div className="text-[11px] text-zinc-400 truncate">{currentUser.email}</div>
-                    <div className="mt-1.5 inline-block px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono font-medium text-[10px]">
-                      {currentUser.plan || 'Free Trial'}
+                    <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-medium text-[10px]">
+                      <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                      <span>100% Free • All Features Unlocked</span>
                     </div>
                   </div>
 
@@ -350,6 +402,9 @@ export const EditorHeader: React.FC = () => {
           )}
         </div>
       </header>
+
+      {/* 3-Step Guided Onboarding Tour Modal */}
+      <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
 
       {/* Profile & Account Modal */}
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />

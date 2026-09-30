@@ -13,7 +13,7 @@ import { PageNavigationBar } from './components/Navigation/PageNavigationBar';
 import { ShortcutsModal } from './components/Modals/ShortcutsModal';
 
 const EditorLayout: React.FC = () => {
-  const { editorMode, setEditorMode, leftSidebarOpen, rightSidebarOpen } = useEditor();
+  const { editorMode, setEditorMode, leftSidebarOpen, rightSidebarOpen, editorComplexity } = useEditor();
 
   const [leftSidebarTab, setLeftSidebarTab] = React.useState<'elements' | 'layers' | 'pages'>('elements');
 
@@ -52,9 +52,9 @@ const EditorLayout: React.FC = () => {
           <IconRail activeTab={leftSidebarTab} setActiveTab={setLeftSidebarTab} />
         )}
 
-        {/* Center Workspace: Persistent Page Navigation Ribbon + Artboard Canvas */}
+        {/* Center Workspace: Artboard Canvas (Page Ribbon shown only in Pro Mode to avoid double headers in Simple Mode) */}
         <div className="flex-1 flex flex-col h-full overflow-hidden relative min-w-0">
-          <PageNavigationBar />
+          {editorComplexity === 'pro' && <PageNavigationBar />}
           <Canvas />
         </div>
 

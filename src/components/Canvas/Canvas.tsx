@@ -23,6 +23,8 @@ import {
   createSignUpSection,
 } from '../../constants/templates';
 import { CanvasContextMenu } from './CanvasContextMenu';
+import { CanvasQuickDock } from './CanvasQuickDock';
+import type { ShapeKind } from '../../types/editor';
 
 export const Canvas: React.FC = () => {
   const {
@@ -35,6 +37,10 @@ export const Canvas: React.FC = () => {
     viewportMode,
     addElement,
     addElements,
+    insertCustomImage,
+    insertShape,
+    insertEmoji,
+    showToast,
     resetToDefaultDemo,
   } = useEditor();
 
@@ -93,36 +99,73 @@ export const Canvas: React.FC = () => {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
 
-    // Check if dropping a full section template
+    const surface = pageSurfaceRef.current;
+    let dropX = 100;
+    let dropY = 100;
+    if (surface) {
+      const rect = surface.getBoundingClientRect();
+      dropX = Math.max(0, Math.round((e.clientX - rect.left) / zoom));
+      dropY = Math.max(0, Math.round((e.clientY - rect.top) / zoom));
+    }
+
+    // 1. Check if dropping image files from Desktop / Finder
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const dataUrl = event.target?.result as string;
+          if (!dataUrl) return;
+          const img = new Image();
+          img.onload = () => {
+            let w = img.naturalWidth || 380;
+            let h = img.naturalHeight || 250;
+            const maxW = 460;
+            if (w > maxW) {
+              h = Math.round((h * maxW) / w);
+              w = maxW;
+            }
+            insertCustomImage(dataUrl, file.name ? `Image (${file.name})` : 'Dropped Image', dropX, dropY);
+            showToast(`Dropped image "${file.name}" onto canvas! 📸`, 'success');
+          };
+          img.src = dataUrl;
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+    }
+
+    // 2. Check if dropping a Shape
+    const shapeKind = e.dataTransfer.getData('application/studio-shape-kind') as ShapeKind;
+    if (shapeKind) {
+      insertShape(shapeKind, undefined, dropX, dropY);
+      return;
+    }
+
+    // 3. Check if dropping an Emoji
+    const emojiChar = e.dataTransfer.getData('application/studio-emoji');
+    if (emojiChar) {
+      insertEmoji(emojiChar, dropX, dropY);
+      return;
+    }
+
+    // 4. Check if dropping a full section template
     const templateId = e.dataTransfer.getData('application/studio-section-template-id');
     if (templateId) {
       const template = SECTION_TEMPLATES.find((t) => t.id === templateId);
       if (template) {
-        const surface = pageSurfaceRef.current;
-        let dropY: number | undefined = undefined;
-        if (surface) {
-          const rect = surface.getBoundingClientRect();
-          dropY = Math.max(0, Math.round((e.clientY - rect.top) / zoom));
-        }
         const newElements = template.create(dropY);
         addElements(newElements, false);
         return;
       }
     }
 
-    // Check if dropping an atomic primitive element
+    // 5. Check if dropping an atomic primitive element
     const elementType = e.dataTransfer.getData('application/studio-element-type') as ElementType;
     if (!elementType) return;
 
-    const surface = pageSurfaceRef.current;
-    if (surface) {
-      const rect = surface.getBoundingClientRect();
-      const dropX = Math.round((e.clientX - rect.left) / zoom);
-      const dropY = Math.round((e.clientY - rect.top) / zoom);
-      addElement(elementType, Math.max(0, Math.min(displayWidth - 80, dropX)), Math.max(0, dropY));
-    } else {
-      addElement(elementType);
-    }
+    addElement(elementType, Math.max(0, Math.min(displayWidth - 80, dropX)), dropY);
   };
 
   // Compute automatic responsive layout based on active viewport mode
@@ -208,6 +251,9 @@ export const Canvas: React.FC = () => {
             'radial-gradient(ellipse 950px 650px at 50% 36%, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.09), transparent 75%)',
         }}
       />
+
+      {/* Floating Canvas Quick Insertion Dock */}
+      <CanvasQuickDock />
 
       {/* Scaled Canvas Container Wrapper */}
       <div

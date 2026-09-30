@@ -181,8 +181,8 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
       a: 'Craft Studio connects natively to Supabase Auth and PostgreSQL. User registrations and form submissions automatically sync to your cloud public.profiles and public.submissions tables with local SQLite backup support.',
     },
     {
-      q: 'Is there a free tier for experiments and personal projects?',
-      a: 'Yes! The Starter tier is $0 and free forever, including 3 active web projects, drag-and-drop canvas, and standard HTML/CSS code export without a credit card.',
+      q: 'Is Craft Studio really 100% free?',
+      a: 'Yes! Craft Studio is completely free forever with all features unlocked. There are no pricing tiers, no monthly subscriptions, and no credit cards required. You get unlimited projects, full drag-and-drop visual editing, and complete production HTML/CSS code export without restrictions.',
     },
   ];
 
@@ -595,82 +595,42 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
       </section>
 
       {/* ==================================================================== */}
-      {/* 6. TRANSPARENT 3-TIER PRICING TABLE                                  */}
+      {/* 6. 100% FREE FOREVER (ALL FEATURES UNLOCKED)                         */}
       {/* ==================================================================== */}
       <section className="craft-section" id="pricing" style={{ background: '#0a0d16' }}>
         <div className="craft-container">
           <div className="craft-section-header">
-            <span className="craft-section-tag">SIMPLE PRICING</span>
-            <h2 className="craft-section-title">Transparent Plans for Every Creator</h2>
+            <span className="craft-section-tag">100% FREE FOREVER</span>
+            <h2 className="craft-section-title">Everything Unlocked. Completely Free.</h2>
             <p className="craft-section-desc">
-              Free forever for personal exploration. Upgrade anytime for unlimited projects and live Supabase Cloud persistence.
+              No subscription tiers, no paywalls, and no credit card required. Build high-impact web apps with all tools, templates, and code export 100% free.
             </p>
           </div>
 
-          <div className="craft-pricing-grid">
-            {/* Starter Plan */}
-            <div className="craft-pricing-card">
+          <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+            {/* Unified 100% Free Card */}
+            <div className="craft-pricing-card featured" style={{ textAlign: 'left', padding: '36px' }}>
+              <span className="craft-popular-badge">All Features Included</span>
               <div>
-                <span className="craft-plan-name">Starter</span>
-                <div className="craft-plan-price">$0</div>
-                <div className="craft-plan-cycle">Free forever</div>
-                <p className="craft-plan-tagline">Ideal for personal exploration and small landing pages.</p>
-                <ul className="craft-feature-list">
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> 3 Active Web Projects</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> Drag & Drop Visual Canvas</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> Automatic Responsive Engine</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> Standalone HTML/CSS Export</li>
+                <span className="craft-plan-name">Craft Studio — Full Access</span>
+                <div className="craft-plan-price">$0 <span className="craft-plan-cycle">/ forever</span></div>
+                <p className="craft-plan-tagline">Complete visual design studio for creators, developers, and founders.</p>
+                <ul className="craft-feature-list" style={{ marginTop: '20px' }}>
+                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Unlimited</strong> Web Projects & Pages</li>
+                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Simple & Pro Modes</strong> (Beginner friendly & advanced CSS)</li>
+                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Native Supabase Cloud</strong> & PostgreSQL Sync</li>
+                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Production HTML & CSS</strong> Clean Code Export</li>
+                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>All Pre-built Templates</strong> & Hero Sections</li>
+                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Responsive Design Reflow</strong> (Desktop, Tablet, Mobile)</li>
+                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Zero Credit Cards</strong> • 100% Free Forever</li>
                 </ul>
               </div>
               <button
-                onClick={() => openModal('signup', 'Starter')}
-                className="craft-btn-plan outline"
-              >
-                Sign Up Free
-              </button>
-            </div>
-
-            {/* Pro Studio Plan (Featured) */}
-            <div className="craft-pricing-card featured">
-              <span className="craft-popular-badge">Most Popular</span>
-              <div>
-                <span className="craft-plan-name">Pro Studio</span>
-                <div className="craft-plan-price">$29 <span className="craft-plan-cycle">/ month</span></div>
-                <p className="craft-plan-tagline">For freelancers, agencies, and high-velocity startups.</p>
-                <ul className="craft-feature-list">
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Unlimited</strong> Web Projects</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Native Supabase Cloud</strong> Sync</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> Strict Element Locking (Cmd+L)</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> Custom Domains & Edge SSL</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> Priority 24/7 Creator Support</li>
-                </ul>
-              </div>
-              <button
-                onClick={() => openModal('signup', 'Pro Studio')}
+                onClick={onLaunchEditor}
                 className="craft-btn-plan primary"
+                style={{ marginTop: '28px', width: '100%', padding: '14px', fontSize: '15px' }}
               >
-                Start 14-Day Free Trial →
-              </button>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="craft-pricing-card">
-              <div>
-                <span className="craft-plan-name">Enterprise</span>
-                <div className="craft-plan-price">$99 <span className="craft-plan-cycle">/ month</span></div>
-                <p className="craft-plan-tagline">For established product teams and production development.</p>
-                <ul className="craft-feature-list">
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> Dedicated Postgres Cluster</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> Custom SSO & Team RBAC</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> 99.99% Uptime Guarantee SLA</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> White-label Client Portals</li>
-                </ul>
-              </div>
-              <button
-                onClick={() => openModal('signup', 'Enterprise')}
-                className="craft-btn-plan outline"
-              >
-                Contact Enterprise Sales
+                Launch Visual Studio Free →
               </button>
             </div>
           </div>

@@ -437,7 +437,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     y: 460,
     width: 600,
     height: 24,
-    content: '🟢 Craft Engine: Online • Supabase Postgres Connected • 12ms Latency',
+    content: '⚡ Real-Time App Analytics • 14,800 Active Users • 99.9% Uptime',
     styles: {
       color: '#34d399',
       fontSize: 12,

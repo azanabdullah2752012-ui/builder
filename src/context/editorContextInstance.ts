@@ -46,6 +46,15 @@ export interface EditorContextType {
   toggleLeftSidebar: () => void;
   toggleRightSidebar: () => void;
 
+  // Editor Complexity Mode (Simple vs Pro)
+  editorComplexity: 'simple' | 'pro';
+  setEditorComplexity: (complexity: 'simple' | 'pro') => void;
+  toggleEditorComplexity: () => void;
+
+  // Guided Onboarding Walkthrough
+  showOnboarding: boolean;
+  setShowOnboarding: (show: boolean | ((prev: boolean) => boolean)) => void;
+
   // Actions
   setEditorMode: (mode: EditorMode) => void;
   setViewportMode: (mode: ViewportMode) => void;
@@ -55,7 +64,16 @@ export interface EditorContextType {
   selectElement: (id: string | null) => void;
 
   // Element Actions
-  addElement: (type: ElementType, customX?: number, customY?: number, parentId?: string | null) => CanvasElement;
+  addElement: (
+    type: ElementType,
+    customX?: number,
+    customY?: number,
+    parentId?: string | null,
+    initialOverrides?: Partial<CanvasElement>
+  ) => CanvasElement;
+  insertCustomImage: (dataUrlOrUrl: string, name?: string, customX?: number, customY?: number) => CanvasElement;
+  insertShape: (shapeKind: import('../types/editor').ShapeKind, name?: string, customX?: number, customY?: number) => CanvasElement;
+  insertEmoji: (emoji: string, customX?: number, customY?: number) => CanvasElement;
   addElements: (elements: CanvasElement[], selectFirst?: boolean) => void;
   updateElement: (id: string, updates: Partial<CanvasElement>, recordHistory?: boolean) => void;
   updateElementStyles: (id: string, styles: Partial<ElementStyles>, recordHistory?: boolean) => void;

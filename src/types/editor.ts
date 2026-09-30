@@ -20,7 +20,19 @@ export type SemanticRole =
   | 'aside'
   | 'dialog';
 
-export type ElementType = 'section' | 'container' | 'text' | 'button' | 'image' | 'divider';
+export type ShapeKind =
+  | 'rectangle'
+  | 'rounded-rect'
+  | 'circle'
+  | 'pill'
+  | 'triangle'
+  | 'star'
+  | 'diamond'
+  | 'heart'
+  | 'hexagon'
+  | 'arrow-right';
+
+export type ElementType = 'section' | 'container' | 'text' | 'button' | 'image' | 'divider' | 'shape';
 
 export interface ElementStyles {
   // Fill & Colors
@@ -39,11 +51,16 @@ export interface ElementStyles {
   borderWidth?: number;
   borderStyle?: 'solid' | 'dashed' | 'dotted' | 'none';
   borderColor?: string;
+  // Shapes
+  shapeKind?: ShapeKind;
+  strokeColor?: string;
+  strokeWidth?: number;
   // Layout & Effects
   opacity?: number;
   boxShadow?: string;
   padding?: number;
   objectFit?: 'cover' | 'contain' | 'fill';
+  alt?: string;
   // Divider specific
   dividerHeight?: number;
   // Transitions & Animations
@@ -53,6 +70,7 @@ export interface ElementStyles {
   hoverShadow?: string;
   hoverScale?: number;
   hoverTranslateY?: number;
+  rotation?: number; // degrees
 }
 
 export type ActionType =
@@ -68,7 +86,12 @@ export type ActionType =
   | 'email-mailto'
   | 'tel-call'
   | 'download-file'
-  | 'custom-js';
+  | 'custom-js'
+  | 'confetti'
+  | 'play-sound'
+  | 'toggle-dark-mode'
+  | 'whatsapp'
+  | 'share-page';
 
 export type ButtonVariant = 'filled' | 'gradient' | 'outline' | 'ghost' | 'glow';
 export type ButtonIconType = 'none' | 'arrow-right' | 'external-link' | 'sparkles' | 'download';
@@ -144,6 +167,7 @@ export interface CanvasElement {
   width: number;
   height: number;
   content?: string; // Text content, button label, or image src
+  imageUrl?: string;
   styles: ElementStyles;
   role: SemanticRole;
   behavior: ElementBehavior;

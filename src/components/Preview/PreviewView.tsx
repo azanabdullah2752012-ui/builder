@@ -12,6 +12,8 @@ import {
   ChevronDown,
   X,
 } from 'lucide-react';
+import { SHAPE_DEFINITIONS, getShapeSvgNode } from '../../utils/shapeDefinitions';
+import { triggerConfetti, playSound, type SoundEffectType } from '../../utils/interactiveEffects';
 
 export const PreviewView: React.FC = () => {
   const {
@@ -21,6 +23,7 @@ export const PreviewView: React.FC = () => {
     setEditorMode,
     viewportMode,
     setViewportMode,
+    updatePageSettings,
     showToast,
   } = useEditor();
 
@@ -136,6 +139,31 @@ export const PreviewView: React.FC = () => {
         fn(element, showToast);
       } catch (err: any) {
         showToast(`Custom JS Error: ${err.message}`, 'warning');
+      }
+    } else if (action === 'confetti') {
+      e.preventDefault();
+      triggerConfetti(e.clientX, e.clientY);
+      playSound('success');
+      showToast('🎉 Confetti Celebration!', 'success');
+    } else if (action === 'play-sound') {
+      e.preventDefault();
+      playSound((payload as SoundEffectType) || 'success');
+    } else if (action === 'toggle-dark-mode') {
+      e.preventDefault();
+      const isDark = activePage.backgroundColor.toLowerCase() !== '#ffffff' && activePage.backgroundColor.toLowerCase() !== '#f8fafc';
+      updatePageSettings(activePage.id, { backgroundColor: isDark ? '#ffffff' : '#0c0e14' });
+      showToast(`Switched to ${isDark ? 'Light' : 'Dark'} mode`, 'info');
+    } else if (action === 'whatsapp' && payload) {
+      e.preventDefault();
+      const cleanNumber = payload.replace(/[^0-9]/g, '');
+      window.open(`https://wa.me/${cleanNumber}`, '_blank');
+    } else if (action === 'share-page') {
+      e.preventDefault();
+      if (navigator.share) {
+        navigator.share({ title: project.name, url: window.location.href }).catch(() => {});
+      } else {
+        navigator.clipboard?.writeText(window.location.href);
+        showToast('Copied page link to clipboard!', 'success');
       }
     }
   };
@@ -257,6 +285,34 @@ export const PreviewView: React.FC = () => {
         <section {...commonProps}>
           {element.content && <div className="p-2 select-none">{element.content}</div>}
         </section>
+      );
+    }
+
+    if (element.type === 'shape') {
+      const shapeKind = s.shapeKind || 'circle';
+      const def = SHAPE_DEFINITIONS[shapeKind] || SHAPE_DEFINITIONS.circle;
+      const fillColor = s.gradient || s.backgroundColor || def.defaultColor;
+      const strokeColor = s.borderColor || 'none';
+      const strokeW = s.borderWidth || 0;
+      const svgNode = getShapeSvgNode(shapeKind, fillColor, strokeColor, strokeW);
+
+      return (
+        <div {...commonProps}>
+          <svg
+            viewBox={def.viewBox}
+            className="w-full h-full drop-shadow-sm select-none"
+            preserveAspectRatio="none"
+            style={{
+              filter: s.boxShadow ? `drop-shadow(${s.boxShadow})` : undefined,
+              transform: s.rotation ? `rotate(${s.rotation}deg)` : undefined,
+            }}
+          >
+            {svgNode.tag === 'circle' && <circle {...svgNode.props} />}
+            {svgNode.tag === 'rect' && <rect {...svgNode.props} />}
+            {svgNode.tag === 'polygon' && <polygon {...svgNode.props} />}
+            {svgNode.tag === 'path' && <path {...svgNode.props} />}
+          </svg>
+        </div>
       );
     }
 

@@ -10,7 +10,9 @@ import type {
   ContainerLayoutConfig,
   ElementResponsiveConfig,
   Page,
+  ShapeKind,
 } from '../types/editor';
+import { SHAPE_DEFINITIONS } from '../utils/shapeDefinitions';
 import {
   INITIAL_PROJECT,
   STORAGE_KEY,
@@ -109,25 +111,28 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           const actualUser = {
             name: 'Azan Abdullah',
             email: 'azan@craftstudio.dev',
-            plan: u.plan || 'Pro Studio',
+            plan: 'Free (All Features Unlocked)',
             role: 'owner',
           };
           localStorage.setItem('craft_auth_user', JSON.stringify(actualUser));
           return actualUser;
         }
-        return u;
+        return {
+          ...u,
+          plan: 'Free (All Features Unlocked)',
+        };
       }
       return {
         name: 'Azan Abdullah',
         email: 'azan@craftstudio.dev',
-        plan: 'Pro Studio',
+        plan: 'Free (All Features Unlocked)',
         role: 'owner',
       };
     } catch {
       return {
         name: 'Azan Abdullah',
         email: 'azan@craftstudio.dev',
-        plan: 'Pro Studio',
+        plan: 'Free (All Features Unlocked)',
         role: 'owner',
       };
     }
@@ -154,7 +159,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         handleSetCurrentUser({
           name: 'Azan Abdullah',
           email: 'azan@craftstudio.dev',
-          plan: 'Pro Studio',
+          plan: 'Free (All Features Unlocked)',
           role: 'owner',
         });
         setEditorMode('design');
@@ -172,7 +177,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const u = session.user;
         const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Google User';
         const email = u.email || '';
-        handleSetCurrentUser({ name, email, plan: 'Pro Studio' });
+        handleSetCurrentUser({ name, email, plan: 'Free (All Features Unlocked)' });
         setEditorMode('design');
       }
     });
@@ -183,7 +188,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const u = session.user;
         const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Google User';
         const email = u.email || '';
-        handleSetCurrentUser({ name, email, plan: 'Pro Studio' });
+        handleSetCurrentUser({ name, email, plan: 'Free (All Features Unlocked)' });
         setEditorMode('design');
         showToast(`🎉 Signed in with Google as ${name}! Entering Studio...`, 'success');
       } else if (event === 'SIGNED_OUT') {
@@ -200,8 +205,54 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [clipboard, setClipboard] = useState<{ root: CanvasElement; descendants: CanvasElement[] } | null>(null);
   const [showShortcutsModal, setShowShortcutsModal] = useState<boolean>(false);
 
-  // Bubble Studio Sidebars (collapsible for maximum canvas breathing room)
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(true);
+  // Editor Complexity: 'simple' (clean & uncluttered for new users) vs 'pro' (full advanced suite)
+  const [editorComplexity, setEditorComplexityState] = useState<'simple' | 'pro'>(() => {
+    try {
+      const saved = localStorage.getItem('craft_editor_complexity');
+      if (saved === 'simple' || saved === 'pro') return saved;
+    } catch {}
+    return 'simple'; // Default to clean simple mode for new users!
+  });
+
+  const setEditorComplexity = useCallback((complexity: 'simple' | 'pro') => {
+    setEditorComplexityState(complexity);
+    try {
+      localStorage.setItem('craft_editor_complexity', complexity);
+    } catch {}
+  }, []);
+
+  const toggleEditorComplexity = useCallback(() => {
+    setEditorComplexityState((prev) => {
+      const next = prev === 'simple' ? 'pro' : 'simple';
+      try {
+        localStorage.setItem('craft_editor_complexity', next);
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  // First-time Onboarding Walkthrough
+  const [showOnboarding, setShowOnboardingState] = useState<boolean>(() => {
+    try {
+      return !localStorage.getItem('craft_onboarding_completed');
+    } catch {
+      return true;
+    }
+  });
+
+  const setShowOnboarding = useCallback((show: boolean | ((prev: boolean) => boolean)) => {
+    setShowOnboardingState(show);
+  }, []);
+
+  // Studio Sidebars (collapsible for maximum canvas breathing room)
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(() => {
+    // In simple mode, start with clean collapsed icon rail so canvas is wide open
+    try {
+      const saved = localStorage.getItem('craft_editor_complexity');
+      if (saved === 'pro') return true;
+    } catch {}
+    return false;
+  });
   const [rightSidebarOpen, setRightSidebarOpen] = useState<boolean>(true);
 
   const toggleLeftSidebar = useCallback(() => {
@@ -390,7 +441,14 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   // Add Element to Canvas or into a Section/Container
-  const addElement = useCallback((type: ElementType, customX?: number, customY?: number, parentId?: string | null): CanvasElement => {
+  // Add Element to Canvas or into a Section/Container
+  const addElement = useCallback((
+    type: ElementType,
+    customX?: number,
+    customY?: number,
+    parentId?: string | null,
+    initialOverrides?: Partial<CanvasElement>
+  ): CanvasElement => {
     let newEl: CanvasElement;
     setProject((prev) => {
       pushHistory(prev);
@@ -413,6 +471,21 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       newEl = createElement(type, x, y, maxZ + 1);
       if (parentId) {
         newEl.parentId = parentId;
+      }
+
+      if (initialOverrides) {
+        newEl = {
+          ...newEl,
+          ...initialOverrides,
+          styles: {
+            ...newEl.styles,
+            ...(initialOverrides.styles || {}),
+          },
+          behavior: {
+            ...newEl.behavior,
+            ...(initialOverrides.behavior || {}),
+          },
+        };
       }
 
       const updatedPages = prev.pages.map((p) => {
@@ -442,9 +515,59 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
 
     setSelectedElementId(newEl!.id);
-    showToast(`Added ${type} element to canvas`, 'info');
+    showToast(`Added ${initialOverrides?.name || type} to canvas`, 'info');
     return newEl!;
   }, [pushHistory, showToast]);
+
+  // Insert Custom Image Helper
+  const insertCustomImage = useCallback((dataUrlOrUrl: string, name = 'Custom Image', customX?: number, customY?: number): CanvasElement => {
+    return addElement('image', customX, customY, null, {
+      name,
+      content: dataUrlOrUrl,
+      width: 380,
+      height: 250,
+      styles: {
+        borderRadius: 12,
+        objectFit: 'cover',
+        boxShadow: '0 12px 30px -4px rgba(0, 0, 0, 0.25)',
+      },
+    });
+  }, [addElement]);
+
+  // Insert Shape Helper
+  const insertShape = useCallback((shapeKind: ShapeKind, name?: string, customX?: number, customY?: number): CanvasElement => {
+    const def = SHAPE_DEFINITIONS[shapeKind];
+    const shapeWidth = shapeKind === 'pill' ? 180 : 120;
+    const shapeHeight = shapeKind === 'pill' ? 90 : 120;
+    return addElement('shape', customX, customY, null, {
+      name: name || `${def?.label || 'Shape'}`,
+      width: shapeWidth,
+      height: shapeHeight,
+      styles: {
+        shapeKind,
+        backgroundColor: def?.defaultColor || '#6366f1',
+        borderWidth: 0,
+        borderColor: '#4338ca',
+        boxShadow: '0 8px 24px -4px rgba(99, 102, 241, 0.25)',
+      },
+    });
+  }, [addElement]);
+
+  // Insert Emoji Sticker Helper
+  const insertEmoji = useCallback((emoji: string, customX?: number, customY?: number): CanvasElement => {
+    return addElement('text', customX, customY, null, {
+      name: `${emoji} Sticker`,
+      content: emoji,
+      width: 90,
+      height: 90,
+      styles: {
+        fontSize: 56,
+        lineHeight: 1.2,
+        textAlign: 'center',
+        backgroundColor: 'transparent',
+      },
+    });
+  }, [addElement]);
 
   // Add multiple elements at once (e.g. for starter sections and templates)
   const addElements = useCallback((elements: CanvasElement[], selectFirst = true) => {
@@ -1057,12 +1180,16 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     setClipboard({ root: target, descendants });
 
-    // Optional native clipboard writing
+    // Write full representation to native OS clipboard
     try {
-      if (target.content) {
-        navigator.clipboard?.writeText(target.content);
-      } else {
-        navigator.clipboard?.writeText(JSON.stringify({ type: 'studio-element', name: target.name }));
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(
+          JSON.stringify({
+            __studio_element: true,
+            root: target,
+            descendants,
+          })
+        );
       }
     } catch {
       // ignore
@@ -1085,9 +1212,53 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     showToast(`Cut "${target.name}" (Cmd+X)`, 'info');
   }, [project.pages, project.activePageId, selectedElementId, copyElement, deleteElement, showToast]);
 
-  // Paste Element
+  // Paste Element (Supports internal studio clipboard + OS system clipboard fallback)
   const pasteElement = useCallback((targetParentId?: string | null): CanvasElement | null => {
     if (!clipboard) {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.readText) {
+        navigator.clipboard.readText().then((text) => {
+          if (!text || !text.trim()) {
+            showToast('Clipboard is empty. Copy an element, text, or image first', 'warning');
+            return;
+          }
+          const trimmed = text.trim();
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed.__studio_element && parsed.root) {
+              setClipboard({ root: parsed.root, descendants: parsed.descendants || [] });
+              showToast('Element loaded from system clipboard! Pasting...', 'info');
+              setTimeout(() => pasteElement(targetParentId), 50);
+              return;
+            }
+          } catch {
+            // Not JSON
+          }
+          if (
+            trimmed.match(/^https?:\/\/.+\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i) ||
+            trimmed.startsWith('data:image/') ||
+            trimmed.includes('images.unsplash.com')
+          ) {
+            insertCustomImage(trimmed, 'Pasted Web Image');
+            showToast('Pasted image from clipboard URL! 🖼️', 'success');
+          } else {
+            addElement('text', undefined, undefined, null, {
+              name: 'Pasted Text',
+              content: trimmed,
+              width: Math.min(520, Math.max(220, trimmed.length * 8)),
+              height: Math.max(50, Math.min(260, Math.ceil(trimmed.length / 32) * 26)),
+              styles: {
+                fontSize: trimmed.length < 40 ? 24 : 15,
+                fontWeight: trimmed.length < 40 ? 700 : 400,
+                lineHeight: 1.5,
+              },
+            });
+            showToast('Pasted text from clipboard! 📝', 'success');
+          }
+        }).catch(() => {
+          showToast('Clipboard is empty. Copy an element, text, or image first', 'warning');
+        });
+        return null;
+      }
       showToast('Clipboard is empty. Copy an element first (Cmd+C)', 'warning');
       return null;
     }
@@ -1392,8 +1563,11 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       // Paste: Cmd + V
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v') {
-        e.preventDefault();
-        pasteElement();
+        if (clipboard) {
+          e.preventDefault();
+          pasteElement();
+        }
+        // If internal clipboard is null, allow browser's native paste event to fire and read e.clipboardData
         return;
       }
 
@@ -1560,6 +1734,114 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     showToast,
   ]);
 
+  // Universal Clipboard Paste Listener (Images, Text, and External Data)
+  useEffect(() => {
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      // If user is focused on an input or textarea or contenteditable, don't intercept!
+      const activeEl = document.activeElement;
+      if (
+        activeEl &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          (activeEl as HTMLElement).isContentEditable)
+      ) {
+        return;
+      }
+
+      // Check for image files in clipboard
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.type.indexOf('image') !== -1) {
+            const file = item.getAsFile();
+            if (file) {
+              e.preventDefault();
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                const dataUrl = event.target?.result as string;
+                if (!dataUrl) return;
+                const img = new Image();
+                img.onload = () => {
+                  let w = img.naturalWidth || 380;
+                  let h = img.naturalHeight || 250;
+                  const maxW = 440;
+                  if (w > maxW) {
+                    h = Math.round((h * maxW) / w);
+                    w = maxW;
+                  }
+                  addElement('image', undefined, undefined, null, {
+                    name: file.name && file.name !== 'image.png' ? `Image (${file.name})` : 'Pasted Image',
+                    content: dataUrl,
+                    width: w,
+                    height: h,
+                    styles: {
+                      borderRadius: 12,
+                      objectFit: 'cover',
+                      boxShadow: '0 12px 30px -4px rgba(0, 0, 0, 0.25)',
+                    },
+                  });
+                  showToast('Pasted image from clipboard! 🖼️', 'success');
+                };
+                img.src = dataUrl;
+              };
+              reader.readAsDataURL(file);
+              return;
+            }
+          }
+        }
+      }
+
+      // Check text in clipboard
+      const text = e.clipboardData?.getData('text');
+      if (text && text.trim()) {
+        const trimmed = text.trim();
+        // Check if studio element JSON
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (parsed.__studio_element && parsed.root) {
+            e.preventDefault();
+            setClipboard({ root: parsed.root, descendants: parsed.descendants || [] });
+            setTimeout(() => pasteElement(), 10);
+            return;
+          }
+        } catch {
+          // Plain text or URL
+        }
+
+        // Image URL check
+        if (
+          trimmed.match(/^https?:\/\/.+\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i) ||
+          trimmed.startsWith('data:image/') ||
+          trimmed.includes('images.unsplash.com')
+        ) {
+          e.preventDefault();
+          insertCustomImage(trimmed, 'Pasted Web Image');
+          showToast('Pasted image from web link! 🖼️', 'success');
+          return;
+        }
+
+        // If internal element clipboard was NOT used right now, paste text element
+        e.preventDefault();
+        addElement('text', undefined, undefined, null, {
+          name: 'Pasted Text',
+          content: trimmed,
+          width: Math.min(520, Math.max(220, trimmed.length * 8)),
+          height: Math.max(50, Math.min(260, Math.ceil(trimmed.length / 32) * 26)),
+          styles: {
+            fontSize: trimmed.length < 40 ? 24 : 15,
+            fontWeight: trimmed.length < 40 ? 700 : 400,
+            lineHeight: 1.5,
+          },
+        });
+        showToast('Pasted text element from clipboard! 📝', 'success');
+      }
+    };
+
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => window.removeEventListener('paste', handleGlobalPaste);
+  }, [addElement, insertCustomImage, pasteElement, showToast]);
+
   const value: EditorContextType = {
     project,
     activePage,
@@ -1586,6 +1868,13 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     toggleLeftSidebar,
     toggleRightSidebar,
 
+    editorComplexity,
+    setEditorComplexity,
+    toggleEditorComplexity,
+
+    showOnboarding,
+    setShowOnboarding,
+
     setEditorMode,
     setViewportMode,
     setZoom,
@@ -1594,6 +1883,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     selectElement,
 
     addElement,
+    insertCustomImage,
+    insertShape,
+    insertEmoji,
     addElements,
     updateElement,
     updateElementStyles,

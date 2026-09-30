@@ -3,6 +3,8 @@ import type { CanvasElement, ResizeHandleType } from '../../types/editor';
 import { useEditor } from '../../context/useEditor';
 import { ResizeHandles } from './ResizeHandles';
 import { Rocket, LayoutGrid, Layers, ArrowRight, ExternalLink, Sparkles, Download } from 'lucide-react';
+import { SHAPE_DEFINITIONS, getShapeSvgNode } from '../../utils/shapeDefinitions';
+import { triggerConfetti, playSound, type SoundEffectType } from '../../utils/interactiveEffects';
 
 interface CanvasElementComponentProps {
   element: CanvasElement;
@@ -18,9 +20,11 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
   canvasHeight,
 }) => {
   const {
+    project,
     activePage,
     selectElement,
     updateElement,
+    updatePageSettings,
     setElementParent,
     zoom,
     editorMode,
@@ -487,6 +491,32 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         showToast(payload || 'Action triggered successfully!', 'info');
       } else if (action === 'scroll-top') {
         window.dispatchEvent(new CustomEvent('canvas:scroll-top'));
+      } else if (action === 'confetti') {
+        triggerConfetti(e.clientX, e.clientY);
+        playSound('success');
+        showToast('🎉 Confetti Celebration!', 'success');
+      } else if (action === 'play-sound') {
+        playSound((payload as SoundEffectType) || 'success');
+      } else if (action === 'toggle-dark-mode') {
+        const active = project.pages.find((p) => p.id === project.activePageId);
+        if (active) {
+          const isDark = active.backgroundColor.toLowerCase() !== '#ffffff' && active.backgroundColor.toLowerCase() !== '#f8fafc';
+          updatePageSettings(active.id, { backgroundColor: isDark ? '#ffffff' : '#0c0e14' });
+          showToast(`Switched to ${isDark ? 'Light' : 'Dark'} mode`, 'info');
+        }
+      } else if (action === 'whatsapp' && payload) {
+        const cleanNumber = payload.replace(/[^0-9]/g, '');
+        window.open(`https://wa.me/${cleanNumber}`, '_blank');
+      } else if (action === 'share-page') {
+        if (navigator.share) {
+          navigator.share({ title: project.name, url: window.location.href }).catch(() => {});
+        } else {
+          navigator.clipboard?.writeText(window.location.href);
+          showToast('Copied page link to clipboard!', 'success');
+        }
+      } else if (action === 'copy-text' && payload) {
+        navigator.clipboard?.writeText(payload);
+        showToast(`Copied: "${payload}"`, 'success');
       }
     }
   };
@@ -681,11 +711,47 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         return (
           <img
             src={element.content || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80'}
-            alt={element.name}
+            alt={s.alt || element.name}
             className="w-full h-full pointer-events-none select-none"
-            style={{ objectFit: s.objectFit || 'cover' }}
+            style={{
+              objectFit: s.objectFit || 'cover',
+              borderRadius: `${s.borderRadius || 0}px`,
+              opacity: s.opacity ?? 1,
+            }}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src =
+                'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80';
+            }}
           />
         );
+
+      case 'shape': {
+        const shapeKind = s.shapeKind || 'circle';
+        const def = SHAPE_DEFINITIONS[shapeKind] || SHAPE_DEFINITIONS.circle;
+        const fillColor = s.gradient || s.backgroundColor || def.defaultColor;
+        const strokeColor = s.borderColor || 'none';
+        const strokeW = s.borderWidth || 0;
+        const svgNode = getShapeSvgNode(shapeKind, fillColor, strokeColor, strokeW);
+
+        return (
+          <div className="w-full h-full flex items-center justify-center pointer-events-none select-none overflow-hidden">
+            <svg
+              viewBox={def.viewBox}
+              className="w-full h-full drop-shadow-sm"
+              preserveAspectRatio="none"
+              style={{
+                filter: s.boxShadow ? `drop-shadow(${s.boxShadow})` : undefined,
+                transform: s.rotation ? `rotate(${s.rotation}deg)` : undefined,
+              }}
+            >
+              {svgNode.tag === 'circle' && <circle {...svgNode.props} />}
+              {svgNode.tag === 'rect' && <rect {...svgNode.props} />}
+              {svgNode.tag === 'polygon' && <polygon {...svgNode.props} />}
+              {svgNode.tag === 'path' && <path {...svgNode.props} />}
+            </svg>
+          </div>
+        );
+      }
 
       case 'divider':
         return (

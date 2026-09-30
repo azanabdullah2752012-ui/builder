@@ -49,9 +49,9 @@ export interface DatabaseStats {
 const LOCAL_USERS_KEY = 'studio_db_fallback_users';
 
 const DEFAULT_USERS: DatabaseUser[] = [
-  { id: 1, name: 'Azan Abdullah', email: 'azan@craftstudio.dev', plan: 'Pro Studio', role: 'admin', status: 'active', created_at: '2026-09-29 12:00:00' },
-  { id: 2, name: 'Elena Rostova', email: 'elena@visioncraft.ai', plan: 'Starter', role: 'user', status: 'active', created_at: '2026-09-29 12:30:00' },
-  { id: 3, name: 'Marcus Brody', email: 'marcus@hypergrowth.co', plan: 'Enterprise', role: 'user', status: 'active', created_at: '2026-09-29 13:00:00' },
+  { id: 1, name: 'Azan Abdullah', email: 'azan@craftstudio.dev', plan: 'Free (All Features Unlocked)', role: 'admin', status: 'active', created_at: '2026-09-29 12:00:00' },
+  { id: 2, name: 'Elena Rostova', email: 'elena@visioncraft.ai', plan: 'Free (All Features Unlocked)', role: 'user', status: 'active', created_at: '2026-09-29 12:30:00' },
+  { id: 3, name: 'Marcus Brody', email: 'marcus@hypergrowth.co', plan: 'Free (All Features Unlocked)', role: 'user', status: 'active', created_at: '2026-09-29 13:00:00' },
 ];
 
 function getLocalUsers(): DatabaseUser[] {
@@ -251,7 +251,7 @@ export const databaseService = {
             id: Date.now(),
             name: sbRes.user.user_metadata?.full_name || data.email.split('@')[0],
             email: sbRes.user.email || data.email,
-            plan: sbRes.user.user_metadata?.plan || 'Pro Studio',
+            plan: sbRes.user.user_metadata?.plan || 'Free (All Features Unlocked)',
             role: 'user',
             status: 'active',
             created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
@@ -276,7 +276,7 @@ export const databaseService = {
       id: Date.now(),
       name: data.email.split('@')[0],
       email: data.email,
-      plan: 'Pro Studio',
+      plan: 'Free (All Features Unlocked)',
       role: 'user',
       status: 'active',
       created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),

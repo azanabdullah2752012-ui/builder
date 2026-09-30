@@ -12,14 +12,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [plan, setPlan] = useState('Pro Studio');
   const [role, setRole] = useState('owner');
 
   useEffect(() => {
     if (currentUser) {
       setName(currentUser.name || '');
       setEmail(currentUser.email || '');
-      setPlan(currentUser.plan || 'Pro Studio');
       setRole(currentUser.role || 'owner');
     }
   }, [currentUser, isOpen]);
@@ -40,7 +38,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
     const updated = {
       name: name.trim(),
       email: email.trim(),
-      plan: plan.trim() || 'Pro Studio',
+      plan: 'Free (All Features Unlocked)',
       role: role.trim() || 'owner',
     };
 
@@ -116,31 +114,24 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
             </div>
           </div>
 
-          {/* Subscription Plan Selection */}
+          {/* Subscription Plan Selection - 100% Free with all features */}
           <div>
             <label className="block text-xs font-medium text-zinc-300 mb-1.5">
               Subscription Plan
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'Starter', label: 'Starter', badge: 'Free' },
-                { id: 'Pro Studio', label: 'Pro Studio', badge: '$29/mo' },
-                { id: 'Enterprise', label: 'Enterprise', badge: 'Custom' },
-              ].map((p) => (
-                <button
-                  type="button"
-                  key={p.id}
-                  onClick={() => setPlan(p.id)}
-                  className={`p-2.5 rounded-xl border text-left transition-all ${
-                    plan === p.id
-                      ? 'border-indigo-500 bg-indigo-500/10 text-white'
-                      : 'border-[#262c3d] bg-[#0c0e14] text-zinc-400 hover:border-zinc-700'
-                  }`}
-                >
-                  <div className="text-xs font-semibold">{p.label}</div>
-                  <div className="text-[10px] text-zinc-500 mt-0.5">{p.badge}</div>
-                </button>
-              ))}
+            <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>100% Free Forever • All Features Unlocked</span>
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
+                  No subscriptions, no tier restrictions, and no paywalls. Unlimited projects and full code export included.
+                </p>
+              </div>
+              <span className="shrink-0 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-semibold border border-emerald-500/30">
+                $0 / Free
+              </span>
             </div>
           </div>
 

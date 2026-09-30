@@ -32,14 +32,30 @@ export function createElement(
   type: ElementType,
   x = 100,
   y = 100,
-  zIndexOrParentId: number | string = 1,
-  optionalParentId: string | null = null
+  zIndexOrParentIdOrOverrides?: number | string | Partial<CanvasElement>,
+  optionalParentId?: string | null,
+  extraOverrides?: Partial<CanvasElement>
 ): CanvasElement {
-  const id = generateId();
-  const zIndex = typeof zIndexOrParentId === 'number' ? zIndexOrParentId : 1;
-  const parentId = typeof zIndexOrParentId === 'string' ? zIndexOrParentId : optionalParentId;
+  const isArg4Object =
+    typeof zIndexOrParentIdOrOverrides === 'object' && zIndexOrParentIdOrOverrides !== null;
+  const overrides: Partial<CanvasElement> | undefined = isArg4Object
+    ? (zIndexOrParentIdOrOverrides as Partial<CanvasElement>)
+    : extraOverrides;
 
-  switch (type) {
+  const id = overrides?.id || generateId();
+  const zIndex =
+    typeof zIndexOrParentIdOrOverrides === 'number'
+      ? zIndexOrParentIdOrOverrides
+      : overrides?.zIndex ?? 1;
+  const parentId =
+    typeof zIndexOrParentIdOrOverrides === 'string'
+      ? zIndexOrParentIdOrOverrides
+      : overrides?.parentId !== undefined
+      ? overrides.parentId
+      : optionalParentId ?? null;
+
+  const buildElement = (): CanvasElement => {
+    switch (type) {
     case 'section':
       return {
         id,
@@ -278,7 +294,60 @@ export function createElement(
           locked: false,
         },
       };
-  }
+
+    case 'shape':
+      return {
+        id,
+        name: 'Geometric Shape',
+        type: 'shape',
+        x,
+        y,
+        width: 120,
+        height: 120,
+        styles: {
+          backgroundColor: '#6366f1',
+          shapeKind: 'circle',
+          borderColor: '#4338ca',
+          borderWidth: 0,
+          opacity: 1,
+          boxShadow: '0 8px 24px -4px rgba(99, 102, 241, 0.35)',
+        },
+        role: 'none',
+        behavior: {
+          actionType: 'none',
+        },
+        locked: false,
+        zIndex,
+        parentId: parentId ?? null,
+        responsive: {
+          desktop: { mode: 'auto' },
+          tablet: { mode: 'auto', visible: true },
+          mobile: { mode: 'auto', visible: true },
+          locked: false,
+        },
+      };
+    }
+  };
+
+  const base = buildElement();
+  if (!overrides) return base;
+
+  return {
+    ...base,
+    ...overrides,
+    styles: {
+      ...base.styles,
+      ...(overrides.styles || {}),
+    },
+    behavior: {
+      ...base.behavior,
+      ...(overrides.behavior || {}),
+    },
+    responsive: {
+      ...base.responsive,
+      ...(overrides.responsive || {}),
+    },
+  };
 }
 
 export const INITIAL_PROJECT: ProjectState = {

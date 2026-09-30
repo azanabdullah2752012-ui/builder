@@ -1,5 +1,6 @@
 import type { CanvasElement } from '../types/editor';
 import { computeResponsiveLayout } from './responsiveLayout';
+import { SHAPE_DEFINITIONS, getShapeSvgNode } from './shapeDefinitions';
 
 export function generateExportHtml(
   project: {
@@ -163,6 +164,43 @@ export function generateExportHtml(
       clickAttr = ` onclick="const a=document.createElement('a');a.href='${payload}';a.download='';a.click();"`;
     } else if (action === 'custom-js' && payload) {
       clickAttr = ` onclick="${payload.replace(/"/g, '&quot;')}"`;
+    } else if (action === 'confetti') {
+      clickAttr = ` onclick="alert('🎉 Confetti Celebration!')"`;
+    } else if (action === 'play-sound') {
+      clickAttr = ` onclick="try{const c=new(window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator();const g=c.createGain();o.frequency.value=520;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+0.3);o.stop(c.currentTime+0.3);}catch(e){}"`;
+    } else if (action === 'toggle-dark-mode') {
+      clickAttr = ` onclick="document.body.style.backgroundColor = document.body.style.backgroundColor === 'rgb(12, 14, 20)' ? '#ffffff' : '#0c0e14'"`;
+    } else if (action === 'whatsapp' && payload) {
+      clickAttr = ` onclick="window.open('https://wa.me/${payload.replace(/[^0-9]/g, '')}', '_blank')"`;
+    } else if (action === 'share-page') {
+      clickAttr = ` onclick="if(navigator.share){navigator.share({title:document.title,url:window.location.href})}else{navigator.clipboard.writeText(window.location.href);alert('Link copied to clipboard!')}"`;
+    }
+
+    // Image element (or semantic image role)
+    if (el.type === 'image' || role === 'image') {
+      const imgSrc =
+        el.imageUrl ||
+        el.content ||
+        'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80';
+      const altText = el.styles?.alt || el.name || 'Image';
+      return `${indent}<img class="el-${el.id}" id="${el.id}" src="${imgSrc}" alt="${altText.replace(/"/g, '&quot;')}"${clickAttr} />`;
+    }
+
+    // Shape tag
+    if (el.type === 'shape') {
+      const shapeKind = el.styles.shapeKind || 'circle';
+      const def = SHAPE_DEFINITIONS[shapeKind] || SHAPE_DEFINITIONS.circle;
+      const fill = el.styles.gradient || el.styles.backgroundColor || def.defaultColor;
+      const stroke = el.styles.borderColor || 'none';
+      const strokeW = el.styles.borderWidth || 0;
+      const svgNode = getShapeSvgNode(shapeKind, fill, stroke, strokeW);
+      let svgInner = '';
+      if (svgNode.tag === 'circle') svgInner = `<circle cx="50" cy="50" r="47" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" />`;
+      else if (svgNode.tag === 'rect') svgInner = `<rect x="2" y="2" width="96" height="96" rx="${shapeKind === 'pill' ? 36 : shapeKind === 'rounded-rect' ? 16 : 0}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" />`;
+      else if (svgNode.tag === 'polygon') svgInner = `<polygon points="${(svgNode.props as any).points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" />`;
+      else if (svgNode.tag === 'path') svgInner = `<path d="${(svgNode.props as any).d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" />`;
+
+      return `${indent}<div class="el-${el.id}" id="${el.id}"${clickAttr}>\n${indent}  <svg viewBox="${def.viewBox}" style="width:100%;height:100%;" preserveAspectRatio="none">${svgInner}</svg>\n${indent}</div>`;
     }
 
     // Section tag
@@ -208,8 +246,6 @@ export function generateExportHtml(
         return `${indent}<button class="el-${el.id}" id="${el.id}" role="button"${clickAttr}>${text}</button>`;
       case 'link':
         return `${indent}<a class="el-${el.id}" id="${el.id}" href="${payload || '#'}"${clickAttr}>${text}</a>`;
-      case 'image':
-        return `${indent}<img class="el-${el.id}" id="${el.id}" src="${text || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80'}" alt="${el.name}" />`;
       case 'input':
         return `${indent}<input class="el-${el.id}" id="${el.id}" type="text" placeholder="${text || 'Enter text...'}" />`;
       case 'navigation':

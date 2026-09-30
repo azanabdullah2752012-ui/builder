@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEditor } from '../../context/useEditor';
 import type {
   SemanticRole,
   ActionType,
   ButtonIconType,
+  ShapeKind,
 } from '../../types/editor';
 import { FONT_FAMILIES } from '../../constants/defaults';
+import { STOCK_IMAGES } from '../../constants/stockMedia';
+import { SHAPE_DEFINITIONS } from '../../utils/shapeDefinitions';
+import { triggerConfetti, playSound, type SoundEffectType } from '../../utils/interactiveEffects';
 import { ColorPickerControl } from './ColorPickerControl';
 import {
   AlignLeft,
+  AlignCenter,
   AlignRight,
   AlignVerticalJustifyCenter,
   AlignHorizontalJustifyCenter,
@@ -27,6 +32,14 @@ import {
   Type,
   PanelRightClose,
   ArrowLeftRight,
+  ChevronDown,
+  ChevronUp,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Upload,
+  Shapes,
+  PartyPopper,
+  Volume2,
 } from 'lucide-react';
 
 export interface GradientConfig {
@@ -109,6 +122,11 @@ const ACTION_TYPES: { value: ActionType; label: string; icon: string; category: 
   { value: 'scroll-top', label: 'Scroll to Top', icon: '↑', category: 'Navigation', description: 'Smooth scroll viewport back to top' },
   { value: 'open-modal', label: 'Open Modal Popup', icon: '🪟', category: 'Interactive', description: 'Display interactive dialog overlay' },
   { value: 'toggle-visibility', label: 'Toggle Element Visibility', icon: '👁️', category: 'Interactive', description: 'Toggle show/hide of target element' },
+  { value: 'confetti', label: 'Trigger Confetti Burst', icon: '🎉', category: 'Effects', description: 'Celebratory particle confetti explosion' },
+  { value: 'play-sound', label: 'Play Sound Effect', icon: '🔊', category: 'Effects', description: 'Web Audio API synthesized sound tone' },
+  { value: 'toggle-dark-mode', label: 'Toggle Light/Dark Theme', icon: '🌓', category: 'Interactive', description: 'Toggle page dark and light mode' },
+  { value: 'whatsapp', label: 'Chat on WhatsApp', icon: '💬', category: 'Communication', description: 'Direct WhatsApp link with custom message' },
+  { value: 'share-page', label: 'Share / Copy Page Link', icon: '🔗', category: 'Utility', description: 'Web Share API or clipboard copy' },
   { value: 'copy-text', label: 'Copy to Clipboard', icon: '📋', category: 'Utility', description: 'Copy coupon code, promo or text' },
   { value: 'alert', label: 'Show Toast Alert', icon: '🔔', category: 'Utility', description: 'Trigger notification toast popup' },
   { value: 'email-mailto', label: 'Send Email (mailto:)', icon: '✉️', category: 'Communication', description: 'Open default email composer' },
@@ -149,12 +167,33 @@ export const PropertiesPanel: React.FC = () => {
     toggleRightSidebar,
     showToast,
     setActivePage,
+    editorComplexity,
   } = useEditor();
 
-  // 3 Primary Focused Tabs replacing the cluttered 10-accordion wall
+  // 3 Primary Focused Tabs
   const [activeTab, setActiveTab] = useState<'style' | 'hover' | 'layout'>('style');
   const [gradientSubTab, setGradientSubTab] = useState<'presets' | 'custom'>('presets');
   const [isLiveHoverPreview, setIsLiveHoverPreview] = useState(false);
+
+  // Progressive Disclosure states for simplified, uncluttered experience
+  const [showGradients, setShowGradients] = useState<boolean>(false);
+  const [showBorders, setShowBorders] = useState<boolean>(false);
+  const [showElevation, setShowElevation] = useState<boolean>(false);
+
+  // Auto-expand sections if the selected element already has active styling
+  useEffect(() => {
+    if (selectedElement) {
+      if (selectedElement.styles.gradient) {
+        setShowGradients(true);
+      }
+      if (selectedElement.styles.borderWidth && selectedElement.styles.borderWidth > 0) {
+        setShowBorders(true);
+      }
+      if (selectedElement.styles.boxShadow) {
+        setShowElevation(true);
+      }
+    }
+  }, [selectedElement?.id]);
 
   // If no element is selected, display Page Settings
   if (!selectedElement) {
@@ -267,6 +306,9 @@ export const PropertiesPanel: React.FC = () => {
   const isContainer = el.type === 'container';
   const isLayoutParent = isSection || isContainer;
   const hasTextContent = el.type === 'text' || el.type === 'button';
+  const isImage = el.type === 'image';
+  const isShape = el.type === 'shape';
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Toggle live hover preview on canvas
   const handleToggleLiveHover = () => {
@@ -390,7 +432,494 @@ export const PropertiesPanel: React.FC = () => {
         {/* TAB 1: 🎨 STYLE TAB                                            */}
         {/* ============================================================== */}
         {activeTab === 'style' && (
-          <div className="space-y-4">
+          <div className="space-y-3.5">
+            {/* Simple Mode Guidance Banner */}
+            {editorComplexity === 'simple' && (
+              <div className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-[11px] text-emerald-300">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Sparkles className="w-3 h-3 text-emerald-400" />
+                  <span>Simple Essentials Mode</span>
+                </span>
+                <span className="text-[10px] text-zinc-400">Click accordions for more</span>
+              </div>
+            )}
+
+            {/* 1. TEXT & CONTENT (Prominent & Top for Text/Buttons) */}
+            {hasTextContent && (
+              <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5 shadow-sm">
+                <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <Type className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Text & Content</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 px-1.5 py-0.5 rounded">
+                    Direct Edit
+                  </span>
+                </div>
+
+                {/* Direct Text Input */}
+                <div>
+                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Text Content</label>
+                  <textarea
+                    rows={2}
+                    value={el.content || ''}
+                    onChange={(e) => updateElement(el.id, { content: e.target.value }, true)}
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] focus:border-indigo-500 rounded-md text-white outline-none resize-y transition-colors"
+                    placeholder="Enter text..."
+                  />
+                </div>
+
+                {/* Color & Size Row */}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Text Color</label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="color"
+                        value={s.color || '#ffffff'}
+                        onChange={(e) => updateElementStyles(el.id, { color: e.target.value })}
+                        className="w-7 h-7 rounded border border-[#27272a] bg-transparent cursor-pointer shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={s.color || '#ffffff'}
+                        onChange={(e) => updateElementStyles(el.id, { color: e.target.value })}
+                        className="w-full bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Font Size</label>
+                    <div className="flex items-center bg-[#121214] border border-[#27272a] rounded px-2 py-1">
+                      <input
+                        type="number"
+                        min={9}
+                        max={120}
+                        value={s.fontSize || 15}
+                        onChange={(e) => updateElementStyles(el.id, { fontSize: Number(e.target.value) || 12 })}
+                        className="w-full bg-transparent text-zinc-200 outline-none text-xs font-mono"
+                      />
+                      <span className="text-[10px] text-zinc-500">px</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Alignment & Weight */}
+                <div className="flex items-center justify-between pt-1">
+                  {/* Alignment segmented toggle */}
+                  <div className="flex items-center bg-[#101420] border border-[#232c3f] rounded-lg p-0.5 gap-0.5">
+                    {[
+                      { align: 'left', icon: <AlignLeft className="w-3.5 h-3.5" /> },
+                      { align: 'center', icon: <AlignCenter className="w-3.5 h-3.5" /> },
+                      { align: 'right', icon: <AlignRight className="w-3.5 h-3.5" /> },
+                    ].map((a) => (
+                      <button
+                        key={a.align}
+                        type="button"
+                        onClick={() => updateElementStyles(el.id, { textAlign: a.align as any })}
+                        className={`p-1.5 rounded transition-all ${
+                          (s.textAlign || 'left') === a.align
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'text-zinc-400 hover:text-white'
+                        }`}
+                        title={`Align ${a.align}`}
+                      >
+                        {a.icon}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Font Weight */}
+                  <select
+                    value={s.fontWeight || '400'}
+                    onChange={(e) => updateElementStyles(el.id, { fontWeight: e.target.value })}
+                    className="bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
+                  >
+                    <option value="400">Regular (400)</option>
+                    <option value="500">Medium (500)</option>
+                    <option value="600">Semibold (600)</option>
+                    <option value="700">Bold (700)</option>
+                  </select>
+                </div>
+
+                {/* Font Family */}
+                <div className="pt-1.5 border-t border-[#222226] flex items-center justify-between">
+                  <span className="text-zinc-400 text-[10px]">Font Family</span>
+                  <select
+                    value={s.fontFamily || FONT_FAMILIES[0].value}
+                    onChange={(e) => updateElementStyles(el.id, { fontFamily: e.target.value })}
+                    className="w-36 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
+                  >
+                    <option value="Inter, -apple-system, sans-serif">Inter UI</option>
+                    {FONT_FAMILIES.map((f) => (
+                      <option key={f.label} value={f.value}>{f.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* 1.1 IMAGE MEDIA & SOURCE */}
+            {isImage && (
+              <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-3 shadow-sm">
+                <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Image Media & Source</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 px-1.5 py-0.5 rounded">
+                    Photo / Graphic
+                  </span>
+                </div>
+
+                {/* Hidden File Input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const dataUrl = event.target?.result as string;
+                      if (!dataUrl) return;
+                      const img = new Image();
+                      img.onload = () => {
+                        let w = img.naturalWidth || el.width;
+                        let h = img.naturalHeight || el.height;
+                        const maxW = 500;
+                        if (w > maxW) {
+                          h = Math.round((h * maxW) / w);
+                          w = maxW;
+                        }
+                        updateElement(
+                          el.id,
+                          {
+                            content: dataUrl,
+                            width: w,
+                            height: h,
+                            name: file.name ? `Image (${file.name})` : el.name,
+                          },
+                          true
+                        );
+                        showToast(`Uploaded image "${file.name}"! 📸`, 'success');
+                      };
+                      img.src = dataUrl;
+                    };
+                    reader.readAsDataURL(file);
+                    e.target.value = '';
+                  }}
+                />
+
+                {/* Image Preview & Upload Button */}
+                <div className="flex gap-2.5 items-center">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden border border-[#2e2e34] bg-zinc-900 shrink-0 relative group">
+                    <img
+                      src={
+                        el.content ||
+                        'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80'
+                      }
+                      alt={el.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full py-1.5 px-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload from Device</span>
+                    </button>
+                    <span className="text-[10px] text-zinc-500 block text-center">
+                      PNG, JPG, SVG, WebP supported
+                    </span>
+                  </div>
+                </div>
+
+                {/* Image URL Input */}
+                <div>
+                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Image Source URL</label>
+                  <input
+                    type="text"
+                    value={el.content || ''}
+                    onChange={(e) => updateElement(el.id, { content: e.target.value }, true)}
+                    placeholder="https://..."
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] focus:border-indigo-500 rounded-md text-white outline-none font-mono transition-colors"
+                  />
+                </div>
+
+                {/* Alt Text */}
+                <div>
+                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">
+                    Alt Description (SEO & Accessibility)
+                  </label>
+                  <input
+                    type="text"
+                    value={s.alt || ''}
+                    onChange={(e) => updateElementStyles(el.id, { alt: e.target.value })}
+                    placeholder="Describe the image..."
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] focus:border-indigo-500 rounded-md text-white outline-none transition-colors"
+                  />
+                </div>
+
+                {/* Object Fit & Aspect Ratio */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Object Fit</label>
+                    <select
+                      value={s.objectFit || 'cover'}
+                      onChange={(e) => updateElementStyles(el.id, { objectFit: e.target.value as any })}
+                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
+                    >
+                      <option value="cover">Cover (Fill & Crop)</option>
+                      <option value="contain">Contain (Full View)</option>
+                      <option value="fill">Fill (Stretch)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Shape Preset</label>
+                    <div className="flex bg-[#121214] border border-[#27272a] rounded p-0.5 gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => updateElementStyles(el.id, { borderRadius: 0 })}
+                        className={`flex-1 py-0.5 text-[10px] font-medium rounded ${
+                          !s.borderRadius ? 'bg-[#27272a] text-white' : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        Square
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateElementStyles(el.id, { borderRadius: 12 })}
+                        className={`flex-1 py-0.5 text-[10px] font-medium rounded ${
+                          s.borderRadius === 12 ? 'bg-[#27272a] text-white' : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        Round
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateElementStyles(el.id, { borderRadius: 9999 })}
+                        className={`flex-1 py-0.5 text-[10px] font-medium rounded ${
+                          s.borderRadius === 9999 ? 'bg-[#27272a] text-white' : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        Circle
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stock Presets Row */}
+                <div>
+                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Quick Stock Presets</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {STOCK_IMAGES.map((img) => (
+                      <button
+                        key={img.id}
+                        type="button"
+                        onClick={() => updateElement(el.id, { content: img.url, name: img.name }, true)}
+                        className="rounded-lg overflow-hidden border border-[#2a2a30] hover:border-indigo-500 aspect-[4/3] relative group"
+                        title={img.name}
+                      >
+                        <img src={img.thumbnail} alt={img.name} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-0.5 left-1 right-1 text-[8px] text-white truncate drop-shadow">
+                          {img.name.split(' ')[0]}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 1.2 SHAPE GEOMETRY & STYLING */}
+            {isShape && (
+              <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-3 shadow-sm">
+                <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <Shapes className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Shape Geometry</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 px-1.5 py-0.5 rounded">
+                    SVG Vector
+                  </span>
+                </div>
+
+                {/* Shape Type Picker */}
+                <div>
+                  <label className="text-[10px] text-zinc-400 font-medium block mb-1.5">Choose Shape</label>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {(Object.keys(SHAPE_DEFINITIONS) as ShapeKind[]).map((kind) => {
+                      const def = SHAPE_DEFINITIONS[kind];
+                      const isCurrent = (s.shapeKind || 'circle') === kind;
+                      return (
+                        <button
+                          key={kind}
+                          type="button"
+                          onClick={() => updateElementStyles(el.id, { shapeKind: kind })}
+                          className={`p-1.5 rounded-lg flex flex-col items-center justify-center border transition-all ${
+                            isCurrent
+                              ? 'bg-purple-600/20 border-purple-500 text-white'
+                              : 'bg-[#121214] border-[#27272a] text-zinc-400 hover:text-white hover:border-zinc-600'
+                          }`}
+                          title={def.label}
+                        >
+                          <svg viewBox={def.viewBox} className="w-5 h-5 mb-0.5" style={{ color: def.defaultColor }}>
+                            {kind === 'circle' && <circle cx="50" cy="50" r="44" fill="currentColor" />}
+                            {kind === 'rectangle' && <rect x="8" y="8" width="84" height="84" fill="currentColor" />}
+                            {kind === 'rounded-rect' && <rect x="8" y="8" width="84" height="84" rx="18" fill="currentColor" />}
+                            {kind === 'pill' && <rect x="6" y="14" width="148" height="52" rx="26" fill="currentColor" />}
+                            {kind === 'triangle' && <polygon points="50,10 90,90 10,90" fill="currentColor" />}
+                            {kind === 'star' && <polygon points="50,8 63,36 94,36 69,56 78,88 50,68 22,88 31,56 6,36 37,36" fill="currentColor" />}
+                            {kind === 'diamond' && <polygon points="50,8 92,50 50,92 8,50" fill="currentColor" />}
+                            {kind === 'heart' && <path d="M50,84 C22,60 8,46 8,30 C8,16 18,8 31,8 C39,8 46,12 50,18 C54,12 61,8 69,8 C82,8 92,16 92,30 C92,46 78,60 50,84 Z" fill="currentColor" />}
+                            {kind === 'hexagon' && <polygon points="50,8 90,29 90,71 50,92 10,71 10,29" fill="currentColor" />}
+                            {kind === 'arrow-right' && <path d="M12,38 L56,38 L56,20 L88,50 L56,80 L56,62 L12,62 Z" fill="currentColor" />}
+                          </svg>
+                          <span className="text-[8px] truncate w-full text-center">{def.label.split(' ')[0]}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Rotation & Stroke Width */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">
+                      Rotation ({s.rotation || 0}°)
+                    </label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      value={s.rotation || 0}
+                      onChange={(e) => updateElementStyles(el.id, { rotation: Number(e.target.value) })}
+                      className="w-full accent-purple-500 cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Stroke Width</label>
+                    <div className="flex items-center bg-[#121214] border border-[#27272a] rounded px-2 py-1">
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={s.borderWidth || 0}
+                        onChange={(e) => updateElementStyles(el.id, { borderWidth: Number(e.target.value) || 0 })}
+                        className="w-full bg-transparent text-zinc-200 outline-none text-xs font-mono"
+                      />
+                      <span className="text-[10px] text-zinc-500">px</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Click Action / Link for Buttons & Links */}
+            {(el.type === 'button' || el.role === 'button' || el.role === 'link') && (
+              <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <LinkIcon className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Click Action / Destination</span>
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <select
+                    value={b.actionType || 'none'}
+                    onChange={(e) => updateElementBehavior(el.id, { actionType: e.target.value as ActionType })}
+                    className="w-full bg-[#121214] border border-[#27272a] rounded px-2.5 py-1 text-zinc-200 outline-none text-xs"
+                  >
+                    <option value="none">No Action (Static)</option>
+                    <option value="navigate-url">Open Web Link (URL)</option>
+                    <option value="navigate-page">Switch to Page</option>
+                    <option value="confetti">🎉 Trigger Confetti Burst</option>
+                    <option value="play-sound">🔊 Play Sound Effect</option>
+                    <option value="toggle-dark-mode">🌓 Toggle Dark/Light Theme</option>
+                    <option value="whatsapp">💬 WhatsApp Direct Chat</option>
+                    <option value="share-page">🔗 Share Page Link</option>
+                    <option value="scroll-section">Scroll to Section</option>
+                    <option value="scroll-top">Scroll to Top</option>
+                  </select>
+
+                  {b.actionType === 'confetti' && (
+                    <button
+                      type="button"
+                      onClick={() => triggerConfetti()}
+                      className="w-full py-1.5 px-2 bg-pink-600 hover:bg-pink-500 text-white rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <PartyPopper className="w-3.5 h-3.5" />
+                      <span>Test Confetti Now</span>
+                    </button>
+                  )}
+
+                  {b.actionType === 'play-sound' && (
+                    <div className="flex gap-1.5">
+                      <select
+                        value={b.actionPayload || 'success'}
+                        onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                        className="flex-1 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-xs text-white outline-none"
+                      >
+                        <option value="success">Success Chime</option>
+                        <option value="chime">Triple Chime</option>
+                        <option value="pop">Bubbly Pop</option>
+                        <option value="click">Subtle Click</option>
+                        <option value="bell">Notification Bell</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => playSound((b.actionPayload as SoundEffectType) || 'success')}
+                        className="px-2.5 py-1 bg-[#222226] hover:bg-[#27272a] text-white rounded text-xs transition-colors flex items-center gap-1"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                        <span>Test</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {b.actionType === 'whatsapp' && (
+                    <input
+                      type="text"
+                      value={b.actionPayload || ''}
+                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                      placeholder="Phone with country code (e.g. +14155552671)"
+                      className="w-full px-2.5 py-1 text-xs bg-[#121214] border border-[#27272a] rounded text-white outline-none font-mono"
+                    />
+                  )}
+
+                  {b.actionType === 'navigate-url' && (
+                    <input
+                      type="text"
+                      value={b.actionPayload || ''}
+                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                      placeholder="https://example.com or /signup"
+                      className="w-full px-2.5 py-1 text-xs bg-[#121214] border border-[#27272a] rounded text-white outline-none"
+                    />
+                  )}
+
+                  {b.actionType === 'navigate-page' && (
+                    <select
+                      value={b.actionPayload || activePage.id}
+                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2.5 py-1 text-zinc-200 outline-none text-xs"
+                    >
+                      {project.pages.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name} ({p.slug})</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Fill & Gradients */}
             <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5">
               <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
@@ -402,67 +931,107 @@ export const PropertiesPanel: React.FC = () => {
                 )}
               </div>
 
-              {/* Solid vs Gradient Segmented Switch */}
-              <div className="flex items-center bg-[#101420] border border-[#232c3f] rounded-lg p-0.5 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (s.gradient) {
-                      updateElementStyles(el.id, { gradient: undefined, backgroundColor: s.backgroundColor || '#4f46e5' });
-                    }
-                  }}
-                  className={`flex-1 py-1 rounded text-center font-medium transition-all ${
-                    !s.gradient ? 'bg-indigo-600 text-white font-semibold shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  Solid Color
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!s.gradient) {
-                      updateElementStyles(el.id, { gradient: GRADIENT_PRESETS[0].value });
-                    }
-                  }}
-                  className={`flex-1 py-1 rounded text-center font-medium flex items-center justify-center gap-1 transition-all ${
-                    s.gradient ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  <Sparkles className="w-3 h-3 text-amber-300" />
-                  <span>Gradient</span>
-                </button>
+              {/* Solid Color Picker */}
+              <div className="flex items-center justify-between pt-0.5">
+                <span className="text-zinc-400 text-[11px]">Solid Color</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={s.backgroundColor && s.backgroundColor !== 'transparent' ? s.backgroundColor : '#4f46e5'}
+                    onChange={(e) => updateElementStyles(el.id, { backgroundColor: e.target.value, gradient: undefined })}
+                    className="w-7 h-7 rounded-md border border-[#2e2e34] bg-transparent cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={s.backgroundColor || '#4f46e5'}
+                    onChange={(e) => updateElementStyles(el.id, { backgroundColor: e.target.value, gradient: undefined })}
+                    className="w-24 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => updateElementStyles(el.id, { backgroundColor: 'transparent', gradient: undefined })}
+                    className="w-7 h-7 rounded-md border border-[#2e2e34] bg-[#121214] text-zinc-500 hover:text-zinc-300 flex items-center justify-center text-xs"
+                    title="Clear fill"
+                  >
+                    ⊘
+                  </button>
+                </div>
               </div>
 
-              {!s.gradient ? (
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-zinc-400 text-[11px]">Color</span>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={s.backgroundColor && s.backgroundColor !== 'transparent' ? s.backgroundColor : '#18181b'}
-                      onChange={(e) => updateElementStyles(el.id, { backgroundColor: e.target.value })}
-                      className="w-7 h-7 rounded-md border border-[#2e2e34] bg-transparent cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={s.backgroundColor || '#18181b'}
-                      onChange={(e) => updateElementStyles(el.id, { backgroundColor: e.target.value })}
-                      className="w-24 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs font-mono"
-                    />
+              {/* 6 Quick Palette Swatches */}
+              <div className="flex items-center justify-between pt-0.5">
+                <span className="text-[10px] text-zinc-500">Quick Swatches</span>
+                <div className="flex items-center gap-1.5">
+                  {[
+                    { color: '#4f46e5', label: 'Indigo' },
+                    { color: '#7c3aed', label: 'Purple' },
+                    { color: '#10b981', label: 'Emerald' },
+                    { color: '#0ea5e9', label: 'Sky' },
+                    { color: '#18181b', label: 'Dark' },
+                    { color: '#ffffff', label: 'White' },
+                  ].map((sw) => (
                     <button
+                      key={sw.color}
                       type="button"
-                      onClick={() => updateElementStyles(el.id, { backgroundColor: 'transparent' })}
-                      className="w-7 h-7 rounded-md border border-[#2e2e34] bg-[#121214] text-zinc-500 hover:text-zinc-300 flex items-center justify-center text-xs"
-                      title="Clear fill"
-                    >
-                      ⊘
-                    </button>
-                  </div>
+                      onClick={() => updateElementStyles(el.id, { backgroundColor: sw.color, gradient: undefined })}
+                      style={{ backgroundColor: sw.color }}
+                      className="w-4 h-4 rounded-full border border-white/20 hover:scale-125 transition-transform"
+                      title={sw.label}
+                    />
+                  ))}
                 </div>
-              ) : (
-                /* Advanced Gradient Studio */
-                (() => {
-                  const currentGrad = parseGradient(s.gradient);
+              </div>
+
+              {/* Collapsible Gradients & Advanced Effects Toggle */}
+              <div className="pt-2 border-t border-[#222226]">
+                <button
+                  type="button"
+                  onClick={() => setShowGradients(!showGradients)}
+                  className="w-full flex items-center justify-between text-xs text-indigo-300 hover:text-indigo-200 transition-colors py-0.5"
+                >
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Gradients & Special Effects</span>
+                  </span>
+                  {showGradients ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                {showGradients && (
+                  <div className="pt-2.5 space-y-2.5">
+                    {/* Solid vs Gradient Segmented Switch */}
+                    <div className="flex items-center bg-[#101420] border border-[#232c3f] rounded-lg p-0.5 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (s.gradient) {
+                            updateElementStyles(el.id, { gradient: undefined, backgroundColor: s.backgroundColor || '#4f46e5' });
+                          }
+                        }}
+                        className={`flex-1 py-1 rounded text-center font-medium transition-all ${
+                          !s.gradient ? 'bg-indigo-600 text-white font-semibold shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
+                        }`}
+                      >
+                        Solid Color
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!s.gradient) {
+                            updateElementStyles(el.id, { gradient: GRADIENT_PRESETS[0].value });
+                          }
+                        }}
+                        className={`flex-1 py-1 rounded text-center font-medium flex items-center justify-center gap-1 transition-all ${
+                          s.gradient ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
+                        }`}
+                      >
+                        <Sparkles className="w-3 h-3 text-amber-300" />
+                        <span>Gradient</span>
+                      </button>
+                    </div>
+
+                    {s.gradient && (
+                      (() => {
+                        const currentGrad = parseGradient(s.gradient);
 
                   const handleUpdateCustom = (updates: Partial<GradientConfig>) => {
                     const merged = { ...currentGrad, ...updates };
@@ -746,194 +1315,179 @@ export const PropertiesPanel: React.FC = () => {
                   );
                 })()
               )}
-            </div>
-
-            {/* Borders & Corners */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5">
-              <span className="text-zinc-200 font-medium text-xs block">Borders & Corners</span>
-
-              {/* Radius */}
-              <div className="flex items-center justify-between">
-                <span className="text-zinc-400 text-[11px]">Radius</span>
-                <div className="flex items-center gap-1">
-                  {[0, 8, 12, 16, 9999].map((rad) => (
-                    <button
-                      key={rad}
-                      type="button"
-                      onClick={() => updateElementStyles(el.id, { borderRadius: rad })}
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                        (s.borderRadius ?? 0) === rad
-                          ? 'bg-indigo-600 text-white border-indigo-500 font-semibold shadow-sm'
-                          : 'bg-[#141824] text-zinc-400 border-[#263148] hover:text-white hover:border-indigo-500/40'
-                      }`}
-                    >
-                      {rad === 9999 ? 'Pill' : `${rad}px`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Stroke Width & Color */}
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-zinc-400 text-[11px]">Stroke</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={s.borderColor || '#27272a'}
-                    onChange={(e) =>
-                      updateElementStyles(el.id, {
-                        borderColor: e.target.value,
-                        borderWidth: s.borderWidth || 1,
-                        borderStyle: 'solid',
-                      })
-                    }
-                    className="w-7 h-7 rounded-md border border-[#2e2e34] bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    max={12}
-                    value={s.borderWidth || 0}
-                    onChange={(e) =>
-                      updateElementStyles(el.id, {
-                        borderWidth: Number(e.target.value) || 0,
-                        borderStyle: Number(e.target.value) > 0 ? 'solid' : 'none',
-                      })
-                    }
-                    className="w-12 bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs text-center font-mono"
-                    placeholder="0px"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => updateElementStyles(el.id, { borderWidth: 0, borderStyle: 'none' })}
-                    className="w-7 h-7 rounded-md border border-[#2e2e34] bg-[#121214] text-zinc-500 hover:text-zinc-300 flex items-center justify-center text-xs"
-                    title="Clear stroke"
-                  >
-                    ⊘
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Typography (Contextual: for text, button, or elements with font properties) */}
-            {hasTextContent && (
-              <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5">
-                <div className="flex items-center gap-1.5 text-zinc-200 font-medium text-xs">
-                  <Type className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Typography</span>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  {/* Font Family */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400 text-[11px]">Font</span>
-                    <select
-                      value={s.fontFamily || FONT_FAMILIES[0].value}
-                      onChange={(e) => updateElementStyles(el.id, { fontFamily: e.target.value })}
-                      className="w-36 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
-                    >
-                      <option value="Inter, -apple-system, sans-serif">Inter UI</option>
-                      {FONT_FAMILIES.map((f) => (
-                        <option key={f.label} value={f.value}>{f.label}</option>
-                      ))}
-                    </select>
                   </div>
+                )}
+              </div>
+            </div>
 
-                  {/* Size & Weight */}
+            {/* Dimensions & Size (Essential sizing) */}
+            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
+              <span className="text-zinc-200 font-medium text-xs block">Dimensions & Sizing</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <span className="text-[10px] text-zinc-400 block mb-1">Width</span>
+                  <div className="flex items-center bg-[#121214] border border-[#27272a] rounded px-2 py-1">
+                    <input
+                      type="number"
+                      value={el.width}
+                      onChange={(e) => updateElement(el.id, { width: Math.max(10, Number(e.target.value) || 10) }, true)}
+                      className="w-full bg-transparent text-zinc-200 outline-none text-xs font-mono"
+                    />
+                    <span className="text-[10px] text-zinc-500">px</span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] text-zinc-400 block mb-1">Height</span>
+                  <div className="flex items-center bg-[#121214] border border-[#27272a] rounded px-2 py-1">
+                    <input
+                      type="number"
+                      value={el.height}
+                      onChange={(e) => updateElement(el.id, { height: Math.max(10, Number(e.target.value) || 10) }, true)}
+                      className="w-full bg-transparent text-zinc-200 outline-none text-xs font-mono"
+                    />
+                    <span className="text-[10px] text-zinc-500">px</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Progressive Disclosure: Borders & Rounded Corners */}
+            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowBorders(!showBorders)}
+                className="w-full flex items-center justify-between text-xs text-zinc-200 hover:text-white transition-colors"
+              >
+                <span className="font-medium">Borders & Rounded Corners</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-mono text-zinc-400 bg-[#121214] px-1.5 py-0.5 rounded border border-[#27272a]">
+                    {s.borderRadius === 9999 ? 'Pill' : `${s.borderRadius ?? 0}px`}
+                  </span>
+                  {showBorders ? <ChevronUp className="w-3.5 h-3.5 text-zinc-400" /> : <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />}
+                </div>
+              </button>
+
+              {showBorders && (
+                <div className="pt-2 space-y-2.5 border-t border-[#222226]">
+                  {/* Radius */}
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-400 text-[11px]">Size / Weight</span>
-                    <div className="flex items-center gap-1.5 w-36">
-                      <input
-                        type="number"
-                        value={s.fontSize || 15}
-                        onChange={(e) => updateElementStyles(el.id, { fontSize: Number(e.target.value) || 12 })}
-                        className="w-16 bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs text-center font-mono"
-                      />
-                      <select
-                        value={s.fontWeight || '400'}
-                        onChange={(e) => updateElementStyles(el.id, { fontWeight: e.target.value })}
-                        className="w-full bg-[#121214] border border-[#27272a] rounded px-1 py-1 text-zinc-200 outline-none text-xs"
-                      >
-                        <option value="400">Regular</option>
-                        <option value="500">Medium</option>
-                        <option value="600">Semibold</option>
-                        <option value="700">Bold</option>
-                      </select>
+                    <span className="text-zinc-400 text-[11px]">Radius</span>
+                    <div className="flex items-center gap-1">
+                      {[0, 8, 12, 16, 9999].map((rad) => (
+                        <button
+                          key={rad}
+                          type="button"
+                          onClick={() => updateElementStyles(el.id, { borderRadius: rad })}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                            (s.borderRadius ?? 0) === rad
+                              ? 'bg-indigo-600 text-white border-indigo-500 font-semibold shadow-sm'
+                              : 'bg-[#141824] text-zinc-400 border-[#263148] hover:text-white hover:border-indigo-500/40'
+                          }`}
+                        >
+                          {rad === 9999 ? 'Pill' : `${rad}px`}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Text Color */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400 text-[11px]">Text Color</span>
-                    <div className="flex items-center gap-1.5 w-36">
-                      <input
-                        type="text"
-                        value={s.color || '#ffffff'}
-                        onChange={(e) => updateElementStyles(el.id, { color: e.target.value })}
-                        className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs font-mono"
-                      />
+                  {/* Stroke Width & Color */}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-zinc-400 text-[11px]">Stroke</span>
+                    <div className="flex items-center gap-2">
                       <input
                         type="color"
-                        value={s.color || '#ffffff'}
-                        onChange={(e) => updateElementStyles(el.id, { color: e.target.value })}
-                        className="w-6 h-6 rounded border border-[#27272a] bg-transparent cursor-pointer shrink-0"
+                        value={s.borderColor || '#27272a'}
+                        onChange={(e) =>
+                          updateElementStyles(el.id, {
+                            borderColor: e.target.value,
+                            borderWidth: s.borderWidth || 1,
+                            borderStyle: 'solid',
+                          })
+                        }
+                        className="w-7 h-7 rounded-md border border-[#2e2e34] bg-transparent cursor-pointer"
                       />
+                      <input
+                        type="number"
+                        min={0}
+                        max={12}
+                        value={s.borderWidth || 0}
+                        onChange={(e) =>
+                          updateElementStyles(el.id, {
+                            borderWidth: Number(e.target.value) || 0,
+                            borderStyle: Number(e.target.value) > 0 ? 'solid' : 'none',
+                          })
+                        }
+                        className="w-12 bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs text-center font-mono"
+                        placeholder="0px"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateElementStyles(el.id, { borderWidth: 0, borderStyle: 'none' })}
+                        className="w-7 h-7 rounded-md border border-[#2e2e34] bg-[#121214] text-zinc-500 hover:text-zinc-300 flex items-center justify-center text-xs"
+                        title="Clear stroke"
+                      >
+                        ⊘
+                      </button>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
 
-                  {/* Content Edit */}
-                  <div className="pt-1.5 border-t border-[#222226]">
-                    <span className="text-zinc-400 text-[11px] block mb-1">Content</span>
-                    <textarea
-                      rows={2}
-                      value={el.content || ''}
-                      onChange={(e) => updateElement(el.id, { content: e.target.value }, true)}
-                      className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded-md text-zinc-200 outline-none focus:border-indigo-500 resize-y"
-                      placeholder="Enter text..."
-                    />
+            {/* Progressive Disclosure: Elevation & Shadows */}
+            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowElevation(!showElevation)}
+                className="w-full flex items-center justify-between text-xs text-zinc-200 hover:text-white transition-colors"
+              >
+                <span className="font-medium">Elevation & Shadows</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-mono text-zinc-400 bg-[#121214] px-1.5 py-0.5 rounded border border-[#27272a]">
+                    {s.boxShadow ? 'Shadowed' : 'Flat'}
+                  </span>
+                  {showElevation ? <ChevronUp className="w-3.5 h-3.5 text-zinc-400" /> : <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />}
+                </div>
+              </button>
+
+              {showElevation && (
+                <div className="pt-2 space-y-2.5 border-t border-[#222226]">
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-400 text-[11px]">Shadow</span>
+                      <select
+                        value={s.boxShadow || ''}
+                        onChange={(e) => updateElementStyles(el.id, { boxShadow: e.target.value || undefined })}
+                        className="w-40 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
+                      >
+                        <option value="">None</option>
+                        <option value="0 4px 12px rgba(0,0,0,0.15)">Subtle Soft</option>
+                        <option value="0 10px 25px -5px rgba(0,0,0,0.4)">Elevated Card</option>
+                        <option value="0 20px 40px -10px rgba(0,0,0,0.6)">Deep Float</option>
+                        <option value="0 0 25px rgba(99, 102, 241, 0.4)">Indigo Glow</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-400 text-[11px]">Opacity</span>
+                      <div className="flex items-center gap-2 w-40">
+                        <input
+                          type="range"
+                          min={0.1}
+                          max={1}
+                          step={0.05}
+                          value={s.opacity ?? 1}
+                          onChange={(e) => updateElementStyles(el.id, { opacity: Number(e.target.value) })}
+                          className="w-full accent-indigo-500 cursor-pointer"
+                        />
+                        <span className="font-mono text-[11px] text-zinc-300 w-8 text-right">
+                          {Math.round((s.opacity ?? 1) * 100)}%
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Shadow & Opacity */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5">
-              <span className="text-zinc-200 font-medium text-xs block">Elevation & Opacity</span>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-400 text-[11px]">Shadow</span>
-                  <select
-                    value={s.boxShadow || ''}
-                    onChange={(e) => updateElementStyles(el.id, { boxShadow: e.target.value || undefined })}
-                    className="w-40 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
-                  >
-                    <option value="">None</option>
-                    <option value="0 4px 12px rgba(0,0,0,0.15)">Subtle Soft</option>
-                    <option value="0 10px 25px -5px rgba(0,0,0,0.4)">Elevated Card</option>
-                    <option value="0 20px 40px -10px rgba(0,0,0,0.6)">Deep Float</option>
-                    <option value="0 0 25px rgba(99, 102, 241, 0.4)">Indigo Glow</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-400 text-[11px]">Opacity</span>
-                  <div className="flex items-center gap-2 w-40">
-                    <input
-                      type="range"
-                      min={0.1}
-                      max={1}
-                      step={0.05}
-                      value={s.opacity ?? 1}
-                      onChange={(e) => updateElementStyles(el.id, { opacity: Number(e.target.value) })}
-                      className="w-full accent-indigo-500 cursor-pointer"
-                    />
-                    <span className="font-mono text-[11px] text-zinc-300 w-8 text-right">
-                      {Math.round((s.opacity ?? 1) * 100)}%
-                    </span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}
@@ -1541,7 +2095,7 @@ export const PropertiesPanel: React.FC = () => {
                     onChange={(e) => updateElementBehavior(el.id, { actionType: e.target.value as ActionType })}
                     className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
                   >
-                    {['General', 'Navigation', 'Interactive', 'Utility', 'Communication', 'Advanced'].map((cat) => (
+                    {['General', 'Navigation', 'Interactive', 'Effects', 'Utility', 'Communication', 'Advanced'].map((cat) => (
                       <optgroup key={cat} label={`— ${cat} —`}>
                         {ACTION_TYPES.filter((a) => a.category === cat).map((a) => (
                           <option key={a.value} value={a.value}>
@@ -1766,6 +2320,90 @@ export const PropertiesPanel: React.FC = () => {
                   </div>
                 )}
 
+                {/* 13. Confetti Effect */}
+                {b.actionType === 'confetti' && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">Confetti Trigger Effect</span>
+                    <p className="text-[11px] text-zinc-400 bg-[#121214] p-2 rounded border border-[#27272a] leading-relaxed">
+                      Launches an interactive celebratory confetti explosion with gravity, particle drag, and physics when clicked.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerConfetti();
+                        playSound('success');
+                        showToast('🎉 Confetti Celebration!', 'success');
+                      }}
+                      className="w-full py-1.5 px-3 rounded-lg bg-pink-600/20 hover:bg-pink-600/30 text-pink-300 border border-pink-500/30 flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors"
+                    >
+                      <PartyPopper className="w-3.5 h-3.5" />
+                      <span>Launch Preview Confetti</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* 14. Sound Effect */}
+                {b.actionType === 'play-sound' && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">Sound Tone</span>
+                    <div className="flex gap-2">
+                      <select
+                        value={b.actionPayload || 'success'}
+                        onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                        className="flex-1 bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
+                      >
+                        <option value="success">Success Chime</option>
+                        <option value="chime">Triple Ascending Chime</option>
+                        <option value="pop">Bubbly Pop</option>
+                        <option value="click">Subtle Click</option>
+                        <option value="bell">Notification Bell</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => playSound((b.actionPayload as SoundEffectType) || 'success')}
+                        className="px-3 py-1.5 bg-[#222226] hover:bg-[#27272a] text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                        <span>Play</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 15. Toggle Dark/Light Theme */}
+                {b.actionType === 'toggle-dark-mode' && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">Theme Toggle</span>
+                    <p className="text-[11px] text-zinc-400 bg-[#121214] p-2 rounded border border-[#27272a] leading-relaxed">
+                      Toggles between dark mode (#0c0e14) and light mode (#ffffff) on the canvas and preview mode.
+                    </p>
+                  </div>
+                )}
+
+                {/* 16. WhatsApp Direct Link */}
+                {b.actionType === 'whatsapp' && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">WhatsApp Number (with Country Code)</span>
+                    <input
+                      type="text"
+                      value={b.actionPayload || ''}
+                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                      placeholder="+14155552671"
+                      className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
+                    />
+                  </div>
+                )}
+
+                {/* 17. Share Page */}
+                {b.actionType === 'share-page' && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">Share Link</span>
+                    <p className="text-[11px] text-zinc-400 bg-[#121214] p-2 rounded border border-[#27272a] leading-relaxed">
+                      Triggers native Web Share API on mobile devices or copies page URL to clipboard on desktop.
+                    </p>
+                  </div>
+                )}
+
                 {/* Live Action Test Trigger */}
                 {b.actionType !== 'none' && (
                   <div className="pt-2 border-t border-[#222226]">
@@ -1793,6 +2431,27 @@ export const PropertiesPanel: React.FC = () => {
                         } else if (b.actionType === 'toggle-visibility') {
                           const targetId = b.actionTargetId || b.actionPayload;
                           showToast(`Toggled visibility for element #${targetId}`, 'info');
+                        } else if (b.actionType === 'confetti') {
+                          triggerConfetti();
+                          playSound('success');
+                          showToast('🎉 Confetti Celebration!', 'success');
+                        } else if (b.actionType === 'play-sound') {
+                          playSound((b.actionPayload as SoundEffectType) || 'success');
+                          showToast('Played synthesized sound effect! 🔊', 'info');
+                        } else if (b.actionType === 'toggle-dark-mode') {
+                          const isDark = activePage.backgroundColor.toLowerCase() !== '#ffffff' && activePage.backgroundColor.toLowerCase() !== '#f8fafc';
+                          updatePageSettings(activePage.id, { backgroundColor: isDark ? '#ffffff' : '#0c0e14' });
+                          showToast(`Toggled ${isDark ? 'Light' : 'Dark'} theme`, 'info');
+                        } else if (b.actionType === 'whatsapp') {
+                          const cleanNumber = (b.actionPayload || '').replace(/[^0-9]/g, '');
+                          window.open(`https://wa.me/${cleanNumber}`, '_blank');
+                        } else if (b.actionType === 'share-page') {
+                          if (navigator.share) {
+                            navigator.share({ title: project.name, url: window.location.href }).catch(() => {});
+                          } else {
+                            navigator.clipboard?.writeText(window.location.href);
+                            showToast('Copied page link to clipboard!', 'success');
+                          }
                         } else if (b.actionType === 'copy-text') {
                           if (b.actionPayload) {
                             navigator.clipboard?.writeText(b.actionPayload);
