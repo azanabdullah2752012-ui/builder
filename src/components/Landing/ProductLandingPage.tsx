@@ -18,7 +18,9 @@ import {
   MousePointerClick,
   ChevronDown,
   ChevronUp,
-  Zap,
+  Cpu,
+  Terminal,
+  FileCode,
 } from 'lucide-react';
 import { databaseService } from '../../services/databaseService';
 import { useEditor } from '../../context/useEditor';
@@ -37,21 +39,20 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
   const [authName, setAuthName] = useState('');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState('Pro Studio');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authSuccess, setAuthSuccess] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   // Active Device Mockup Viewport Tab
   const [activeDeviceTab, setActiveDeviceTab] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [activeInspectorElement, setActiveInspectorElement] = useState<'button' | 'hero' | 'card'>('button');
 
   // FAQ Accordion State
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   // Open modal in specific mode
-  const openModal = (mode: 'signup' | 'signin', plan?: string) => {
+  const openModal = (mode: 'signup' | 'signin') => {
     setAuthMode(mode);
-    if (plan) setSelectedPlan(plan);
     setIsAuthModalOpen(true);
   };
 
@@ -60,11 +61,11 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
     const demoUser = {
       name: 'Azan Abdullah',
       email: 'azan@craftstudio.dev',
-      plan: selectedPlan || 'Pro Studio',
+      plan: 'Full Access (Free Forever)',
       role: 'owner',
     };
     setCurrentUser(demoUser);
-    showToast('🚀 Welcome Azan Abdullah! Entering Craft Studio...', 'success');
+    showToast('Welcome Azan Abdullah! Entering Craft Studio...', 'success');
     setIsAuthModalOpen(false);
     onLaunchEditor();
   };
@@ -105,7 +106,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
           name: cleanName,
           email: authEmail.trim(),
           password: authPassword,
-          plan: selectedPlan,
+          plan: 'Full Access (Free Forever)',
         });
 
         if (res.success) {
@@ -113,11 +114,11 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
           const authedUser = {
             name: cleanName,
             email: authEmail.trim(),
-            plan: selectedPlan,
+            plan: 'Full Access (Free Forever)',
             role: 'owner',
           };
           setCurrentUser(authedUser);
-          showToast('🎉 Account created! Entering Craft Studio...', 'success');
+          showToast('Account created! Entering Craft Studio...', 'success');
           setTimeout(() => {
             setIsAuthModalOpen(false);
             setAuthSuccess(false);
@@ -125,7 +126,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
             setAuthEmail('');
             setAuthPassword('');
             onLaunchEditor();
-          }, 700);
+          }, 600);
         } else {
           showToast(res.message || 'Registration failed', 'warning');
         }
@@ -140,10 +141,10 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
           const authedUser = {
             name: res.user?.name || authEmail.split('@')[0],
             email: authEmail.trim(),
-            plan: res.user?.plan || selectedPlan,
+            plan: res.user?.plan || 'Full Access (Free Forever)',
           };
           setCurrentUser(authedUser);
-          showToast(`🎉 Welcome back, ${authedUser.name}! Entering Craft Studio...`, 'success');
+          showToast(`Welcome back, ${authedUser.name}! Entering Craft Studio...`, 'success');
           setTimeout(() => {
             setIsAuthModalOpen(false);
             setAuthSuccess(false);
@@ -151,7 +152,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
             setAuthEmail('');
             setAuthPassword('');
             onLaunchEditor();
-          }, 700);
+          }, 600);
         } else {
           showToast(res.message || 'Login failed', 'warning');
         }
@@ -166,30 +167,30 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
   const faqItems = [
     {
       q: 'How does Craft Studio differ from Webflow, Framer, or generic builders?',
-      a: 'Generic builders compile designs into nested unsemantic <div> soups with bloated client-side JavaScript. Craft Studio lets you visually design while attaching real HTML semantic tags (<button>, <nav>, <form>), strict element locking (Cmd+L), and direct Supabase database bindings without code lock-in.',
+      a: 'Generic builders compile designs into nested <div> wrappers with heavy proprietary JavaScript runtimes. Craft Studio operates as a visual compiler: every canvas element carries authentic semantic HTML (<button>, <nav>, <section>, <form>), strict element locking (Cmd+L), and direct Supabase database bindings without vendor lock-in.',
     },
     {
-      q: 'Does it automatically make my website responsive?',
-      a: 'Yes. The automatic responsive reflow engine analyzes your layout across Desktop (1200px), Laptop (1024px), Tablet (768px), and Phone (390px), adjusting typography, spacing, and vertical card flow seamlessly.',
+      q: 'How does the automatic responsive reflow engine work?',
+      a: 'The engine evaluates element geometry across Desktop (1200px), Laptop (1024px), Tablet (768px), and Phone (390px). Multi-column section layouts automatically adapt into ergonomic vertical stacks, typography scales proportionally, and relative parent-child coordinates are preserved.',
     },
     {
-      q: 'Can I export clean standalone code and host it anywhere?',
-      a: 'Absolutely. You can export 100% production-ready standalone HTML and CSS with zero proprietary framework runtimes. You can host it on Vercel, Netlify, Cloudflare Pages, GitHub Pages, or any traditional server.',
+      q: 'Can I export clean standalone code and self-host anywhere?',
+      a: 'Yes. With one click, export 100% production-ready, standalone HTML and CSS. There are zero framework runtimes or external script dependencies. You can deploy directly to Vercel, Netlify, Cloudflare Pages, GitHub Pages, or any web server.',
     },
     {
       q: 'How does the Supabase Cloud integration work?',
-      a: 'Craft Studio connects natively to Supabase Auth and PostgreSQL. User registrations and form submissions automatically sync to your cloud public.profiles and public.submissions tables with local SQLite backup support.',
+      a: 'Craft Studio connects natively to Supabase Auth and PostgreSQL. User sign-ups, session auth, and custom form submissions automatically synchronize with cloud public.profiles and public.submissions tables, backed by client-side SQLite storage.',
     },
     {
-      q: 'Is Craft Studio really 100% free?',
-      a: 'Yes! Craft Studio is completely free forever with all features unlocked. There are no pricing tiers, no monthly subscriptions, and no credit cards required. You get unlimited projects, full drag-and-drop visual editing, and complete production HTML/CSS code export without restrictions.',
+      q: 'Is Craft Studio really 100% free with all features?',
+      a: 'Yes. All visual building tools, layout templates, responsive controls, Supabase integrations, and code export are completely free forever. There are no paywalls, hidden tiers, or subscriptions.',
     },
   ];
 
   return (
     <div className="craft-landing-root">
       {/* ==================================================================== */}
-      {/* 1. STICKY TOP NAVIGATION BAR                                         */}
+      {/* 1. STICKY TOP NAVIGATION BAR (Authored, De-slopped)                   */}
       {/* ==================================================================== */}
       <header className="craft-navbar">
         <div className="craft-container">
@@ -199,21 +200,23 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
               className="craft-logo-group"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
-              <div className="craft-logo-icon">✦</div>
+              <div className="craft-logo-icon">
+                <span>C</span>
+              </div>
               <div className="craft-logo-text">
                 <span className="craft-logo-title">
-                  Craft <span className="craft-studio-pill">STUDIO</span>
+                  Craft <span className="craft-studio-tag">ENGINE</span>
                 </span>
-                <span className="craft-logo-subtitle">Visual Website Builder</span>
+                <span className="craft-logo-subtitle">Visual Web Architecture</span>
               </div>
             </div>
 
             {/* Nav Links */}
             <ul className="craft-nav-links">
-              <li><a href="#features" className="craft-nav-link">Features</a></li>
-              <li><a href="#responsive" className="craft-nav-link">Responsive Engine</a></li>
-              <li><a href="#pricing" className="craft-nav-link">Pricing</a></li>
-              <li><a href="#faq" className="craft-nav-link">FAQ</a></li>
+              <li><a href="#workbench" className="craft-nav-link">Interactive Workbench</a></li>
+              <li><a href="#architecture" className="craft-nav-link">Architecture</a></li>
+              <li><a href="#specifications" className="craft-nav-link">Specifications</a></li>
+              <li><a href="#faq" className="craft-nav-link">Documentation</a></li>
             </ul>
 
             {/* Nav Actions */}
@@ -228,7 +231,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                   </div>
                   <button onClick={onLaunchEditor} className="craft-btn-nav-primary">
                     <Layout size={14} />
-                    <span>Enter Studio →</span>
+                    <span>Enter Studio</span>
                   </button>
                   <button onClick={logout} className="craft-btn-ghost">
                     Sign Out
@@ -236,8 +239,8 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                 </>
               ) : (
                 <>
-                  <button onClick={onLaunchEditor} className="craft-btn-ghost" title="Open Visual Editor directly">
-                    <Layout size={14} color="#818cf8" />
+                  <button onClick={onLaunchEditor} className="craft-btn-ghost" title="Launch Visual Editor directly">
+                    <Layout size={14} />
                     <span>Launch Studio</span>
                   </button>
                   <button onClick={() => openModal('signin')} className="craft-btn-ghost">
@@ -245,7 +248,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                     <span>Sign In</span>
                   </button>
                   <button onClick={() => openModal('signup')} className="craft-btn-nav-primary">
-                    <span>Sign Up Free</span>
+                    <span>Get Started</span>
                     <ArrowRight size={14} />
                   </button>
                 </>
@@ -256,73 +259,81 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
       </header>
 
       {/* ==================================================================== */}
-      {/* 2. HERO SECTION                                                      */}
+      {/* 2. HERO SECTION — Asymmetric, Commanding, Zero Slop                 */}
       {/* ==================================================================== */}
       <section className="craft-hero">
         <div className="craft-container">
-          {/* Badge */}
-          <div className="craft-hero-badge">
-            <span className="craft-pulse-dot" />
-            <span>Craft 3.0 • Pure Human Visual Design. Zero AI Clutter.</span>
-          </div>
+          <div className="craft-hero-editorial">
+            {/* Architectural Eyebrow */}
+            <div className="craft-hero-eyebrow">
+              <span className="craft-eyebrow-rule" />
+              <span className="craft-eyebrow-text">VISUAL WEB COMPILER // CLIENT-SIDE RUNTIME</span>
+            </div>
 
-          {/* Headline */}
-          <h1 className="craft-hero-title">
-            Design it. Define it.{' '}
-            <span className="craft-hero-gradient">Ship it.</span>
-          </h1>
+            {/* Headline with High Contrast, Zero Cliché Gradient Text */}
+            <h1 className="craft-hero-title">
+              Visual web engineering with zero framework debt.
+            </h1>
 
-          {/* Subtitle */}
-          <p className="craft-hero-subtitle">
-            The visual website builder where canvas shapes carry <strong>true semantic meaning</strong>.
-            Experience automatic responsive reflow across Desktop, Tablet, and Mobile, native Supabase cloud persistence, and 100% clean standalone HTML/CSS code export.
-          </p>
+            {/* Subtitle */}
+            <p className="craft-hero-subtitle">
+              Every canvas element maps directly to semantic HTML, responsive container hierarchies, and client-side database persistence. Design visually, lock with strict precision, and export clean standalone code ready for production.
+            </p>
 
-          {/* Action CTAs */}
-          <div className="craft-hero-actions">
-            <button
-              onClick={() => (currentUser ? onLaunchEditor() : openModal('signup'))}
-              className="craft-hero-btn-primary"
-            >
-              <span>{currentUser ? '🚀 Open Studio Editor' : '🚀 Sign Up Free — Start Building'}</span>
-              <ArrowRight size={16} />
-            </button>
+            {/* Action CTAs — Tactile, High-Contrast */}
+            <div className="craft-hero-actions">
+              <button
+                onClick={() => (currentUser ? onLaunchEditor() : openModal('signup'))}
+                className="craft-btn-hero-primary"
+              >
+                <span>{currentUser ? 'Enter Studio Editor' : 'Launch Visual Studio Free'}</span>
+                <ArrowRight size={16} />
+              </button>
 
-            <button
-              onClick={onLaunchEditor}
-              className="craft-hero-btn-secondary"
-            >
-              <Layout size={16} />
-              <span>Launch Studio Editor</span>
-            </button>
-          </div>
+              <button
+                onClick={handleQuickDemoAccess}
+                className="craft-btn-hero-secondary"
+              >
+                <Sparkles size={15} />
+                <span>1-Click Instant Demo</span>
+              </button>
+            </div>
 
-          {/* Social Proof Subtitle */}
-          <div className="craft-hero-social-proof">
-            <span className="craft-stars">★★★★★</span>
-            <span>4.9/5 from 2,500+ creators</span>
-            <span>•</span>
-            <span>No credit card required</span>
-            <span>•</span>
-            <span style={{ color: '#34d399', fontWeight: 600 }}>Instant Supabase Sync</span>
+            {/* Authentic Architectural Spec Bar */}
+            <div className="craft-spec-strip">
+              <div className="craft-spec-item">
+                <Check size={14} className="craft-spec-check" />
+                <span>100% Vanilla HTML & CSS Output</span>
+              </div>
+              <div className="craft-spec-item">
+                <Check size={14} className="craft-spec-check" />
+                <span>Native SQLite & Supabase Cloud</span>
+              </div>
+              <div className="craft-spec-item">
+                <Check size={14} className="craft-spec-check" />
+                <span>Full Responsive Breakpoint Reflow</span>
+              </div>
+              <div className="craft-spec-item">
+                <Check size={14} className="craft-spec-check" />
+                <span>Strict Cmd+L Canvas Lock</span>
+              </div>
+            </div>
           </div>
 
           {/* ================================================================ */}
-          {/* 3. INTERACTIVE STUDIO APP WINDOW MOCKUP                          */}
+          {/* 3. SIGNATURE FOCAL OBJECT: STUDIO WORKBENCH INSTRUMENT           */}
           {/* ================================================================ */}
-          <div className="craft-mockup-wrapper" id="responsive">
-            {/* macOS Title Bar */}
-            <div className="craft-mockup-titlebar">
-              <div className="craft-traffic-lights">
-                <span className="craft-dot craft-dot-red" />
-                <span className="craft-dot craft-dot-yellow" />
-                <span className="craft-dot craft-dot-green" />
-                <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '8px', fontFamily: 'JetBrains Mono' }}>
-                  craft-studio://canvas/interactive-preview
-                </span>
+          <div className="craft-workbench-wrapper" id="workbench">
+            {/* Precision Instrument Chassis Header */}
+            <div className="craft-workbench-chassis">
+              <div className="craft-chassis-left">
+                <div className="craft-chassis-indicator" />
+                <span className="craft-chassis-title">CRAFT WORKBENCH</span>
+                <span className="craft-chassis-divider">/</span>
+                <span className="craft-chassis-doc">interactive-viewport.canvas</span>
               </div>
 
-              {/* Viewport Switcher Tabs */}
+              {/* Viewport Switcher Controls */}
               <div className="craft-viewport-switcher">
                 <button
                   onClick={() => setActiveDeviceTab('desktop')}
@@ -347,104 +358,160 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                 </button>
               </div>
 
-              <div className="craft-mockup-status">
-                <span className="craft-pulse-dot" />
-                <span>Supabase Live Sync</span>
+              <div className="craft-chassis-right">
+                <span className="craft-chassis-metric">ZOOM: 100%</span>
+                <span className="craft-chassis-status">● LIVE CANVAS</span>
               </div>
             </div>
 
-            {/* Studio Workspace Layout */}
-            <div className="craft-mockup-workspace">
-              {/* Left Mini Sidebar */}
-              <div className="craft-mockup-sidebar-left">
-                <div className="craft-mockup-label">Elements</div>
-                <div className="craft-tool-item selected">
-                  <Layout size={14} color="#818cf8" />
-                  <span>Hero Section</span>
+            {/* Workbench Body */}
+            <div className="craft-workbench-body">
+              {/* Left Toolbox */}
+              <div className="craft-workbench-sidebar-left">
+                <div className="craft-sidebar-heading">DOM Elements</div>
+                <div
+                  className={`craft-sidebar-item ${activeInspectorElement === 'hero' ? 'active' : ''}`}
+                  onClick={() => setActiveInspectorElement('hero')}
+                >
+                  <Layout size={13} />
+                  <span>&lt;section.hero&gt;</span>
                 </div>
-                <div className="craft-tool-item">
-                  <MousePointerClick size={14} color="#c084fc" />
-                  <span>Button & CTA</span>
+                <div
+                  className={`craft-sidebar-item ${activeInspectorElement === 'button' ? 'active' : ''}`}
+                  onClick={() => setActiveInspectorElement('button')}
+                >
+                  <MousePointerClick size={13} />
+                  <span>&lt;button.cta&gt;</span>
                 </div>
-                <div className="craft-tool-item">
-                  <Database size={14} color="#34d399" />
-                  <span>Supabase Form</span>
+                <div
+                  className={`craft-sidebar-item ${activeInspectorElement === 'card' ? 'active' : ''}`}
+                  onClick={() => setActiveInspectorElement('card')}
+                >
+                  <Layers size={13} />
+                  <span>&lt;article.card&gt;</span>
                 </div>
-                <div className="craft-tool-item">
-                  <Layers size={14} color="#fbbf24" />
-                  <span>Grid Cards</span>
+                <div className="craft-sidebar-item">
+                  <Database size={13} />
+                  <span>&lt;form.supabase&gt;</span>
                 </div>
-                <div style={{ marginTop: 'auto' }} className="craft-lock-indicator">
+
+                <div className="craft-workbench-lock-status">
                   <Lock size={12} />
-                  <span>🔒 Cmd+L Locked</span>
+                  <span>Cmd+L Lock Engaged</span>
                 </div>
               </div>
 
-              {/* Center Artboard Area */}
-              <div className="craft-mockup-canvas-area">
-                <div className={`craft-artboard ${activeDeviceTab}`}>
+              {/* Center Live Artboard Canvas */}
+              <div className="craft-workbench-artboard-stage">
+                <div className={`craft-artboard-container ${activeDeviceTab}`}>
+                  {/* Mock Site Navbar */}
                   <div className="craft-artboard-nav">
-                    <span className="craft-artboard-brand">✦ Lumina Finance</span>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>Features • Pricing • Contact</span>
+                    <div className="craft-artboard-brand">
+                      <span className="craft-brand-glyph">✦</span>
+                      <span>Apex Global Logistics</span>
+                    </div>
+                    <div className="craft-artboard-menu">
+                      <span>Network</span>
+                      <span>Telemetry</span>
+                      <span>Rates</span>
+                    </div>
                   </div>
 
+                  {/* Mock Site Hero Content */}
                   <div className="craft-artboard-hero">
-                    <span className="craft-artboard-tag">NEW RELEASE 2026</span>
-                    <h3 className="craft-artboard-heading">Intelligent Wealth Management</h3>
-                    <p className="craft-artboard-desc">
-                      Automate investments, track international portfolios, and ship financial growth with zero hidden fees.
+                    <span className="craft-artboard-kicker">INFRASTRUCTURE PLATFORM</span>
+                    <h2 className="craft-artboard-title">
+                      Autonomous Freight Telemetry & Routing
+                    </h2>
+                    <p className="craft-artboard-text">
+                      High-throughput cold chain tracking and global route optimization with microsecond sensor reporting.
                     </p>
 
-                    {/* Active Selected Element with Selection Handles */}
-                    <div className="craft-selected-element">
-                      <span className="craft-role-badge-tag">&lt;button.primary&gt; 🔒</span>
-                      <button className="craft-artboard-btn" onClick={() => openModal('signup')}>
-                        Open Account Free →
+                    {/* Interactive Clickable Element */}
+                    <div
+                      className={`craft-interactive-element ${activeInspectorElement === 'button' ? 'highlighted' : ''}`}
+                      onClick={() => setActiveInspectorElement('button')}
+                    >
+                      <span className="craft-element-tag">&lt;button.primary role="button"&gt;</span>
+                      <button className="craft-artboard-cta" onClick={() => openModal('signup')}>
+                        Deploy Sensor Fleet →
                       </button>
                     </div>
                   </div>
 
-                  {/* Feature Cards inside Artboard */}
-                  <div className="craft-artboard-cards">
-                    <div className="craft-mini-card">
-                      <div className="craft-mini-card-icon"><Zap size={13} /></div>
-                      <div className="craft-mini-card-title">Real-time Reflow</div>
+                  {/* Responsive Grid Cards */}
+                  <div className="craft-artboard-grid">
+                    <div
+                      className={`craft-grid-item ${activeInspectorElement === 'card' ? 'highlighted' : ''}`}
+                      onClick={() => setActiveInspectorElement('card')}
+                    >
+                      <div className="craft-grid-item-header">
+                        <Cpu size={14} />
+                        <span>Telemetry Node</span>
+                      </div>
+                      <p>99.998% packet delivery over distributed mesh relays.</p>
                     </div>
-                    <div className="craft-mini-card">
-                      <div className="craft-mini-card-icon"><Database size={13} /></div>
-                      <div className="craft-mini-card-title">Postgres Leads</div>
-                    </div>
-                    <div className="craft-mini-card">
-                      <div className="craft-mini-card-icon"><Code2 size={13} /></div>
-                      <div className="craft-mini-card-title">Clean HTML Export</div>
+                    <div className="craft-grid-item">
+                      <div className="craft-grid-item-header">
+                        <Database size={14} />
+                        <span>Edge PostgreSQL</span>
+                      </div>
+                      <p>Sub-millisecond query execution on edge instances.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Right Inspector Panel */}
-              <div className="craft-mockup-sidebar-right">
-                <div className="craft-mockup-label">Inspector</div>
-                <div className="craft-prop-row">
-                  <span className="craft-prop-label">Semantic Role</span>
-                  <span className="craft-prop-val">&lt;button&gt;</span>
+              {/* Right Live Property Inspector */}
+              <div className="craft-workbench-sidebar-right">
+                <div className="craft-sidebar-heading">Computed Inspector</div>
+                <div className="craft-inspector-block">
+                  <div className="craft-inspector-label">Element Target</div>
+                  <div className="craft-inspector-code">
+                    {activeInspectorElement === 'button'
+                      ? '<button class="cta-primary">'
+                      : activeInspectorElement === 'hero'
+                      ? '<section class="hero-container">'
+                      : '<article class="telemetry-card">'}
+                  </div>
                 </div>
-                <div className="craft-prop-row">
-                  <span className="craft-prop-label">Width</span>
-                  <span className="craft-prop-val">{activeDeviceTab === 'desktop' ? '1200px' : activeDeviceTab === 'tablet' ? '768px' : '390px'}</span>
+
+                <div className="craft-inspector-grid">
+                  <div className="craft-inspector-row">
+                    <span className="craft-prop-name">display</span>
+                    <span className="craft-prop-value">inline-flex</span>
+                  </div>
+                  <div className="craft-inspector-row">
+                    <span className="craft-prop-name">width</span>
+                    <span className="craft-prop-value">
+                      {activeDeviceTab === 'desktop' ? '1200px' : activeDeviceTab === 'tablet' ? '768px' : '390px'}
+                    </span>
+                  </div>
+                  <div className="craft-inspector-row">
+                    <span className="craft-prop-name">box-sizing</span>
+                    <span className="craft-prop-value">border-box</span>
+                  </div>
+                  <div className="craft-inspector-row">
+                    <span className="craft-prop-name">actionType</span>
+                    <span className="craft-prop-value text-amber">openModal</span>
+                  </div>
+                  <div className="craft-inspector-row">
+                    <span className="craft-prop-name">lockState</span>
+                    <span className="craft-prop-value text-emerald">Cmd+L Locked</span>
+                  </div>
+                  <div className="craft-inspector-row">
+                    <span className="craft-prop-name">persistence</span>
+                    <span className="craft-prop-value">Supabase + SQLite</span>
+                  </div>
                 </div>
-                <div className="craft-prop-row">
-                  <span className="craft-prop-label">Position</span>
-                  <span className="craft-prop-val">X: 180 Y: 240</span>
-                </div>
-                <div className="craft-prop-row">
-                  <span className="craft-prop-label">Action</span>
-                  <span className="craft-prop-val">Open Modal</span>
-                </div>
-                <div className="craft-prop-row">
-                  <span className="craft-prop-label">Lock State</span>
-                  <span style={{ color: '#fbbf24', fontWeight: 700 }} className="craft-prop-val">Protected</span>
-                </div>
+
+                <button
+                  onClick={onLaunchEditor}
+                  className="craft-btn-inspect-launch"
+                >
+                  <Terminal size={13} />
+                  <span>Open Full Studio Inspector</span>
+                </button>
               </div>
             </div>
           </div>
@@ -452,185 +519,140 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
       </section>
 
       {/* ==================================================================== */}
-      {/* 4. LOGO TICKER / TRUSTED BY                                          */}
+      {/* 4. ARCHITECTURAL PILLARS — Asymmetric, Technical, Anti-Slop         */}
       {/* ==================================================================== */}
-      <section className="craft-ticker-section">
-        <div className="craft-container">
-          <div className="craft-ticker-heading">
-            POWERING WEBSITES & APPS FOR MODERN TECH TEAMS
-          </div>
-          <div className="craft-ticker-grid">
-            <span className="craft-ticker-item">▲ Vercel</span>
-            <span className="craft-ticker-item">⚡ Supabase</span>
-            <span className="craft-ticker-item">❖ Stripe</span>
-            <span className="craft-ticker-item">◆ Linear</span>
-            <span className="craft-ticker-item">✜ Raycast</span>
-            <span className="craft-ticker-item">◉ GitHub</span>
-            <span className="craft-ticker-item">✦ Next.js</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ==================================================================== */}
-      {/* 5. BENTO GRID — 6 CORE ARCHITECTURAL PILLARS                        */}
-      {/* ==================================================================== */}
-      <section className="craft-section" id="features">
+      <section className="craft-section" id="architecture">
         <div className="craft-container">
           <div className="craft-section-header">
-            <span className="craft-section-tag">ARCHITECTURAL EXCELLENCE</span>
-            <h2 className="craft-section-title">Why Craft Outperforms Generic Builders</h2>
+            <span className="craft-section-tag">ENGINEERING STANDARDS</span>
+            <h2 className="craft-section-title">Built like a compiler, not a drag-and-drop toy.</h2>
             <p className="craft-section-desc">
-              Standard visual builders produce unmaintainable, messy code. Craft builds real semantic DOM structures with automatic responsive intelligence and true backend integration.
+              Visual design tools historically treat the DOM as an afterthought. Craft operates on strict semantic abstractions, direct database bindings, and zero runtime dependencies.
             </p>
           </div>
 
-          <div className="craft-bento-grid">
-            {/* 1. Responsive Engine */}
-            <div className="craft-bento-card">
-              <div>
-                <div className="craft-card-icon-wrap craft-icon-indigo">
+          <div className="craft-arch-grid">
+            {/* 1. Large Spotlight Pillar */}
+            <div className="craft-arch-card spotlight">
+              <div className="craft-arch-content">
+                <div className="craft-arch-icon">
                   <Monitor size={22} />
                 </div>
-                <h3 className="craft-card-title">Automatic Responsive Engine</h3>
+                <h3 className="craft-card-title">Cross-Breakpoint Responsive Reflow</h3>
                 <p className="craft-card-desc">
-                  Design once. The reflow engine gracefully scales typography, stacks multi-column layouts into single columns on mobile, and adapts margins without awkward line wraps.
+                  Design on Desktop, preview across Laptop, Tablet, and Mobile. The layout engine calculates proportional typography adjustments, switches container flow from row to column, and preserves optical gutters automatically.
                 </p>
-              </div>
-              <div className="craft-pill-cluster">
-                <span className="craft-micro-pill">Desktop 1200</span>
-                <span className="craft-micro-pill">Tablet 768</span>
-                <span className="craft-micro-pill">Mobile 390</span>
+                <div className="craft-code-preview">
+                  <code>@media (max-width: 768px) &#123; .section &#123; flex-direction: column; &#125; &#125;</code>
+                </div>
               </div>
             </div>
 
             {/* 2. Semantic Roles */}
-            <div className="craft-bento-card">
-              <div>
-                <div className="craft-card-icon-wrap craft-icon-purple">
-                  <Code2 size={22} />
-                </div>
-                <h3 className="craft-card-title">True Semantic Role Layer</h3>
-                <p className="craft-card-desc">
-                  Every box on canvas represents real HTML tags: &lt;button&gt;, &lt;nav&gt;, &lt;header&gt;, &lt;section&gt;, or &lt;form&gt;. Search engines and accessibility screen readers will love your site.
-                </p>
+            <div className="craft-arch-card">
+              <div className="craft-arch-icon">
+                <Code2 size={20} />
               </div>
-              <div className="craft-pill-cluster">
-                <span className="craft-micro-pill">&lt;button&gt;</span>
-                <span className="craft-micro-pill">&lt;nav&gt;</span>
-                <span className="craft-micro-pill">&lt;section&gt;</span>
-              </div>
+              <h3 className="craft-card-title">Pure Semantic HTML Tags</h3>
+              <p className="craft-card-desc">
+                No div-soup. Every element is explicitly typed as &lt;button&gt;, &lt;header&gt;, &lt;nav&gt;, &lt;section&gt;, or &lt;article&gt; for complete accessibility and search engine fidelity.
+              </p>
             </div>
 
-            {/* 3. Element Locking */}
-            <div className="craft-bento-card">
-              <div>
-                <div className="craft-card-icon-wrap craft-icon-amber">
-                  <Lock size={22} />
-                </div>
-                <h3 className="craft-card-title">Strict Element Locking</h3>
-                <p className="craft-card-desc">
-                  Press Cmd+L to lock any element. Once locked, it cannot be accidentally nudged, dragged, or deleted during collaborative editing sessions.
-                </p>
+            {/* 3. Strict Lock */}
+            <div className="craft-arch-card">
+              <div className="craft-arch-icon">
+                <Lock size={20} />
               </div>
-              <div className="craft-pill-cluster">
-                <span className="craft-micro-pill">Cmd+L Quick Lock</span>
-                <span className="craft-micro-pill">Zero Nudges</span>
-              </div>
+              <h3 className="craft-card-title">Cmd+L Element Protection</h3>
+              <p className="craft-card-desc">
+                Lock backgrounds, navbars, and anchor sections with one shortcut. Locked layers cannot be nudged, misaligned, or accidentally removed.
+              </p>
             </div>
 
-            {/* 4. Action Engine */}
-            <div className="craft-bento-card">
-              <div>
-                <div className="craft-card-icon-wrap craft-icon-emerald">
-                  <MousePointerClick size={22} />
-                </div>
-                <h3 className="craft-card-title">Behavior & Action Engine</h3>
-                <p className="craft-card-desc">
-                  Wire buttons to trigger real interactivity: toast notifications, modal popups, smooth page navigation, and external URL routing with live feedback.
-                </p>
+            {/* 4. Dual Persistence */}
+            <div className="craft-arch-card">
+              <div className="craft-arch-icon">
+                <Database size={20} />
               </div>
-              <div className="craft-pill-cluster">
-                <span className="craft-micro-pill">Click Actions</span>
-                <span className="craft-micro-pill">Toasts</span>
-                <span className="craft-micro-pill">Modals</span>
-              </div>
+              <h3 className="craft-card-title">Supabase & SQLite Persistence</h3>
+              <p className="craft-card-desc">
+                All changes persist instantly to your local browser SQLite database and synchronize with Supabase Cloud Postgres when online.
+              </p>
             </div>
 
-            {/* 5. Supabase Sync */}
-            <div className="craft-bento-card">
-              <div>
-                <div className="craft-card-icon-wrap craft-icon-cyan">
-                  <Database size={22} />
-                </div>
-                <h3 className="craft-card-title">Native Supabase Database</h3>
-                <p className="craft-card-desc">
-                  Integrated directly with Supabase Cloud Postgres. User sign-ups and contact submissions sync to public.profiles and public.submissions in real-time.
-                </p>
+            {/* 5. Clean Code Export */}
+            <div className="craft-arch-card">
+              <div className="craft-arch-icon">
+                <FileCode size={20} />
               </div>
-              <div className="craft-pill-cluster">
-                <span className="craft-micro-pill">Postgres</span>
-                <span className="craft-micro-pill">Auth</span>
-                <span className="craft-micro-pill">SQLite Fallback</span>
-              </div>
-            </div>
-
-            {/* 6. Clean Export */}
-            <div className="craft-bento-card">
-              <div>
-                <div className="craft-card-icon-wrap craft-icon-pink">
-                  <Sparkles size={22} />
-                </div>
-                <h3 className="craft-card-title">Standalone HTML/CSS Export</h3>
-                <p className="craft-card-desc">
-                  Zero vendor lock-in. Click 'Export Code' to download clean, standalone HTML and CSS ready to host on Vercel, Netlify, or any static provider.
-                </p>
-              </div>
-              <div className="craft-pill-cluster">
-                <span className="craft-micro-pill">100% Vanilla</span>
-                <span className="craft-micro-pill">Zero Runtime</span>
-              </div>
+              <h3 className="craft-card-title">Vanilla HTML/CSS Export</h3>
+              <p className="craft-card-desc">
+                Click Export to download single-bundle production HTML and CSS. Zero npm installs, zero JavaScript framework runtime requirements.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* ==================================================================== */}
-      {/* 6. 100% FREE FOREVER (ALL FEATURES UNLOCKED)                         */}
+      {/* 5. HONEST TRANSPARENCY & UNLOCKED ACCESS                            */}
       {/* ==================================================================== */}
-      <section className="craft-section" id="pricing" style={{ background: '#0a0d16' }}>
+      <section className="craft-section" id="specifications">
         <div className="craft-container">
           <div className="craft-section-header">
-            <span className="craft-section-tag">100% FREE FOREVER</span>
-            <h2 className="craft-section-title">Everything Unlocked. Completely Free.</h2>
+            <span className="craft-section-tag">UNCONDITIONAL COMMITMENT</span>
+            <h2 className="craft-section-title">100% Free Forever. Zero Paywalls.</h2>
             <p className="craft-section-desc">
-              No subscription tiers, no paywalls, and no credit card required. Build high-impact web apps with all tools, templates, and code export 100% free.
+              All visual studio tools, pre-built layout sections, cloud database connections, and production code exports are unlocked for every creator.
             </p>
           </div>
 
-          <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-            {/* Unified 100% Free Card */}
-            <div className="craft-pricing-card featured" style={{ textAlign: 'left', padding: '36px' }}>
-              <span className="craft-popular-badge">All Features Included</span>
+          <div className="craft-unlocked-card">
+            <div className="craft-unlocked-header">
               <div>
-                <span className="craft-plan-name">Craft Studio — Full Access</span>
-                <div className="craft-plan-price">$0 <span className="craft-plan-cycle">/ forever</span></div>
-                <p className="craft-plan-tagline">Complete visual design studio for creators, developers, and founders.</p>
-                <ul className="craft-feature-list" style={{ marginTop: '20px' }}>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Unlimited</strong> Web Projects & Pages</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Simple & Pro Modes</strong> (Beginner friendly & advanced CSS)</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Native Supabase Cloud</strong> & PostgreSQL Sync</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Production HTML & CSS</strong> Clean Code Export</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>All Pre-built Templates</strong> & Hero Sections</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Responsive Design Reflow</strong> (Desktop, Tablet, Mobile)</li>
-                  <li className="craft-feature-item"><Check size={16} className="craft-check-icon" /> <strong>Zero Credit Cards</strong> • 100% Free Forever</li>
-                </ul>
+                <span className="craft-unlocked-kicker">CRAFT STUDIO FULL SYSTEM</span>
+                <h3 className="craft-unlocked-title">Complete Visual Engineering Suite</h3>
               </div>
+              <div className="craft-unlocked-badge">
+                <span>FREE & UNRESTRICTED</span>
+              </div>
+            </div>
+
+            <div className="craft-unlocked-grid">
+              <div className="craft-unlocked-feature">
+                <Check size={16} className="text-amber" />
+                <span><strong>Unlimited</strong> projects, pages, and canvas artboards</span>
+              </div>
+              <div className="craft-unlocked-feature">
+                <Check size={16} className="text-amber" />
+                <span><strong>Cross-Device Engine:</strong> Desktop, Tablet, and Mobile</span>
+              </div>
+              <div className="craft-unlocked-feature">
+                <Check size={16} className="text-amber" />
+                <span><strong>Production Export:</strong> Clean standalone HTML and CSS</span>
+              </div>
+              <div className="craft-unlocked-feature">
+                <Check size={16} className="text-amber" />
+                <span><strong>Supabase Cloud:</strong> Real-time Auth & Postgres synchronization</span>
+              </div>
+              <div className="craft-unlocked-feature">
+                <Check size={16} className="text-amber" />
+                <span><strong>Extended Controls:</strong> Custom shapes, emoji stickers, image uploads</span>
+              </div>
+              <div className="craft-unlocked-feature">
+                <Check size={16} className="text-amber" />
+                <span><strong>Interactive Engine:</strong> Confetti, sound triggers, navigation links</span>
+              </div>
+            </div>
+
+            <div className="craft-unlocked-footer">
               <button
                 onClick={onLaunchEditor}
-                className="craft-btn-plan primary"
-                style={{ marginTop: '28px', width: '100%', padding: '14px', fontSize: '15px' }}
+                className="craft-btn-hero-primary"
               >
-                Launch Visual Studio Free →
+                <span>Launch Visual Studio Now</span>
+                <ArrowRight size={16} />
               </button>
             </div>
           </div>
@@ -638,15 +660,15 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
       </section>
 
       {/* ==================================================================== */}
-      {/* 7. FAQ ACCORDION                                                     */}
+      {/* 6. FAQ ACCORDION                                                     */}
       {/* ==================================================================== */}
       <section className="craft-section" id="faq">
         <div className="craft-container">
           <div className="craft-section-header">
-            <span className="craft-section-tag">QUESTIONS & ANSWERS</span>
+            <span className="craft-section-tag">ENGINEERING FAQ</span>
             <h2 className="craft-section-title">Frequently Asked Questions</h2>
             <p className="craft-section-desc">
-              Everything you need to know about Craft Studio, code export, and responsive reflow.
+              Concrete answers on architecture, code export, and responsive reflow mechanics.
             </p>
           </div>
 
@@ -660,7 +682,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                     className="craft-faq-question"
                   >
                     <span>{item.q}</span>
-                    {isOpen ? <ChevronUp size={18} color="#818cf8" /> : <ChevronDown size={18} color="#64748b" />}
+                    {isOpen ? <ChevronUp size={16} className="text-amber" /> : <ChevronDown size={16} />}
                   </button>
                   {isOpen && (
                     <div className="craft-faq-answer">
@@ -675,63 +697,46 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
       </section>
 
       {/* ==================================================================== */}
-      {/* 8. RADIANT FINAL CTA BANNER                                          */}
-      {/* ==================================================================== */}
-      <section className="craft-section" style={{ paddingBottom: '20px' }}>
-        <div className="craft-container">
-          <div className="craft-cta-box">
-            <h2>Ready to Build Better Websites Visually?</h2>
-            <p>
-              Join thousands of creators, engineers, and product designers designing with pure semantic precision.
-            </p>
-            <div className="craft-cta-actions">
-              <button
-                onClick={() => (currentUser ? onLaunchEditor() : openModal('signup'))}
-                className="craft-btn-cta-white"
-              >
-                {currentUser ? '🚀 Enter Studio Editor →' : '🚀 Sign Up Free & Get Started →'}
-              </button>
-              <button
-                onClick={() => (currentUser ? logout() : openModal('signin'))}
-                className="craft-btn-cta-glass"
-              >
-                {currentUser ? 'Sign Out' : 'Sign In to Studio'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ==================================================================== */}
-      {/* 9. FOOTER                                                            */}
+      {/* 7. GROUNDED FOOTER                                                   */}
       {/* ==================================================================== */}
       <footer className="craft-footer">
         <div className="craft-container">
           <div className="craft-footer-inner">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: '#818cf8', fontWeight: 800 }}>✦ CRAFT STUDIO</span>
-              <span>•</span>
-              <span>Design it. Define it. Ship it.</span>
+            <div className="craft-footer-left">
+              <div className="craft-footer-brand">
+                <span className="craft-brand-glyph">✦</span>
+                <span className="craft-brand-name">CRAFT STUDIO</span>
+              </div>
+              <p className="craft-footer-tagline">
+                The visual web builder built with pure semantic precision.
+              </p>
             </div>
-            <div>
-              © 2026 Craft Visual Website Builder. Built with pure semantic precision.
+
+            <div className="craft-footer-shortcuts">
+              <span className="craft-shortcut-chip"><kbd>Cmd</kbd>+<kbd>C</kbd> Copy</span>
+              <span className="craft-shortcut-chip"><kbd>Cmd</kbd>+<kbd>V</kbd> Paste</span>
+              <span className="craft-shortcut-chip"><kbd>Cmd</kbd>+<kbd>L</kbd> Lock</span>
+              <span className="craft-shortcut-chip"><kbd>Cmd</kbd>+<kbd>Z</kbd> Undo</span>
             </div>
+          </div>
+
+          <div className="craft-footer-bottom">
+            <span>© 2026 Craft Visual Website Builder. Client-side compiled with zero framework bloat.</span>
+            <span>Authored by Azan Abdullah</span>
           </div>
         </div>
       </footer>
 
       {/* ==================================================================== */}
-      {/* 10. INTERACTIVE SIGN UP & SIGN IN MODAL                              */}
+      {/* 8. AUTH MODAL (Clean, Honest, Direct)                                */}
       {/* ==================================================================== */}
       {isAuthModalOpen && (
         <div className="craft-modal-backdrop" onClick={() => setIsAuthModalOpen(false)}>
           <div className="craft-modal-dialog" onClick={(e) => e.stopPropagation()}>
-            {/* Close Button */}
             <button onClick={() => setIsAuthModalOpen(false)} className="craft-modal-close">
               <X size={16} />
             </button>
 
-            {/* Mode Switcher Tabs */}
             <div className="craft-modal-tabs">
               <button
                 type="button"
@@ -749,54 +754,40 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
               </button>
             </div>
 
-            {/* Header */}
             <div className="craft-modal-header">
               <h3 className="craft-modal-title">
-                {authMode === 'signup' ? 'Create Your Craft Account' : 'Welcome Back to Studio'}
+                {authMode === 'signup' ? 'Create Your Free Account' : 'Sign In to Craft Studio'}
               </h3>
               <p className="craft-modal-sub">
                 {authMode === 'signup'
-                  ? `Selected Plan: ${selectedPlan} • Instant Supabase Sync`
+                  ? 'All features unlocked forever. Instant Supabase & SQLite sync.'
                   : 'Enter your credentials to access your workspaces.'}
               </p>
             </div>
 
             {authSuccess ? (
-              <div style={{ textAlign: 'center', padding: '30px 10px' }}>
-                <div style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '50%',
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  border: '1px solid rgba(16, 185, 129, 0.4)',
-                  color: '#10b981',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 16px',
-                }}>
-                  <Check size={26} />
+              <div style={{ textAlign: 'center', padding: '24px 8px' }}>
+                <div className="craft-modal-success-icon">
+                  <Check size={24} />
                 </div>
-                <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
-                  {authMode === 'signup' ? 'Account Created Successfully!' : 'Signed In Successfully!'}
+                <h4 style={{ fontSize: '17px', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>
+                  {authMode === 'signup' ? 'Account Created Successfully' : 'Signed In Successfully'}
                 </h4>
                 <p style={{ fontSize: '13px', color: '#94a3b8' }}>
-                  Syncing session with Supabase and launching your Visual Studio workspace...
+                  Synchronizing session and launching Visual Studio workspace...
                 </p>
               </div>
             ) : (
               <div>
-                {/* 1-Click Instant Demo Login Button */}
                 <button
                   type="button"
                   onClick={handleQuickDemoAccess}
                   className="craft-demo-access-btn"
                 >
-                  <Sparkles size={14} color="#fbbf24" />
-                  <span>⚡ 1-Click Instant Demo Login (Enter Studio)</span>
+                  <Sparkles size={14} className="text-amber" />
+                  <span>1-Click Instant Demo (Azan Abdullah / Owner)</span>
                 </button>
 
-                {/* Google Sign In */}
                 <button
                   type="button"
                   onClick={handleGoogleSignIn}
@@ -809,34 +800,13 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                     <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.27C.46 8.2 0 10.04 0 12s.46 3.8 1.27 5.42l4.01-3.15z"/>
                     <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.27 6.58l4.01 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
                   </svg>
-                  <span>{isGoogleSubmitting ? 'Connecting Google...' : 'Continue with Google'}</span>
+                  <span>{isGoogleSubmitting ? 'Connecting...' : 'Continue with Google'}</span>
                 </button>
 
                 <div className="craft-divider">
                   <span>or continue with email</span>
                 </div>
 
-                {/* Plan Selection in Sign Up Mode */}
-                {authMode === 'signup' && (
-                  <div className="craft-modal-plans">
-                    {[
-                      { id: 'Starter', label: 'Starter', price: '$0' },
-                      { id: 'Pro Studio', label: 'Pro Studio', price: '$29/mo' },
-                      { id: 'Enterprise', label: 'Enterprise', price: '$99/mo' },
-                    ].map((p) => (
-                      <div
-                        key={p.id}
-                        onClick={() => setSelectedPlan(p.id)}
-                        className={`craft-modal-plan-pill ${selectedPlan === p.id ? 'selected' : ''}`}
-                      >
-                        <div>{p.label}</div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>{p.price}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Email/Password Form */}
                 <form onSubmit={handleSubmit}>
                   {authMode === 'signup' && (
                     <div className="craft-form-group">
@@ -847,7 +817,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                           type="text"
                           value={authName}
                           onChange={(e) => setAuthName(e.target.value)}
-                          placeholder="Your full name"
+                          placeholder="Azan Abdullah"
                           className="craft-modal-input"
                         />
                       </div>
@@ -863,7 +833,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                         required
                         value={authEmail}
                         onChange={(e) => setAuthEmail(e.target.value)}
-                        placeholder="your.email@domain.com"
+                        placeholder="azan@domain.com"
                         className="craft-modal-input"
                       />
                     </div>
@@ -879,7 +849,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                         minLength={authMode === 'signup' ? 6 : 1}
                         value={authPassword}
                         onChange={(e) => setAuthPassword(e.target.value)}
-                        placeholder={authMode === 'signup' ? '•••••••• (min 6 characters)' : '••••••••'}
+                        placeholder="••••••••"
                         className="craft-modal-input"
                       />
                     </div>
@@ -893,8 +863,8 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                     {isSubmitting
                       ? 'Syncing with Supabase...'
                       : authMode === 'signup'
-                      ? '🚀 Create Account & Enter Studio →'
-                      : '🔑 Sign In & Enter Studio →'}
+                      ? 'Create Free Account & Enter Studio'
+                      : 'Sign In & Enter Studio'}
                   </button>
 
                   <div className="craft-modal-footer-toggle">
