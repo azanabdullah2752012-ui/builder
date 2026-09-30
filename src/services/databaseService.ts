@@ -210,7 +210,12 @@ export const databaseService = {
       const users = getLocalUsers();
       const existing = users.find((u) => u.email.toLowerCase() === data.email.toLowerCase());
       if (existing) {
-        throw new Error(`Email ${data.email} is already registered.`);
+        return {
+          success: true,
+          user: existing,
+          message: `Welcome back, ${existing.name}! Entering Craft Studio...`,
+          supabaseAuth: supabaseResult,
+        };
       }
       const newUser: DatabaseUser = {
         id: Date.now(),

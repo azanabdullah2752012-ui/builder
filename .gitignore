@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# dist and docs tracked for GitHub Pages compatibility
 dist-ssr
 *.local
 .env

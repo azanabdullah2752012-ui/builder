@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && rm -rf docs && cp -r dist docs && cp -r dist/assets .",
     "lint": "oxlint",
     "test": "node test-workflow.mjs && node test-keyboard-commands.mjs && npx tsx test-responsive.mjs && npx tsx test-hierarchy-responsive.mjs && npx tsx test-section-templates.mjs && node test-supabase.mjs",
     "test:responsive": "npx tsx test-responsive.mjs",
