@@ -58,12 +58,13 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
   // 1-Click Instant Demo Login
   const handleQuickDemoAccess = () => {
     const demoUser = {
-      name: 'Alex Morgan',
-      email: 'alex@craftstudio.dev',
+      name: 'Azan Abdullah',
+      email: 'azan@craftstudio.dev',
       plan: selectedPlan || 'Pro Studio',
+      role: 'owner',
     };
     setCurrentUser(demoUser);
-    showToast('🚀 Welcome Alex Morgan! Entering Craft Studio...', 'success');
+    showToast('🚀 Welcome Azan Abdullah! Entering Craft Studio...', 'success');
     setIsAuthModalOpen(false);
     onLaunchEditor();
   };
@@ -99,8 +100,9 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
     setIsSubmitting(true);
     try {
       if (authMode === 'signup') {
+        const cleanName = authName.trim() || authEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) || 'Azan Abdullah';
         const res = await databaseService.signup({
-          name: authName.trim() || 'Craft Creator',
+          name: cleanName,
           email: authEmail.trim(),
           password: authPassword,
           plan: selectedPlan,
@@ -109,9 +111,10 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
         if (res.success) {
           setAuthSuccess(true);
           const authedUser = {
-            name: authName.trim() || 'Craft Creator',
+            name: cleanName,
             email: authEmail.trim(),
             plan: selectedPlan,
+            role: 'owner',
           };
           setCurrentUser(authedUser);
           showToast('🎉 Account created! Entering Craft Studio...', 'success');
@@ -884,7 +887,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                           type="text"
                           value={authName}
                           onChange={(e) => setAuthName(e.target.value)}
-                          placeholder="Alex Morgan"
+                          placeholder="Your full name"
                           className="craft-modal-input"
                         />
                       </div>
@@ -900,7 +903,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
                         required
                         value={authEmail}
                         onChange={(e) => setAuthEmail(e.target.value)}
-                        placeholder="alex@craftstudio.dev"
+                        placeholder="your.email@domain.com"
                         className="craft-modal-input"
                       />
                     </div>

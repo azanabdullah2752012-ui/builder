@@ -16,9 +16,11 @@ import {
   Copy,
   ShieldCheck,
   LogOut,
+  User,
 } from 'lucide-react';
 import { ExportModal } from '../Modals/ExportModal';
 import { DatabaseModal } from '../Modals/DatabaseModal';
+import { ProfileModal } from '../Modals/ProfileModal';
 
 export const EditorHeader: React.FC = () => {
   const {
@@ -47,6 +49,7 @@ export const EditorHeader: React.FC = () => {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isDatabaseOpen, setIsDatabaseOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleTitleSubmit = () => {
     setIsEditingTitle(false);
@@ -307,6 +310,17 @@ export const EditorHeader: React.FC = () => {
                     </div>
                   </div>
 
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      setIsProfileOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-indigo-300 hover:bg-indigo-500/10 transition-colors text-left"
+                  >
+                    <User className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Edit Profile & Account</span>
+                  </button>
+
                   {currentUser.role === 'admin' && (
                     <button
                       onClick={() => {
@@ -336,6 +350,9 @@ export const EditorHeader: React.FC = () => {
           )}
         </div>
       </header>
+
+      {/* Profile & Account Modal */}
+      <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
       {/* Export Modal */}
       <ExportModal isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} />

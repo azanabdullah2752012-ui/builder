@@ -97,9 +97,39 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string; plan?: string; role?: string } | null>(() => {
     try {
       const saved = localStorage.getItem('craft_auth_user');
-      return saved ? JSON.parse(saved) : null;
+      if (saved) {
+        const u = JSON.parse(saved);
+        if (
+          u &&
+          (u.name === 'Craft Creator' ||
+            u.name === 'Alex Morgan' ||
+            u.email === 'creator@craftstudio.dev' ||
+            u.email === 'alex@craftstudio.dev')
+        ) {
+          const actualUser = {
+            name: 'Azan Abdullah',
+            email: 'azan@craftstudio.dev',
+            plan: u.plan || 'Pro Studio',
+            role: 'owner',
+          };
+          localStorage.setItem('craft_auth_user', JSON.stringify(actualUser));
+          return actualUser;
+        }
+        return u;
+      }
+      return {
+        name: 'Azan Abdullah',
+        email: 'azan@craftstudio.dev',
+        plan: 'Pro Studio',
+        role: 'owner',
+      };
     } catch {
-      return null;
+      return {
+        name: 'Azan Abdullah',
+        email: 'azan@craftstudio.dev',
+        plan: 'Pro Studio',
+        role: 'owner',
+      };
     }
   });
 
@@ -122,13 +152,13 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const hash = window.location.hash;
       if (search.includes('error=') || hash.includes('error=')) {
         handleSetCurrentUser({
-          name: 'Craft Creator',
-          email: 'creator@craftstudio.dev',
+          name: 'Azan Abdullah',
+          email: 'azan@craftstudio.dev',
           plan: 'Pro Studio',
-          role: 'creator',
+          role: 'owner',
         });
         setEditorMode('design');
-        showToast('⚡ Entered Craft Studio Editor in Creator Mode!', 'success');
+        showToast('⚡ Welcome Azan Abdullah! Entering Visual Studio...', 'success');
         try {
           const cleanUrl = window.location.pathname;
           window.history.replaceState({}, document.title, cleanUrl);

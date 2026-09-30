@@ -49,7 +49,7 @@ export interface DatabaseStats {
 const LOCAL_USERS_KEY = 'studio_db_fallback_users';
 
 const DEFAULT_USERS: DatabaseUser[] = [
-  { id: 1, name: 'Alex Morgan', email: 'alex@craftstudio.dev', plan: 'Pro Plan', role: 'admin', status: 'active', created_at: '2026-09-29 12:00:00' },
+  { id: 1, name: 'Azan Abdullah', email: 'azan@craftstudio.dev', plan: 'Pro Studio', role: 'admin', status: 'active', created_at: '2026-09-29 12:00:00' },
   { id: 2, name: 'Elena Rostova', email: 'elena@visioncraft.ai', plan: 'Starter', role: 'user', status: 'active', created_at: '2026-09-29 12:30:00' },
   { id: 3, name: 'Marcus Brody', email: 'marcus@hypergrowth.co', plan: 'Enterprise', role: 'user', status: 'active', created_at: '2026-09-29 13:00:00' },
 ];

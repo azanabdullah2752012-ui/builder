@@ -110,7 +110,7 @@ export function getDatabase(): any {
     const insertUser = dbInstance.prepare(`
       INSERT INTO users (name, email, plan, role, status) VALUES (?, ?, ?, ?, ?)
     `);
-    insertUser.run('Alex Morgan', 'alex@craftstudio.dev', 'Pro Plan', 'admin', 'active');
+    insertUser.run('Azan Abdullah', 'azan@craftstudio.dev', 'Pro Studio', 'admin', 'active');
     insertUser.run('Elena Rostova', 'elena@visioncraft.ai', 'Starter', 'user', 'active');
     insertUser.run('Marcus Brody', 'marcus@hypergrowth.co', 'Enterprise', 'user', 'active');
 
