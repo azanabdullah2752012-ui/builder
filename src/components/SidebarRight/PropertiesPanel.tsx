@@ -4,12 +4,15 @@ import type {
   SemanticRole,
   ActionType,
   ButtonIconType,
+  ButtonSize,
   ShapeKind,
 } from '../../types/editor';
 import { FONT_FAMILIES } from '../../constants/defaults';
 import { STOCK_IMAGES } from '../../constants/stockMedia';
 import { SHAPE_DEFINITIONS } from '../../utils/shapeDefinitions';
 import { triggerConfetti, playSound, type SoundEffectType } from '../../utils/interactiveEffects';
+import { BUTTON_VARIANTS, BUTTON_ICONS } from '../../utils/buttonStyles';
+import { ACTION_DEFINITIONS, executeElementAction } from '../../utils/actionExecutor';
 import { ColorPickerControl } from './ColorPickerControl';
 import {
   AlignLeft,
@@ -34,7 +37,6 @@ import {
   ArrowLeftRight,
   ChevronDown,
   ChevronUp,
-  Link as LinkIcon,
   Image as ImageIcon,
   Upload,
   Shapes,
@@ -114,26 +116,7 @@ const SEMANTIC_ROLES: { value: SemanticRole; label: string; tag: string; group: 
   { value: 'none', label: 'Generic Div', tag: '<div>', group: 'Media', description: 'Unstyled plain visual block' },
 ];
 
-const ACTION_TYPES: { value: ActionType; label: string; icon: string; category: string; description: string }[] = [
-  { value: 'none', label: 'No Action', icon: '⊘', category: 'General', description: 'No click interaction' },
-  { value: 'navigate-url', label: 'Open External URL', icon: '↗', category: 'Navigation', description: 'Visit website link (supports new tab)' },
-  { value: 'navigate-page', label: 'Switch Page', icon: '📄', category: 'Navigation', description: 'Navigate to internal project page' },
-  { value: 'scroll-section', label: 'Scroll to Section', icon: '⚓', category: 'Navigation', description: 'Smooth scroll to element or anchor ID' },
-  { value: 'scroll-top', label: 'Scroll to Top', icon: '↑', category: 'Navigation', description: 'Smooth scroll viewport back to top' },
-  { value: 'open-modal', label: 'Open Modal Popup', icon: '🪟', category: 'Interactive', description: 'Display interactive dialog overlay' },
-  { value: 'toggle-visibility', label: 'Toggle Element Visibility', icon: '👁️', category: 'Interactive', description: 'Toggle show/hide of target element' },
-  { value: 'confetti', label: 'Trigger Confetti Burst', icon: '🎉', category: 'Effects', description: 'Celebratory particle confetti explosion' },
-  { value: 'play-sound', label: 'Play Sound Effect', icon: '🔊', category: 'Effects', description: 'Web Audio API synthesized sound tone' },
-  { value: 'toggle-dark-mode', label: 'Toggle Light/Dark Theme', icon: '🌓', category: 'Interactive', description: 'Toggle page dark and light mode' },
-  { value: 'whatsapp', label: 'Chat on WhatsApp', icon: '💬', category: 'Communication', description: 'Direct WhatsApp link with custom message' },
-  { value: 'share-page', label: 'Share / Copy Page Link', icon: '🔗', category: 'Utility', description: 'Web Share API or clipboard copy' },
-  { value: 'copy-text', label: 'Copy to Clipboard', icon: '📋', category: 'Utility', description: 'Copy coupon code, promo or text' },
-  { value: 'alert', label: 'Show Toast Alert', icon: '🔔', category: 'Utility', description: 'Trigger notification toast popup' },
-  { value: 'email-mailto', label: 'Send Email (mailto:)', icon: '✉️', category: 'Communication', description: 'Open default email composer' },
-  { value: 'tel-call', label: 'Call Phone (tel:)', icon: '📞', category: 'Communication', description: 'Direct call dialer on mobile & desktop' },
-  { value: 'download-file', label: 'Download File', icon: '⬇', category: 'Utility', description: 'Trigger browser file download' },
-  { value: 'custom-js', label: 'Execute Custom JS', icon: '⚡', category: 'Advanced', description: 'Run JavaScript callback logic' },
-];
+const ACTION_TYPES = ACTION_DEFINITIONS;
 
 const CANVAS_BG_SWATCHES = [
   { label: 'White', color: '#ffffff' },
@@ -174,6 +157,7 @@ export const PropertiesPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'style' | 'hover' | 'layout'>('style');
   const [gradientSubTab, setGradientSubTab] = useState<'presets' | 'custom'>('presets');
   const [isLiveHoverPreview, setIsLiveHoverPreview] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Progressive Disclosure states for simplified, uncluttered experience
   const [showGradients, setShowGradients] = useState<boolean>(false);
@@ -183,13 +167,14 @@ export const PropertiesPanel: React.FC = () => {
   // Auto-expand sections if the selected element already has active styling
   useEffect(() => {
     if (selectedElement) {
-      if (selectedElement.styles.gradient) {
+      const st = selectedElement.styles || {};
+      if (st.gradient) {
         setShowGradients(true);
       }
-      if (selectedElement.styles.borderWidth && selectedElement.styles.borderWidth > 0) {
+      if (st.borderWidth && st.borderWidth > 0) {
         setShowBorders(true);
       }
-      if (selectedElement.styles.boxShadow) {
+      if (st.boxShadow) {
         setShowElevation(true);
       }
     }
@@ -298,8 +283,8 @@ export const PropertiesPanel: React.FC = () => {
   }
 
   const el = selectedElement;
-  const s = el.styles;
-  const b = el.behavior;
+  const s = el.styles || {};
+  const b = el.behavior || { actionType: 'none' };
   const l = el.layout;
   const isLocked = el.locked;
   const isSection = el.type === 'section';
@@ -308,7 +293,6 @@ export const PropertiesPanel: React.FC = () => {
   const hasTextContent = el.type === 'text' || el.type === 'button';
   const isImage = el.type === 'image';
   const isShape = el.type === 'shape';
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Toggle live hover preview on canvas
   const handleToggleLiveHover = () => {
@@ -355,10 +339,10 @@ export const PropertiesPanel: React.FC = () => {
 
   const hasActiveHoverSettings =
     (s.hoverEffect && s.hoverEffect !== 'none') ||
-    b.hoverStyles?.backgroundColor ||
-    b.hoverStyles?.color ||
-    b.hoverStyles?.borderColor ||
-    b.hoverStyles?.scale ||
+    b?.hoverStyles?.backgroundColor ||
+    b?.hoverStyles?.color ||
+    b?.hoverStyles?.borderColor ||
+    b?.hoverStyles?.scale ||
     s.hoverScale ||
     s.hoverTranslateY !== undefined;
 
@@ -822,100 +806,161 @@ export const PropertiesPanel: React.FC = () => {
               </div>
             )}
 
-            {/* Quick Click Action / Link for Buttons & Links */}
-            {(el.type === 'button' || el.role === 'button' || el.role === 'link') && (
-              <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
-                <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
-                  <span className="flex items-center gap-1.5">
-                    <LinkIcon className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Click Action / Destination</span>
+            {/* BUTTON DESIGN & VARIANT PRESETS SUITE */}
+            {el.type === 'button' && (
+              <div className="p-3 bg-[#18181b] border border-indigo-500/40 rounded-xl space-y-3 shadow-lg shadow-black/30">
+                <div className="flex items-center justify-between text-zinc-200 font-semibold text-xs border-b border-[#27272a] pb-2">
+                  <span className="flex items-center gap-1.5 text-indigo-400">
+                    <MousePointerClick className="w-4 h-4" />
+                    <span>Button Styling & Presets</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
+                    {b.buttonVariant || 'filled'}
                   </span>
                 </div>
 
-                <div className="space-y-1.5">
-                  <select
-                    value={b.actionType || 'none'}
-                    onChange={(e) => updateElementBehavior(el.id, { actionType: e.target.value as ActionType })}
-                    className="w-full bg-[#121214] border border-[#27272a] rounded px-2.5 py-1 text-zinc-200 outline-none text-xs"
-                  >
-                    <option value="none">No Action (Static)</option>
-                    <option value="navigate-url">Open Web Link (URL)</option>
-                    <option value="navigate-page">Switch to Page</option>
-                    <option value="confetti">🎉 Trigger Confetti Burst</option>
-                    <option value="play-sound">🔊 Play Sound Effect</option>
-                    <option value="toggle-dark-mode">🌓 Toggle Dark/Light Theme</option>
-                    <option value="whatsapp">💬 WhatsApp Direct Chat</option>
-                    <option value="share-page">🔗 Share Page Link</option>
-                    <option value="scroll-section">Scroll to Section</option>
-                    <option value="scroll-top">Scroll to Top</option>
-                  </select>
+                {/* 1. Button Label Content */}
+                <div>
+                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Button Text Label</label>
+                  <input
+                    type="text"
+                    value={el.content || ''}
+                    onChange={(e) => updateElement(el.id, { content: e.target.value }, true)}
+                    placeholder="Button Text..."
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] focus:border-indigo-500 rounded-md text-white outline-none font-medium"
+                  />
+                </div>
 
-                  {b.actionType === 'confetti' && (
-                    <button
-                      type="button"
-                      onClick={() => triggerConfetti()}
-                      className="w-full py-1.5 px-2 bg-pink-600 hover:bg-pink-500 text-white rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <PartyPopper className="w-3.5 h-3.5" />
-                      <span>Test Confetti Now</span>
-                    </button>
-                  )}
+                {/* 2. Visual Variant Preset Swatches (8 styles) */}
+                <div>
+                  <label className="text-[10px] text-zinc-400 font-medium block mb-1.5">Button Style Variant</label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {BUTTON_VARIANTS.map((v) => {
+                      const isActive = (b.buttonVariant || 'filled') === v.value;
+                      return (
+                        <button
+                          key={v.value}
+                          type="button"
+                          onClick={() => {
+                            const newBehavior: Partial<typeof b> = { buttonVariant: v.value };
+                            const newStyles: Partial<typeof s> = {};
+                            if (v.value === 'gradient' && !s.gradient) {
+                              newStyles.gradient = 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%)';
+                              newStyles.color = '#ffffff';
+                            } else if (v.value === 'outline') {
+                              newStyles.borderColor = s.borderColor || '#6366f1';
+                              newStyles.borderWidth = s.borderWidth || 2;
+                              newStyles.borderStyle = 'solid';
+                              newStyles.color = s.color || '#818cf8';
+                              newStyles.backgroundColor = 'transparent';
+                            } else if (v.value === 'glow') {
+                              newStyles.boxShadow = '0 0 25px rgba(99, 102, 241, 0.65)';
+                              newStyles.borderColor = '#818cf8';
+                              newStyles.borderWidth = 1;
+                              newStyles.borderStyle = 'solid';
+                            } else if (v.value === 'pill') {
+                              newStyles.borderRadius = 9999;
+                            } else if (v.value === '3d-push') {
+                              newStyles.backgroundColor = '#2563eb';
+                              newStyles.color = '#ffffff';
+                              newStyles.borderRadius = 8;
+                            }
+                            updateElementBehavior(el.id, newBehavior);
+                            if (Object.keys(newStyles).length > 0) {
+                              updateElementStyles(el.id, newStyles);
+                            }
+                            showToast(`Applied ${v.label} button style`, 'info');
+                          }}
+                          className={`p-2 rounded-lg text-left border transition-all cursor-pointer flex flex-col justify-between ${
+                            isActive
+                              ? 'bg-indigo-600/25 border-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.25)]'
+                              : 'bg-[#121214] border-[#27272a] hover:border-zinc-700 hover:bg-[#18181b]'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[11px] font-semibold ${isActive ? 'text-white' : 'text-zinc-300'}`}>
+                              {v.label}
+                            </span>
+                            <span className="text-[9px] text-zinc-500 font-mono">{v.badge}</span>
+                          </div>
+                          <span className="text-[9px] text-zinc-500 truncate mt-0.5">{v.description}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                  {b.actionType === 'play-sound' && (
-                    <div className="flex gap-1.5">
-                      <select
-                        value={b.actionPayload || 'success'}
-                        onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                        className="flex-1 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-xs text-white outline-none"
-                      >
-                        <option value="success">Success Chime</option>
-                        <option value="chime">Triple Chime</option>
-                        <option value="pop">Bubbly Pop</option>
-                        <option value="click">Subtle Click</option>
-                        <option value="bell">Notification Bell</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => playSound((b.actionPayload as SoundEffectType) || 'success')}
-                        className="px-2.5 py-1 bg-[#222226] hover:bg-[#27272a] text-white rounded text-xs transition-colors flex items-center gap-1"
-                      >
-                        <Volume2 className="w-3.5 h-3.5" />
-                        <span>Test</span>
-                      </button>
-                    </div>
-                  )}
+                {/* 3. Button Size Scale */}
+                <div>
+                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Button Size Scale</label>
+                  <div className="flex bg-[#121214] border border-[#27272a] rounded-lg p-0.5 gap-0.5">
+                    {(['sm', 'md', 'lg', 'xl'] as ButtonSize[]).map((sz) => {
+                      const isActive = (b.buttonSize || 'md') === sz;
+                      return (
+                        <button
+                          key={sz}
+                          type="button"
+                          onClick={() => {
+                            const heights: Record<ButtonSize, number> = { sm: 36, md: 44, lg: 52, xl: 60 };
+                            const fontSizes: Record<ButtonSize, number> = { sm: 13, md: 15, lg: 17, xl: 19 };
+                            updateElementBehavior(el.id, { buttonSize: sz });
+                            updateElement(el.id, { height: heights[sz] }, true);
+                            updateElementStyles(el.id, { fontSize: fontSizes[sz] });
+                          }}
+                          className={`flex-1 py-1 text-center font-bold text-xs rounded transition-colors ${
+                            isActive ? 'bg-indigo-600 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          {sz.toUpperCase()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                  {b.actionType === 'whatsapp' && (
-                    <input
-                      type="text"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="Phone with country code (e.g. +14155552671)"
-                      className="w-full px-2.5 py-1 text-xs bg-[#121214] border border-[#27272a] rounded text-white outline-none font-mono"
-                    />
-                  )}
-
-                  {b.actionType === 'navigate-url' && (
-                    <input
-                      type="text"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="https://example.com or /signup"
-                      className="w-full px-2.5 py-1 text-xs bg-[#121214] border border-[#27272a] rounded text-white outline-none"
-                    />
-                  )}
-
-                  {b.actionType === 'navigate-page' && (
+                {/* 4. Button Icon & Position */}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Button Icon</label>
                     <select
-                      value={b.actionPayload || activePage.id}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2.5 py-1 text-zinc-200 outline-none text-xs"
+                      value={b.buttonIcon || 'none'}
+                      onChange={(e) => updateElementBehavior(el.id, { buttonIcon: e.target.value as ButtonIconType })}
+                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
                     >
-                      {project.pages.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name} ({p.slug})</option>
+                      {['None', 'Arrows', 'Engagement', 'Actions', 'Commerce', 'Communication', 'Utility', 'Security'].map((cat) => (
+                        <optgroup key={cat} label={`— ${cat} —`}>
+                          {BUTTON_ICONS.filter((i) => i.category === cat).map((i) => (
+                            <option key={i.value} value={i.value}>
+                              {i.label}
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
-                  )}
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Icon Position</label>
+                    <div className="flex bg-[#121214] border border-[#27272a] rounded-lg p-0.5 gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => updateElementBehavior(el.id, { buttonIconPosition: 'left' })}
+                        className={`flex-1 py-1 text-center text-xs font-medium rounded transition-colors ${
+                          (b.buttonIconPosition || 'right') === 'left' ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        Left
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateElementBehavior(el.id, { buttonIconPosition: 'right' })}
+                        className={`flex-1 py-1 text-center text-xs font-medium rounded transition-colors ${
+                          (b.buttonIconPosition || 'right') === 'right' ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        Right
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -2095,7 +2140,7 @@ export const PropertiesPanel: React.FC = () => {
                     onChange={(e) => updateElementBehavior(el.id, { actionType: e.target.value as ActionType })}
                     className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
                   >
-                    {['General', 'Navigation', 'Interactive', 'Effects', 'Utility', 'Communication', 'Advanced'].map((cat) => (
+                    {['Navigation', 'Interactive', 'Effects & Audio', 'Utility', 'Communication', 'Advanced'].map((cat) => (
                       <optgroup key={cat} label={`— ${cat} —`}>
                         {ACTION_TYPES.filter((a) => a.category === cat).map((a) => (
                           <option key={a.value} value={a.value}>
@@ -2184,6 +2229,20 @@ export const PropertiesPanel: React.FC = () => {
                   </div>
                 )}
 
+                {/* 4b. Scroll to Bottom */}
+                {b.actionType === 'scroll-bottom' && (
+                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
+                    Smoothly scrolls the viewport down to the page footer and bottom content.
+                  </div>
+                )}
+
+                {/* 4c. Back to Previous */}
+                {b.actionType === 'back-to-previous' && (
+                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
+                    Navigates the browser backwards one step in history (like the browser Back button).
+                  </div>
+                )}
+
                 {/* 5. Open Modal Dialog */}
                 {b.actionType === 'open-modal' && (
                   <div className="space-y-2 pt-1">
@@ -2236,6 +2295,32 @@ export const PropertiesPanel: React.FC = () => {
                   </div>
                 )}
 
+                {/* 6b. Accordion Toggle */}
+                {b.actionType === 'accordion-toggle' && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">Accordion Panel Target ID</span>
+                    <select
+                      value={b.actionTargetId || b.actionPayload || ''}
+                      onChange={(e) =>
+                        updateElementBehavior(el.id, {
+                          actionTargetId: e.target.value,
+                          actionPayload: e.target.value,
+                        })
+                      }
+                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
+                    >
+                      <option value="">Select Panel / Container to Expand...</option>
+                      {activePage.elements
+                        .filter((item) => item.id !== el.id)
+                        .map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name || item.type} ({item.id})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+
                 {/* 7. Copy Text to Clipboard */}
                 {b.actionType === 'copy-text' && (
                   <div className="space-y-1 pt-1">
@@ -2246,6 +2331,35 @@ export const PropertiesPanel: React.FC = () => {
                       onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
                       placeholder="e.g. DISCOUNT2026 or promo link"
                       className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
+                    />
+                  </div>
+                )}
+
+                {/* 7b. Discount Voucher Reveal */}
+                {b.actionType === 'discount-reveal' && (
+                  <div className="space-y-1 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">Voucher Promo Code</span>
+                    <input
+                      type="text"
+                      value={b.actionPayload || 'SAVE25'}
+                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                      placeholder="e.g. SAVE25 or VIP50"
+                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono uppercase font-bold text-amber-300"
+                    />
+                    <p className="text-[10px] text-zinc-500">Unlocks discount, triggers celebratory confetti & copies code to user clipboard.</p>
+                  </div>
+                )}
+
+                {/* 7c. Submit Form */}
+                {b.actionType === 'submit-form' && (
+                  <div className="space-y-1 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">Form Success Message</span>
+                    <input
+                      type="text"
+                      value={b.actionPayload || '🎉 Thank you! Your submission has been received.'}
+                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                      placeholder="Success toast message..."
+                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none"
                     />
                   </div>
                 )}
@@ -2292,6 +2406,20 @@ export const PropertiesPanel: React.FC = () => {
                   </div>
                 )}
 
+                {/* 10b. Send SMS Message */}
+                {b.actionType === 'open-sms' && (
+                  <div className="space-y-1 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">SMS Phone Number & Message</span>
+                    <input
+                      type="text"
+                      value={b.actionPayload || ''}
+                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                      placeholder="+15552345678?body=Hi there"
+                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
+                    />
+                  </div>
+                )}
+
                 {/* 11. Download File */}
                 {b.actionType === 'download-file' && (
                   <div className="space-y-1 pt-1">
@@ -2306,6 +2434,34 @@ export const PropertiesPanel: React.FC = () => {
                   </div>
                 )}
 
+                {/* 11b. Print Page */}
+                {b.actionType === 'print-page' && (
+                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
+                    Triggers the native browser print dialogue (print directly or save as PDF).
+                  </div>
+                )}
+
+                {/* 11c. Fullscreen */}
+                {b.actionType === 'launch-fullscreen' && (
+                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
+                    Toggles browser full-screen presentation mode for an immersive experience.
+                  </div>
+                )}
+
+                {/* 11d. Vibrate Device */}
+                {b.actionType === 'vibrate-device' && (
+                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
+                    Triggers gentle physical haptic feedback pulse on mobile devices and gamepads.
+                  </div>
+                )}
+
+                {/* 11e. Reload Page */}
+                {b.actionType === 'reload-page' && (
+                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
+                    Refreshes or reloads the current page view.
+                  </div>
+                )}
+
                 {/* 12. Custom JS Snippet */}
                 {b.actionType === 'custom-js' && (
                   <div className="space-y-1 pt-1">
@@ -2314,7 +2470,7 @@ export const PropertiesPanel: React.FC = () => {
                       rows={3}
                       value={b.actionPayload || ''}
                       onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="alert('Clicked!'); console.log('Event fired');"
+                      placeholder="toast('Clicked!'); playSound('success');"
                       className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono resize-none text-[11px]"
                     />
                   </div>
@@ -2409,77 +2565,23 @@ export const PropertiesPanel: React.FC = () => {
                   <div className="pt-2 border-t border-[#222226]">
                     <button
                       type="button"
-                      onClick={() => {
-                        if (b.actionType === 'navigate-url' && b.actionPayload) {
-                          window.open(b.actionPayload, b.targetBlank ? '_blank' : '_self');
-                        } else if (b.actionType === 'navigate-page' && b.actionPayload) {
-                          setActivePage(b.actionPayload);
-                          showToast(`Navigated to page: ${b.actionPayload}`, 'info');
-                        } else if (b.actionType === 'scroll-section') {
-                          const targetId = b.actionPayload?.replace(/^#/, '');
-                          if (targetId) {
-                            showToast(`Scroll triggered for target: #${targetId}`, 'info');
-                          }
-                        } else if (b.actionType === 'scroll-top') {
-                          window.dispatchEvent(new CustomEvent('canvas:scroll-top'));
-                          showToast('Scrolled to top!', 'info');
-                        } else if (b.actionType === 'open-modal') {
-                          showToast(
-                            `Modal Dialog: "${b.actionModalTitle || 'Notice'}" - ${b.actionModalBody || 'Popup triggered'}`,
-                            'info'
-                          );
-                        } else if (b.actionType === 'toggle-visibility') {
-                          const targetId = b.actionTargetId || b.actionPayload;
-                          showToast(`Toggled visibility for element #${targetId}`, 'info');
-                        } else if (b.actionType === 'confetti') {
-                          triggerConfetti();
-                          playSound('success');
-                          showToast('🎉 Confetti Celebration!', 'success');
-                        } else if (b.actionType === 'play-sound') {
-                          playSound((b.actionPayload as SoundEffectType) || 'success');
-                          showToast('Played synthesized sound effect! 🔊', 'info');
-                        } else if (b.actionType === 'toggle-dark-mode') {
-                          const isDark = activePage.backgroundColor.toLowerCase() !== '#ffffff' && activePage.backgroundColor.toLowerCase() !== '#f8fafc';
-                          updatePageSettings(activePage.id, { backgroundColor: isDark ? '#ffffff' : '#0c0e14' });
-                          showToast(`Toggled ${isDark ? 'Light' : 'Dark'} theme`, 'info');
-                        } else if (b.actionType === 'whatsapp') {
-                          const cleanNumber = (b.actionPayload || '').replace(/[^0-9]/g, '');
-                          window.open(`https://wa.me/${cleanNumber}`, '_blank');
-                        } else if (b.actionType === 'share-page') {
-                          if (navigator.share) {
-                            navigator.share({ title: project.name, url: window.location.href }).catch(() => {});
-                          } else {
-                            navigator.clipboard?.writeText(window.location.href);
-                            showToast('Copied page link to clipboard!', 'success');
-                          }
-                        } else if (b.actionType === 'copy-text') {
-                          if (b.actionPayload) {
-                            navigator.clipboard?.writeText(b.actionPayload);
-                            showToast(`Copied: "${b.actionPayload}"`, 'success');
-                          }
-                        } else if (b.actionType === 'alert') {
-                          showToast(b.actionPayload || 'Action triggered successfully!', 'info');
-                        } else if (b.actionType === 'email-mailto') {
-                          showToast(`Email mailto trigger: ${b.actionPayload}`, 'info');
-                        } else if (b.actionType === 'tel-call') {
-                          showToast(`Phone call trigger: ${b.actionPayload}`, 'info');
-                        } else if (b.actionType === 'download-file') {
-                          showToast(`File download trigger: ${b.actionPayload}`, 'info');
-                        } else if (b.actionType === 'custom-js') {
-                          try {
-                            // Safe execution
-                            const fn = new Function('toast', b.actionPayload || '');
-                            fn(showToast);
-                            showToast('Custom JS executed successfully', 'success');
-                          } catch (err: any) {
-                            showToast(`Custom JS Error: ${err.message}`, 'warning');
-                          }
-                        }
+                      onClick={(e) => {
+                        executeElementAction(
+                          el,
+                          {
+                            project,
+                            activePage,
+                            setActivePage,
+                            updatePageSettings,
+                            showToast,
+                          },
+                          e
+                        );
                       }}
-                      className="w-full py-1.5 px-3 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 flex items-center justify-center gap-1.5 font-medium text-[11px] transition-all"
+                      className="w-full py-2 px-3 rounded-lg bg-emerald-600/25 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 flex items-center justify-center gap-1.5 font-semibold text-xs transition-all shadow-md shadow-emerald-950/40 cursor-pointer active:scale-98"
                     >
-                      <Play className="w-3 h-3 text-emerald-400" />
-                      <span>Test Action Now</span>
+                      <Play className="w-3.5 h-3.5 text-emerald-400 fill-current" />
+                      <span>⚡ Test Action Now</span>
                     </button>
                   </div>
                 )}

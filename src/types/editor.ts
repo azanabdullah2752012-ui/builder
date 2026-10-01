@@ -79,22 +79,67 @@ export type ActionType =
   | 'navigate-page'
   | 'scroll-section'
   | 'scroll-top'
+  | 'scroll-bottom'
+  | 'back-to-previous'
   | 'copy-text'
   | 'open-modal'
   | 'toggle-visibility'
   | 'alert'
   | 'email-mailto'
   | 'tel-call'
+  | 'open-sms'
   | 'download-file'
   | 'custom-js'
   | 'confetti'
   | 'play-sound'
   | 'toggle-dark-mode'
   | 'whatsapp'
-  | 'share-page';
+  | 'share-page'
+  | 'print-page'
+  | 'launch-fullscreen'
+  | 'vibrate-device'
+  | 'reload-page'
+  | 'discount-reveal'
+  | 'submit-form'
+  | 'accordion-toggle';
 
-export type ButtonVariant = 'filled' | 'gradient' | 'outline' | 'ghost' | 'glow';
-export type ButtonIconType = 'none' | 'arrow-right' | 'external-link' | 'sparkles' | 'download';
+export type ButtonVariant =
+  | 'filled'
+  | 'gradient'
+  | 'outline'
+  | 'ghost'
+  | 'glow'
+  | '3d-push'
+  | 'glass'
+  | 'pill';
+
+export type ButtonIconType =
+  | 'none'
+  | 'arrow-right'
+  | 'arrow-left'
+  | 'external-link'
+  | 'sparkles'
+  | 'download'
+  | 'check'
+  | 'heart'
+  | 'star'
+  | 'zap'
+  | 'play'
+  | 'cart'
+  | 'phone'
+  | 'mail'
+  | 'send'
+  | 'message-circle'
+  | 'copy'
+  | 'bell'
+  | 'calendar'
+  | 'gift'
+  | 'share'
+  | 'chevron-right'
+  | 'lock';
+
+export type ButtonIconPosition = 'left' | 'right';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export interface ElementBehavior {
   actionType: ActionType;
@@ -105,6 +150,8 @@ export interface ElementBehavior {
   actionTargetId?: string;
   buttonVariant?: ButtonVariant;
   buttonIcon?: ButtonIconType;
+  buttonIconPosition?: ButtonIconPosition;
+  buttonSize?: ButtonSize;
   hoverStyles?: {
     backgroundColor?: string;
     color?: string;

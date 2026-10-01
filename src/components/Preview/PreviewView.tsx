@@ -13,7 +13,8 @@ import {
   X,
 } from 'lucide-react';
 import { SHAPE_DEFINITIONS, getShapeSvgNode } from '../../utils/shapeDefinitions';
-import { triggerConfetti, playSound, type SoundEffectType } from '../../utils/interactiveEffects';
+import { getComputedButtonStyles, renderButtonIcon } from '../../utils/buttonStyles';
+import { executeElementAction } from '../../utils/actionExecutor';
 
 export const PreviewView: React.FC = () => {
   const {
@@ -47,131 +48,26 @@ export const PreviewView: React.FC = () => {
   const elementsToRender = responsiveLayout.elements;
 
   const handleElementClick = (element: CanvasElement, e: React.MouseEvent) => {
-    const action = element.behavior.actionType;
-    const payload = element.behavior.actionPayload;
-
-    if (action === 'none') {
-      return;
-    }
-
-    if (action === 'navigate-page' && payload) {
-      e.preventDefault();
-      const targetPage = project.pages.find((p) => p.id === payload);
-      if (targetPage) {
-        setActivePage(targetPage.id);
-        showToast(`Navigated to ${targetPage.name}`, 'info');
-      }
-    } else if (action === 'navigate-url' && payload) {
-      window.open(payload, element.behavior.targetBlank ? '_blank' : '_self', 'noopener,noreferrer');
-    } else if (action === 'scroll-section') {
-      e.preventDefault();
-      const targetId = (payload || '').replace(/^#/, '');
-      if (targetId) {
-        const targetEl =
-          document.getElementById(targetId) ||
-          document.querySelector(`[data-element-id="${targetId}"]`) ||
-          document.querySelector(`.${targetId}`);
-        if (targetEl) {
-          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          showToast(`Scrolled to section #${targetId}`, 'info');
-        } else {
-          showToast(`Target section #${targetId} not found on canvas`, 'warning');
-        }
-      }
-    } else if (action === 'scroll-top') {
-      e.preventDefault();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      const mainContainer = document.querySelector('main');
-      if (mainContainer) {
-        mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-      showToast('Scrolled to top!', 'info');
-    } else if (action === 'open-modal') {
-      e.preventDefault();
-      setActiveModal({
-        title: element.behavior.actionModalTitle || 'Notification Dialog',
-        body:
-          element.behavior.actionModalBody ||
-          payload ||
-          'This is an interactive dialog triggered by the element action.',
-      });
-    } else if (action === 'toggle-visibility') {
-      e.preventDefault();
-      const targetId = element.behavior.actionTargetId || payload;
-      if (targetId) {
-        setHiddenElementIds((prev) => {
-          const next = new Set(prev);
-          if (next.has(targetId)) {
-            next.delete(targetId);
-            showToast(`Element #${targetId} is now visible`, 'info');
-          } else {
-            next.add(targetId);
-            showToast(`Element #${targetId} is now hidden`, 'info');
-          }
-          return next;
-        });
-      }
-    } else if (action === 'copy-text' && payload) {
-      e.preventDefault();
-      navigator.clipboard?.writeText(payload);
-      showToast(`Copied to clipboard: "${payload}"`, 'success');
-    } else if (action === 'alert' && payload) {
-      e.preventDefault();
-      showToast(payload, 'success');
-    } else if (action === 'email-mailto' && payload) {
-      window.location.href = payload.startsWith('mailto:') ? payload : `mailto:${payload}`;
-    } else if (action === 'tel-call' && payload) {
-      window.location.href = payload.startsWith('tel:') ? payload : `tel:${payload}`;
-    } else if (action === 'download-file' && payload) {
-      e.preventDefault();
-      showToast(`Downloading: ${payload}`, 'info');
-      const a = document.createElement('a');
-      a.href = payload;
-      a.download = '';
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else if (action === 'custom-js' && payload) {
-      e.preventDefault();
-      try {
-        const fn = new Function('element', 'toast', payload);
-        fn(element, showToast);
-      } catch (err: any) {
-        showToast(`Custom JS Error: ${err.message}`, 'warning');
-      }
-    } else if (action === 'confetti') {
-      e.preventDefault();
-      triggerConfetti(e.clientX, e.clientY);
-      playSound('success');
-      showToast('🎉 Confetti Celebration!', 'success');
-    } else if (action === 'play-sound') {
-      e.preventDefault();
-      playSound((payload as SoundEffectType) || 'success');
-    } else if (action === 'toggle-dark-mode') {
-      e.preventDefault();
-      const isDark = activePage.backgroundColor.toLowerCase() !== '#ffffff' && activePage.backgroundColor.toLowerCase() !== '#f8fafc';
-      updatePageSettings(activePage.id, { backgroundColor: isDark ? '#ffffff' : '#0c0e14' });
-      showToast(`Switched to ${isDark ? 'Light' : 'Dark'} mode`, 'info');
-    } else if (action === 'whatsapp' && payload) {
-      e.preventDefault();
-      const cleanNumber = payload.replace(/[^0-9]/g, '');
-      window.open(`https://wa.me/${cleanNumber}`, '_blank');
-    } else if (action === 'share-page') {
-      e.preventDefault();
-      if (navigator.share) {
-        navigator.share({ title: project.name, url: window.location.href }).catch(() => {});
-      } else {
-        navigator.clipboard?.writeText(window.location.href);
-        showToast('Copied page link to clipboard!', 'success');
-      }
-    }
+    executeElementAction(
+      element,
+      {
+        project,
+        activePage,
+        setActivePage,
+        updatePageSettings,
+        showToast,
+        setHiddenElementIds,
+        setActiveModal,
+      },
+      e
+    );
   };
 
   // Render individual semantic element in preview
   const renderPreviewElement = (element: CanvasElement) => {
-    const s = element.styles;
-    const h = element.behavior.hoverStyles;
+    const s = element.styles || {};
+    const beh = element.behavior || { actionType: 'none' };
+    const h = beh.hoverStyles;
     const isHovered = hoveredElementId === element.id;
 
     const l = element.layout;
@@ -186,6 +82,9 @@ export const PreviewView: React.FC = () => {
       l?.direction ||
       'column';
 
+    const isBtn = element.type === 'button' || element.role === 'button';
+    const btnStyles = isBtn ? getComputedButtonStyles(beh, s) : undefined;
+
     // Apply base styles and active hover styles if hovered
     const computedStyles: React.CSSProperties = {
       position: 'absolute',
@@ -194,17 +93,27 @@ export const PreviewView: React.FC = () => {
       width: `${element.width}px`,
       height: `${element.height}px`,
       zIndex: element.zIndex || (element.type === 'section' ? 0 : 1),
-      background: (isHovered && h?.backgroundColor) || s.gradient || s.backgroundColor || 'transparent',
-      color: (isHovered && h?.color) || s.color || 'inherit',
-      fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
-      fontWeight: s.fontWeight || undefined,
+      background:
+        (isHovered && h?.backgroundColor) ||
+        s.gradient ||
+        btnStyles?.background ||
+        s.backgroundColor ||
+        btnStyles?.backgroundColor ||
+        'transparent',
+      color: (isHovered && h?.color) || s.color || btnStyles?.color || 'inherit',
+      fontSize: s.fontSize ? `${s.fontSize}px` : btnStyles?.fontSize || undefined,
+      fontWeight: s.fontWeight || btnStyles?.fontWeight || undefined,
       fontFamily: s.fontFamily || undefined,
       textAlign: s.textAlign || 'left',
       lineHeight: s.lineHeight || undefined,
-      borderRadius: s.borderRadius ? `${s.borderRadius}px` : undefined,
-      borderWidth: s.borderWidth !== undefined ? `${s.borderWidth}px` : undefined,
-      borderStyle: s.borderStyle || 'none',
-      borderColor: (isHovered && h?.borderColor) || (isHovered && s.hoverEffect === 'glow' ? '#818cf8' : s.borderColor || 'transparent'),
+      borderRadius: s.borderRadius !== undefined ? `${s.borderRadius}px` : btnStyles?.borderRadius || undefined,
+      borderWidth: s.borderWidth !== undefined ? `${s.borderWidth}px` : btnStyles?.borderWidth || undefined,
+      borderStyle: s.borderStyle || btnStyles?.borderStyle || 'none',
+      borderColor:
+        (isHovered && h?.borderColor) ||
+        (isHovered && s.hoverEffect === 'glow' ? '#818cf8' : s.borderColor || btnStyles?.borderColor || 'transparent'),
+      backdropFilter: (btnStyles as any)?.backdropFilter,
+      WebkitBackdropFilter: (btnStyles as any)?.WebkitBackdropFilter,
       boxShadow:
         (isHovered && h?.boxShadow) ||
         (isHovered && s.hoverShadow) ||
@@ -226,7 +135,7 @@ export const PreviewView: React.FC = () => {
       cursor:
         element.role === 'button' ||
         element.role === 'link' ||
-        element.behavior.actionType !== 'none'
+        beh.actionType !== 'none'
           ? 'pointer'
           : 'default',
       transition: s.transitionDuration
@@ -316,6 +225,21 @@ export const PreviewView: React.FC = () => {
       );
     }
 
+    if (element.type === 'button' || element.role === 'button') {
+      const icon = element.behavior.buttonIcon || 'none';
+      const iconPos = element.behavior.buttonIconPosition || 'right';
+      const iconNode = renderButtonIcon(icon, 'w-4 h-4 shrink-0 transition-transform duration-200');
+      return (
+        <button {...commonProps} type="button" role="button">
+          <div className="w-full h-full flex items-center justify-center font-semibold px-4 select-none gap-2">
+            {iconPos === 'left' && iconNode}
+            <span className="truncate">{element.content || 'Button'}</span>
+            {iconPos === 'right' && iconNode}
+          </div>
+        </button>
+      );
+    }
+
     // Render using true semantic role tags
     switch (element.role) {
       case 'heading-h1':
@@ -399,23 +323,16 @@ export const PreviewView: React.FC = () => {
           </div>
         );
 
-      case 'button':
-        return (
-          <button {...commonProps} type="button" role="button">
-            <span className="w-full text-center select-none">{element.content || 'Button'}</span>
-          </button>
-        );
-
       case 'link':
         return (
           <a
             {...commonProps}
             href={
-              element.behavior.actionType === 'navigate-url'
-                ? element.behavior.actionPayload || '#'
+              beh.actionType === 'navigate-url'
+                ? beh.actionPayload || '#'
                 : '#'
             }
-            target={element.behavior.targetBlank ? '_blank' : '_self'}
+            target={beh.targetBlank ? '_blank' : '_self'}
             rel="noopener noreferrer"
           >
             <span className="w-full select-none">{element.content || 'Link'}</span>

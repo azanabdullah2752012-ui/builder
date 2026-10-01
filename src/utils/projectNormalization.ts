@@ -1,24 +1,38 @@
-import type { ProjectState } from '../types/editor';
+import type { ProjectState, CanvasElement } from '../types/editor';
 import { INITIAL_PROJECT } from '../constants/defaults';
 
-// Helper to normalize legacy projects for backwards compatibility
+// Helper to normalize legacy projects for backwards compatibility & crash prevention
 export function normalizeProjectState(proj: ProjectState): ProjectState {
-  if (!proj || !proj.pages) return INITIAL_PROJECT;
+  if (!proj || !proj.pages || !Array.isArray(proj.pages) || proj.pages.length === 0) {
+    return INITIAL_PROJECT;
+  }
 
   return {
     ...proj,
     pages: proj.pages.map((p) => {
-      const elements = p.elements || [];
+      const elements = Array.isArray(p.elements) ? p.elements : [];
 
-      // Ensure every element has parentId, layout, and responsive defaults
-      const normalizedElements = elements.map((el) => {
+      // Ensure every element has guaranteed styles, behavior, layout, parentId, and responsive defaults
+      const normalizedElements: CanvasElement[] = elements.map((el) => {
         const isContainerType = el.type === 'section' || el.type === 'container';
+
+        const safeStyles = el.styles && typeof el.styles === 'object' ? { ...el.styles } : {};
+        const safeBehavior = {
+          actionType: 'none' as const,
+          ...(el.behavior && typeof el.behavior === 'object' ? el.behavior : {}),
+        };
 
         return {
           ...el,
-          height: el.height,
-          y: el.y,
-          locked: el.locked,
+          x: typeof el.x === 'number' ? el.x : 40,
+          y: typeof el.y === 'number' ? el.y : 40,
+          width: typeof el.width === 'number' && el.width > 0 ? el.width : 200,
+          height: typeof el.height === 'number' && el.height > 0 ? el.height : 50,
+          locked: Boolean(el.locked),
+          zIndex: typeof el.zIndex === 'number' ? el.zIndex : isContainerType ? 0 : 1,
+          role: el.role || (el.type === 'button' ? 'button' : el.type === 'text' ? 'text' : isContainerType ? 'container' : 'none'),
+          styles: safeStyles,
+          behavior: safeBehavior,
           parentId: el.parentId ?? null,
           children: el.children ?? (isContainerType ? [] : undefined),
           layout: isContainerType
@@ -43,6 +57,8 @@ export function normalizeProjectState(proj: ProjectState): ProjectState {
 
       return {
         ...p,
+        canvasWidth: typeof p.canvasWidth === 'number' ? p.canvasWidth : 1200,
+        canvasHeight: typeof p.canvasHeight === 'number' ? p.canvasHeight : 800,
         elements: normalizedElements,
       };
     }),

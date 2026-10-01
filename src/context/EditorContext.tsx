@@ -377,8 +377,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         ...el,
         id: idMap.get(el.id) || el.id,
         parentId: el.parentId ? idMap.get(el.parentId) || el.parentId : undefined,
-        styles: { ...el.styles },
-        behavior: { ...el.behavior },
+        styles: { ...(el.styles || {}) },
+        behavior: el.behavior ? { ...el.behavior } : { actionType: 'none' },
         layout: el.layout ? { ...el.layout } : undefined,
         responsive: el.responsive ? { ...el.responsive } : undefined,
       }));
@@ -690,7 +690,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               if (el.id === id) {
                 return {
                   ...el,
-                  styles: { ...el.styles, ...styles },
+                  styles: { ...(el.styles || {}), ...styles },
                 };
               }
               return el;
@@ -730,7 +730,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               if (el.id === id) {
                 return {
                   ...el,
-                  behavior: { ...el.behavior, ...behavior },
+                  behavior: { ...(el.behavior || { actionType: 'none' }), ...behavior },
                 };
               }
               return el;
@@ -1102,6 +1102,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         ...target,
         id: newTargetId,
         name: `${target.name} (Copy)`,
+        styles: { ...(target.styles || {}) },
+        behavior: target.behavior ? { ...target.behavior } : { actionType: 'none' },
         x: target.x + 24,
         y: target.y + 24,
         locked: false,
@@ -1114,6 +1116,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         ...d,
         id: idMap.get(d.id)!,
         name: `${d.name} (Copy)`,
+        styles: { ...(d.styles || {}) },
+        behavior: d.behavior ? { ...d.behavior } : { actionType: 'none' },
         locked: false,
         zIndex: maxZ + 2 + i,
         parentId: newTargetId,

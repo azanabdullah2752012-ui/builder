@@ -2,9 +2,10 @@ import React, { useState, useRef } from 'react';
 import type { CanvasElement, ResizeHandleType } from '../../types/editor';
 import { useEditor } from '../../context/useEditor';
 import { ResizeHandles } from './ResizeHandles';
-import { Rocket, LayoutGrid, Layers, ArrowRight, ExternalLink, Sparkles, Download } from 'lucide-react';
+import { Rocket, LayoutGrid, Layers } from 'lucide-react';
 import { SHAPE_DEFINITIONS, getShapeSvgNode } from '../../utils/shapeDefinitions';
-import { triggerConfetti, playSound, type SoundEffectType } from '../../utils/interactiveEffects';
+import { getComputedButtonStyles, renderButtonIcon } from '../../utils/buttonStyles';
+import { executeElementAction } from '../../utils/actionExecutor';
 
 interface CanvasElementComponentProps {
   element: CanvasElement;
@@ -477,54 +478,28 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
     }
   };
 
-  // Preview Mode Click Behavior Handler for Buttons & Links
+  // Click Behavior Handler for Interactive Elements (supports Preview and Alt+Click testing in Design mode)
   const handleElementClick = (e: React.MouseEvent) => {
-    if (editorMode === 'preview') {
+    if (editorMode === 'preview' || e.altKey) {
       e.stopPropagation();
-      const action = element.behavior?.actionType;
-      const payload = element.behavior?.actionPayload;
-      if (action === 'navigate-url' && payload) {
-        window.open(payload, element.behavior?.targetBlank ? '_blank' : '_self');
-      } else if (action === 'navigate-page' && payload) {
-        setActivePage(payload);
-      } else if (action === 'alert') {
-        showToast(payload || 'Action triggered successfully!', 'info');
-      } else if (action === 'scroll-top') {
-        window.dispatchEvent(new CustomEvent('canvas:scroll-top'));
-      } else if (action === 'confetti') {
-        triggerConfetti(e.clientX, e.clientY);
-        playSound('success');
-        showToast('🎉 Confetti Celebration!', 'success');
-      } else if (action === 'play-sound') {
-        playSound((payload as SoundEffectType) || 'success');
-      } else if (action === 'toggle-dark-mode') {
-        const active = project.pages.find((p) => p.id === project.activePageId);
-        if (active) {
-          const isDark = active.backgroundColor.toLowerCase() !== '#ffffff' && active.backgroundColor.toLowerCase() !== '#f8fafc';
-          updatePageSettings(active.id, { backgroundColor: isDark ? '#ffffff' : '#0c0e14' });
-          showToast(`Switched to ${isDark ? 'Light' : 'Dark'} mode`, 'info');
-        }
-      } else if (action === 'whatsapp' && payload) {
-        const cleanNumber = payload.replace(/[^0-9]/g, '');
-        window.open(`https://wa.me/${cleanNumber}`, '_blank');
-      } else if (action === 'share-page') {
-        if (navigator.share) {
-          navigator.share({ title: project.name, url: window.location.href }).catch(() => {});
-        } else {
-          navigator.clipboard?.writeText(window.location.href);
-          showToast('Copied page link to clipboard!', 'success');
-        }
-      } else if (action === 'copy-text' && payload) {
-        navigator.clipboard?.writeText(payload);
-        showToast(`Copied: "${payload}"`, 'success');
-      }
+      executeElementAction(
+        element,
+        {
+          project,
+          activePage,
+          setActivePage,
+          updatePageSettings,
+          showToast,
+        },
+        e
+      );
     }
   };
 
   // Element styles object
-  const s = element.styles;
+  const s = element.styles || {};
   const l = element.layout;
-  const b = element.behavior;
+  const b = element.behavior || { actionType: 'none' };
   const isSection = element.type === 'section';
 
   // Outer Wrapper: Unclipped, handles positioning, selection outline, ResizeHandles, and HUD
@@ -563,28 +538,41 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
     ? hs?.boxShadow || s.hoverShadow || (s.hoverEffect === 'lift' ? '0 16px 32px -4px rgba(0,0,0,0.5), 0 8px 16px -4px rgba(0,0,0,0.3)' : s.hoverEffect === 'glow' ? '0 0 25px rgba(99, 102, 241, 0.65)' : undefined)
     : s.boxShadow || undefined;
 
+  const isBtn = element.type === 'button';
+  const btnStyles = isBtn ? getComputedButtonStyles(b, s) : undefined;
+
   // Inner Container: Handles clipping, borders, backgrounds/gradients, transitions, and flex layout
   const innerContentStyles: React.CSSProperties = {
     width: '100%',
     height: '100%',
     position: 'relative',
-    background: activeHover && hs?.backgroundColor ? hs.backgroundColor : s.gradient || s.backgroundColor || (isSection ? 'transparent' : 'transparent'),
-    color: activeHover && hs?.color ? hs.color : s.color || 'inherit',
-    fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
-    fontWeight: s.fontWeight || undefined,
+    background:
+      activeHover && hs?.backgroundColor
+        ? hs.backgroundColor
+        : s.gradient || btnStyles?.background || s.backgroundColor || btnStyles?.backgroundColor || (isSection ? 'transparent' : 'transparent'),
+    color: activeHover && hs?.color ? hs.color : s.color || btnStyles?.color || 'inherit',
+    fontSize: s.fontSize ? `${s.fontSize}px` : btnStyles?.fontSize || undefined,
+    fontWeight: s.fontWeight || btnStyles?.fontWeight || undefined,
     fontFamily: s.fontFamily || undefined,
     textAlign: s.textAlign || 'left',
     lineHeight: s.lineHeight || undefined,
     letterSpacing: s.letterSpacing ? `${s.letterSpacing}px` : undefined,
-    borderRadius: s.borderRadius ? `${s.borderRadius}px` : undefined,
-    borderWidth: s.borderWidth !== undefined ? `${s.borderWidth}px` : isSection ? '1px' : undefined,
-    borderStyle: s.borderStyle || (isSection ? 'dashed' : 'none'),
-    borderColor: activeHover && hs?.borderColor ? hs.borderColor : activeHover && s.hoverEffect === 'glow' ? '#818cf8' : s.borderColor || (isSection ? '#94a3b8' : 'transparent'),
-    boxShadow: activeShadow,
+    borderRadius: s.borderRadius !== undefined ? `${s.borderRadius}px` : btnStyles?.borderRadius || undefined,
+    borderWidth: s.borderWidth !== undefined ? `${s.borderWidth}px` : btnStyles?.borderWidth || (isSection ? '1px' : undefined),
+    borderStyle: s.borderStyle || btnStyles?.borderStyle || (isSection ? 'dashed' : 'none'),
+    borderColor:
+      activeHover && hs?.borderColor
+        ? hs.borderColor
+        : activeHover && s.hoverEffect === 'glow'
+        ? '#818cf8'
+        : s.borderColor || btnStyles?.borderColor || (isSection ? '#94a3b8' : 'transparent'),
+    boxShadow: activeShadow || btnStyles?.boxShadow,
     opacity: activeHover && hs?.opacity !== undefined ? hs.opacity : s.opacity !== undefined ? s.opacity : 1,
     transform: computedTransform,
     filter: activeHover && s.hoverEffect === 'brighten' ? 'brightness(1.15)' : undefined,
     boxSizing: 'border-box',
+    backdropFilter: (btnStyles as any)?.backdropFilter,
+    WebkitBackdropFilter: (btnStyles as any)?.WebkitBackdropFilter,
     userSelect: isEditingInline ? 'text' : 'none',
     display: 'flex',
     flexDirection: l?.direction || 'column',
@@ -695,14 +683,14 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         );
 
       case 'button': {
-        const icon = b?.buttonIcon;
+        const icon = b?.buttonIcon || 'none';
+        const iconPos = b?.buttonIconPosition || 'right';
+        const iconNode = renderButtonIcon(icon, 'w-4 h-4 shrink-0 transition-transform duration-200');
         return (
-          <div className="w-full h-full flex items-center justify-center font-medium px-4 select-none pointer-events-none gap-2">
-            {icon === 'sparkles' && <Sparkles className="w-4 h-4 shrink-0 text-amber-300" />}
-            {icon === 'download' && <Download className="w-4 h-4 shrink-0" />}
-            <span>{element.content || 'Button'}</span>
-            {icon === 'arrow-right' && <ArrowRight className="w-4 h-4 shrink-0" />}
-            {icon === 'external-link' && <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-80" />}
+          <div className="w-full h-full flex items-center justify-center font-semibold px-4 select-none pointer-events-none gap-2">
+            {iconPos === 'left' && iconNode}
+            <span className="truncate">{element.content || 'Button'}</span>
+            {iconPos === 'right' && iconNode}
           </div>
         );
       }
@@ -814,6 +802,33 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
               <span>W: <strong className="text-white font-semibold">{Math.round(element.width)}</strong></span>
               <span className="opacity-30 text-indigo-300">×</span>
               <span>H: <strong className="text-white font-semibold">{Math.round(element.height)}</strong></span>
+            </div>
+          )}
+          {/* Quick Action Test button on canvas for interactive elements */}
+          {(element.type === 'button' || (b?.actionType && b.actionType !== 'none')) && !isDragging && !isResizing && (
+            <div className="absolute -top-7 right-0 flex items-center gap-1 z-50 pointer-events-auto">
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  executeElementAction(
+                    element,
+                    {
+                      project,
+                      activePage,
+                      setActivePage,
+                      updatePageSettings,
+                      showToast,
+                    },
+                    e
+                  );
+                }}
+                className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-medium shadow-lg shadow-black/50 border border-emerald-400/40 cursor-pointer transition-all hover:scale-105 active:scale-95"
+                title="⚡ Click to test this action live (or Alt+Click)"
+              >
+                <span>⚡ Test Action</span>
+              </button>
             </div>
           )}
         </>

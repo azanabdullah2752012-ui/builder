@@ -1,6 +1,7 @@
 import type { CanvasElement } from '../types/editor';
 import { computeResponsiveLayout } from './responsiveLayout';
 import { SHAPE_DEFINITIONS, getShapeSvgNode } from './shapeDefinitions';
+import { getButtonIconSvg } from './buttonStyles';
 
 export function generateExportHtml(
   project: {
@@ -29,8 +30,8 @@ export function generateExportHtml(
 
   // Helper to generate desktop base CSS for an element
   const generateElementCss = (el: CanvasElement) => {
-    const s = el.styles;
-    const h = el.behavior.hoverStyles;
+    const s = el.styles || {};
+    const h = el.behavior?.hoverStyles;
     const l = el.layout;
 
     let css = `  .el-${el.id} {
@@ -68,8 +69,8 @@ export function generateExportHtml(
       css += `    display: flex;\n    flex-direction: ${dir};\n    gap: ${gap}px;\n    padding: ${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px;\n    align-items: ${align};\n    justify-content: ${justify};\n`;
     }
 
-    if (el.role === 'button' || el.role === 'link') {
-      css += `    cursor: pointer;\n    display: inline-flex;\n    align-items: center;\n    justify-content: ${s.textAlign === 'left' ? 'flex-start' : s.textAlign === 'right' ? 'flex-end' : 'center'};\n    text-decoration: none;\n`;
+    if (el.role === 'button' || el.role === 'link' || el.type === 'button') {
+      css += `    cursor: pointer;\n    display: inline-flex;\n    align-items: center;\n    gap: 8px;\n    justify-content: ${s.textAlign === 'left' ? 'flex-start' : s.textAlign === 'right' ? 'flex-end' : 'center'};\n    text-decoration: none;\n`;
     }
     css += `  }\n`;
 
@@ -127,15 +128,16 @@ export function generateExportHtml(
 
     const role = el.role;
     const text = el.content || '';
-    const action = el.behavior.actionType;
-    const payload = el.behavior.actionPayload || '';
+    const beh = el.behavior || { actionType: 'none' };
+    const action = beh.actionType;
+    const payload = beh.actionPayload || '';
     let clickAttr = '';
 
     if (action === 'navigate-url' && payload) {
       if (role === 'link') {
-        return `${indent}<a href="${payload}" target="${el.behavior.targetBlank ? '_blank' : '_self'}" class="el-${el.id}">${text}</a>`;
+        return `${indent}<a href="${payload}" target="${beh.targetBlank ? '_blank' : '_self'}" class="el-${el.id}">${text}</a>`;
       }
-      clickAttr = ` onclick="window.open('${payload}', '${el.behavior.targetBlank ? '_blank' : '_self'}')"`;
+      clickAttr = ` onclick="window.open('${payload}', '${beh.targetBlank ? '_blank' : '_self'}')"`;
     } else if (action === 'navigate-page' && payload) {
       clickAttr = ` onclick="window.location.hash='${payload}'"`;
     } else if (action === 'scroll-section') {
@@ -143,12 +145,33 @@ export function generateExportHtml(
       clickAttr = ` onclick="document.querySelector('#${target}, .el-${target}')?.scrollIntoView({behavior: 'smooth'})"`;
     } else if (action === 'scroll-top') {
       clickAttr = ` onclick="window.scrollTo({top: 0, behavior: 'smooth'})"`;
+    } else if (action === 'scroll-bottom') {
+      clickAttr = ` onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})"`;
+    } else if (action === 'back-to-previous') {
+      clickAttr = ` onclick="window.history.back()"`;
+    } else if (action === 'print-page') {
+      clickAttr = ` onclick="window.print()"`;
+    } else if (action === 'launch-fullscreen') {
+      clickAttr = ` onclick="if(!document.fullscreenElement){document.documentElement.requestFullscreen()}else{document.exitFullscreen()}"`;
+    } else if (action === 'vibrate-device') {
+      clickAttr = ` onclick="if(navigator.vibrate)navigator.vibrate([100,50,100])"`;
+    } else if (action === 'reload-page') {
+      clickAttr = ` onclick="window.location.reload()"`;
+    } else if (action === 'open-sms') {
+      clickAttr = ` onclick="window.location.href='sms:${payload}'"`;
+    } else if (action === 'discount-reveal') {
+      clickAttr = ` onclick="navigator.clipboard.writeText('${payload || 'SAVE25'}');alert('🎉 Promo Code &quot;${payload || 'SAVE25'}&quot; copied to clipboard!')"`;
+    } else if (action === 'submit-form') {
+      clickAttr = ` onclick="alert('${payload || 'Form submitted successfully! Thank you.'}')"`;
+    } else if (action === 'accordion-toggle') {
+      const target = (beh.actionTargetId || payload || '').replace(/^#/, '');
+      clickAttr = ` onclick="const t=document.querySelector('#${target}, .el-${target}');if(t){t.style.display=t.style.display==='none'?'block':'none'}"`;
     } else if (action === 'open-modal') {
-      const modalTitle = (el.behavior.actionModalTitle || 'Notification').replace(/'/g, "\\'");
-      const modalBody = (el.behavior.actionModalBody || payload || '').replace(/'/g, "\\'");
+      const modalTitle = (beh.actionModalTitle || 'Notification').replace(/'/g, "\\'");
+      const modalBody = (beh.actionModalBody || payload || '').replace(/'/g, "\\'");
       clickAttr = ` onclick="alert('${modalTitle}\\n\\n${modalBody}')"`;
     } else if (action === 'toggle-visibility') {
-      const targetId = (el.behavior.actionTargetId || payload || '').replace(/^#/, '');
+      const targetId = (beh.actionTargetId || payload || '').replace(/^#/, '');
       clickAttr = ` onclick="const target=document.querySelector('#${targetId}, .el-${targetId}');if(target){target.style.display=target.style.display==='none'?'flex':'none'}"`;
     } else if (action === 'copy-text' && payload) {
       clickAttr = ` onclick="navigator.clipboard.writeText('${payload.replace(/'/g, "\\'")}').then(()=>alert('Copied to clipboard!'))"`;
@@ -219,6 +242,17 @@ export function generateExportHtml(
       return `${indent}<div class="el-${el.id}" id="${el.id}"${clickAttr}>${text ? `<div>${text}</div>` : ''}</div>`;
     }
 
+    if (el.type === 'button' || role === 'button') {
+      const icon = el.behavior?.buttonIcon || 'none';
+      const iconPos = el.behavior?.buttonIconPosition || 'right';
+      const iconSvg = getButtonIconSvg(icon);
+      const inner =
+        iconPos === 'left'
+          ? `${iconSvg ? `${iconSvg} ` : ''}<span>${text || 'Button'}</span>`
+          : `<span>${text || 'Button'}</span>${iconSvg ? ` ${iconSvg}` : ''}`;
+      return `${indent}<button class="el-${el.id}" id="${el.id}" role="button"${clickAttr}>${inner}</button>`;
+    }
+
     switch (role) {
       case 'heading-h1':
         return `${indent}<h1 class="el-${el.id}" id="${el.id}"${clickAttr}>${text}</h1>`;
@@ -242,8 +276,6 @@ export function generateExportHtml(
         return `${indent}<form class="el-${el.id}" id="${el.id}" onsubmit="event.preventDefault();"${clickAttr}>${text ? `<div>${text}</div>` : ''}${childrenHtml ? `\n${childrenHtml}\n${indent}` : ''}</form>`;
       case 'dialog':
         return `${indent}<div class="el-${el.id}" id="${el.id}" role="dialog" aria-modal="true"${clickAttr}>${text ? `<div>${text}</div>` : ''}${childrenHtml ? `\n${childrenHtml}\n${indent}` : ''}</div>`;
-      case 'button':
-        return `${indent}<button class="el-${el.id}" id="${el.id}" role="button"${clickAttr}>${text}</button>`;
       case 'link':
         return `${indent}<a class="el-${el.id}" id="${el.id}" href="${payload || '#'}"${clickAttr}>${text}</a>`;
       case 'input':

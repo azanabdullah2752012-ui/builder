@@ -65,8 +65,14 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in select-none">
-      <div className="bg-[#12141c] border border-[#262c3f] rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden text-zinc-100 flex flex-col">
+    <div
+      onClick={handleSkip}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in select-none"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-[#12141c] border border-[#262c3f] rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden text-zinc-100 flex flex-col"
+      >
         {/* Top Progress & Close Bar */}
         <div className="px-6 py-4 border-b border-[#1f2536] flex items-center justify-between bg-[#151926]">
           <div className="flex items-center gap-3">
