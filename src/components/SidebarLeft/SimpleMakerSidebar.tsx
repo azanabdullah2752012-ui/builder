@@ -48,7 +48,7 @@ export const SimpleMakerSidebar: React.FC = () => {
     updatePageSettings(activePage.id, {
       backgroundColor: site.id === 'site-lemonade' ? '#1c1917' : site.id === 'site-science' ? '#0c1222' : site.id === 'site-pet' ? '#111827' : '#0d1117',
     });
-    addElements(els);
+    addElements(els, true, true);
     showToast(`Loaded ${site.title}! 🎉`, 'success');
   };
 

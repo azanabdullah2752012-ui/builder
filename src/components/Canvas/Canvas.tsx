@@ -493,7 +493,7 @@ export const Canvas: React.FC = () => {
                           updatePageSettings(activePage.id, {
                             backgroundColor: site.id === 'site-lemonade' ? '#1c1917' : site.id === 'site-science' ? '#0c1222' : site.id === 'site-pet' ? '#111827' : '#0d1117',
                           });
-                          addElements(els);
+                          addElements(els, true, true);
                           showToast(`Loaded ${site.title}! 🎉`, 'success');
                         }}
                         className="p-3.5 rounded-2xl border border-zinc-800 bg-[#161928] hover:border-emerald-500 hover:scale-[1.02] transition-all flex items-start gap-3 cursor-pointer group shadow-sm text-left"

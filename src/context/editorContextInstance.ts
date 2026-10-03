@@ -99,7 +99,7 @@ export interface EditorContextType {
   insertCustomImage: (dataUrlOrUrl: string, name?: string, customX?: number, customY?: number) => CanvasElement;
   insertShape: (shapeKind: import('../types/editor').ShapeKind, name?: string, customX?: number, customY?: number) => CanvasElement;
   insertEmoji: (emoji: string, customX?: number, customY?: number) => CanvasElement;
-  addElements: (elements: CanvasElement[], selectFirst?: boolean) => void;
+  addElements: (elements: CanvasElement[], selectFirst?: boolean, replaceAll?: boolean) => void;
   updateElement: (id: string, updates: Partial<CanvasElement>, recordHistory?: boolean) => void;
   updateElementStyles: (id: string, styles: Partial<ElementStyles>, recordHistory?: boolean) => void;
   updateElementBehavior: (id: string, behavior: Partial<ElementBehavior>, recordHistory?: boolean) => void;

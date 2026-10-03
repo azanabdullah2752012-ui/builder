@@ -675,7 +675,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [addElement]);
 
   // Add multiple elements at once (e.g. for starter sections and templates)
-  const addElements = useCallback((elements: CanvasElement[], selectFirst = true) => {
+  const addElements = useCallback((elements: CanvasElement[], selectFirst = true, replaceAll = false) => {
     if (elements.length === 0) return;
     setProject((prev) => {
       pushHistory(prev);
@@ -686,7 +686,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           return {
             ...p,
             canvasHeight: newHeight,
-            elements: [...p.elements, ...elements],
+            elements: replaceAll ? elements : [...p.elements, ...elements],
           };
         }
         return p;

@@ -127,10 +127,8 @@ export const MAGIC_THEMES: MagicThemePalette[] = [
 
 /* ========================================================================== */
 /* 2. COMPLETE 1-CLICK STARTER SITES FOR KIDS & CREATORS                     */
-/* ========================================================================== */
-
-/**
- * Kit 1: Gaming Zone
+/* ============================================================/**
+ * Kit 1: Tyler's Gaming & Stream Hub
  */
 export function createGamingStarterSite(): CanvasElement[] {
   const elements: CanvasElement[] = [];
@@ -148,22 +146,12 @@ export function createGamingStarterSite(): CanvasElement[] {
     borderRadius: 24,
     boxShadow: '0 20px 40px -15px rgba(99, 102, 241, 0.3)',
   };
-  hero.layout = {
-    layoutType: 'flex',
-    direction: 'column',
-    align: 'center',
-    alignItems: 'center',
-    justify: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    padding: { top: 40, right: 30, bottom: 40, left: 30 },
-  };
   elements.push(hero);
 
-  const badge = createElement('text', 460, 75, 1, hero.id);
+  const badge = createElement('text', 430, 75, 1, hero.id);
   badge.name = 'Gamer Level Badge';
   badge.content = '🎮 LEVEL 99 GAMER • OFFICIAL STREAM ZONE';
-  badge.width = 320;
+  badge.width = 340;
   badge.height = 32;
   badge.styles = {
     ...badge.styles,
@@ -179,11 +167,11 @@ export function createGamingStarterSite(): CanvasElement[] {
   };
   elements.push(badge);
 
-  const title = createElement('text', 160, 120, 1, hero.id);
+  const title = createElement('text', 180, 125, 1, hero.id);
   title.name = 'Gamer Title';
   title.content = "Welcome to Tyler's Gaming Hub!";
-  title.width = 800;
-  title.height = 64;
+  title.width = 840;
+  title.height = 60;
   title.styles = {
     ...title.styles,
     fontSize: 42,
@@ -194,10 +182,10 @@ export function createGamingStarterSite(): CanvasElement[] {
   };
   elements.push(title);
 
-  const sub = createElement('text', 210, 195, 1, hero.id);
+  const sub = createElement('text', 220, 200, 1, hero.id);
   sub.name = 'Gamer Bio';
   sub.content = "I stream Minecraft builds, Roblox obstacle courses, and Mario Kart speedruns. Check out my best clips and vote for my next game!";
-  sub.width = 700;
+  sub.width = 760;
   sub.height = 48;
   sub.styles = {
     ...sub.styles,
@@ -208,10 +196,10 @@ export function createGamingStarterSite(): CanvasElement[] {
   };
   elements.push(sub);
 
-  const playBtn = createElement('button', 460, 260, 1, hero.id);
+  const playBtn = createElement('button', 490, 265, 1, hero.id);
   playBtn.name = 'Join Club Button';
   playBtn.content = '🔥 Join My Game Club!';
-  playBtn.width = 200;
+  playBtn.width = 220;
   playBtn.height = 46;
   playBtn.styles = {
     ...playBtn.styles,
@@ -233,22 +221,11 @@ export function createGamingStarterSite(): CanvasElement[] {
   const cardSection = createElement('section', 40, 430);
   cardSection.name = 'Games Grid';
   cardSection.width = 1120;
-  cardSection.height = 340;
+  cardSection.height = 320;
   cardSection.styles = {
     ...cardSection.styles,
     backgroundColor: 'transparent',
     borderWidth: 0,
-  };
-  cardSection.layout = {
-    layoutType: 'flex',
-    direction: 'row',
-    gap: 24,
-    align: 'center',
-    alignItems: 'center',
-    justify: 'space-between',
-    justifyContent: 'space-between',
-    padding: { top: 0, right: 0, bottom: 0, left: 0 },
-    responsiveDirection: { tablet: 'column', mobile: 'column' },
   };
   elements.push(cardSection);
 
@@ -259,10 +236,11 @@ export function createGamingStarterSite(): CanvasElement[] {
   ];
 
   games.forEach((game, idx) => {
-    const card = createElement('container', 40 + idx * 380, 430, 1, cardSection.id);
+    const cardX = 40 + idx * 385;
+    const card = createElement('container', cardX, 430, 1, cardSection.id);
     card.name = `${game.title} Card`;
-    card.width = 355;
-    card.height = 320;
+    card.width = 350;
+    card.height = 310;
     card.styles = {
       ...card.styles,
       backgroundColor: '#16192b',
@@ -270,28 +248,26 @@ export function createGamingStarterSite(): CanvasElement[] {
       borderWidth: 1,
       borderRadius: 18,
     };
-    card.layout = {
-      layoutType: 'flex',
-      direction: 'column',
-      gap: 12,
-      padding: { top: 24, right: 24, bottom: 24, left: 24 },
-    };
     elements.push(card);
 
-    const cardTitle = createElement('text', 0, 0, 2, card.id);
+    const cardTitle = createElement('text', cardX + 24, 454, 2, card.id);
     cardTitle.content = game.title;
+    cardTitle.width = 302;
+    cardTitle.height = 34;
     cardTitle.styles = { ...cardTitle.styles, fontSize: 22, fontWeight: 800, color: '#ffffff' };
     elements.push(cardTitle);
 
-    const cardDesc = createElement('text', 0, 0, 2, card.id);
+    const cardDesc = createElement('text', cardX + 24, 498, 2, card.id);
     cardDesc.content = game.desc;
+    cardDesc.width = 302;
+    cardDesc.height = 70;
     cardDesc.styles = { ...cardDesc.styles, fontSize: 14, color: '#94a3b8', lineHeight: 1.5 };
     elements.push(cardDesc);
 
-    const cardStat = createElement('text', 0, 0, 2, card.id);
+    const cardStat = createElement('text', cardX + 24, 680, 2, card.id);
     cardStat.content = `⭐ ${game.stat}`;
-    cardStat.width = 140;
-    cardStat.height = 30;
+    cardStat.width = 150;
+    cardStat.height = 32;
     cardStat.styles = {
       ...cardStat.styles,
       fontSize: 12,
@@ -300,15 +276,16 @@ export function createGamingStarterSite(): CanvasElement[] {
       backgroundColor: 'rgba(16, 185, 129, 0.15)',
       borderRadius: 8,
       textAlign: 'center',
+      lineHeight: 2.5,
     };
     elements.push(cardStat);
   });
 
   // 3. Guestbook / Contact Me Form
-  const guestbook = createElement('section', 40, 800);
+  const guestbook = createElement('section', 40, 780);
   guestbook.name = 'Gamer Guestbook';
   guestbook.width = 1120;
-  guestbook.height = 280;
+  guestbook.height = 250;
   guestbook.styles = {
     ...guestbook.styles,
     backgroundColor: '#121424',
@@ -316,49 +293,41 @@ export function createGamingStarterSite(): CanvasElement[] {
     borderWidth: 1,
     borderRadius: 20,
   };
-  guestbook.layout = {
-    layoutType: 'flex',
-    direction: 'column',
-    align: 'center',
-    alignItems: 'center',
-    justify: 'center',
-    justifyContent: 'center',
-    gap: 14,
-    padding: { top: 32, right: 32, bottom: 32, left: 32 },
-  };
   elements.push(guestbook);
 
-  const gbTitle = createElement('text', 0, 0, 1, guestbook.id);
+  const gbTitle = createElement('text', 360, 810, 1, guestbook.id);
   gbTitle.content = '📬 Send Tyler a Game Challenge';
-  gbTitle.styles = { ...gbTitle.styles, fontSize: 24, fontWeight: 800, color: '#ffffff' };
+  gbTitle.width = 480;
+  gbTitle.height = 36;
+  gbTitle.styles = { ...gbTitle.styles, fontSize: 24, fontWeight: 800, color: '#ffffff', textAlign: 'center' };
   elements.push(gbTitle);
 
-  const gbInput = createElement('input', 0, 0, 1, guestbook.id);
+  const gbInput = createElement('input', 380, 860, 1, guestbook.id);
   gbInput.name = 'Your Gamer Tag';
   gbInput.content = 'Your Gamer Tag / Nickname';
-  gbInput.width = 400;
+  gbInput.width = 440;
   gbInput.height = 42;
   gbInput.styles = { ...gbInput.styles, backgroundColor: '#0b0c16', borderColor: '#2b3052', color: '#ffffff', borderRadius: 10 };
   elements.push(gbInput);
 
-  const gbBtn = createElement('button', 0, 0, 1, guestbook.id);
+  const gbBtn = createElement('button', 500, 920, 1, guestbook.id);
   gbBtn.name = 'Send Challenge Button';
   gbBtn.content = 'Send Challenge! 🚀';
   gbBtn.width = 200;
-  gbBtn.height = 42;
+  gbBtn.height = 44;
   gbBtn.styles = { ...gbBtn.styles, backgroundColor: '#10b981', color: '#ffffff', borderRadius: 10, fontWeight: 700 };
   gbBtn.behavior = { actionType: 'confetti', actionSound: 'pop' };
   elements.push(gbBtn);
 
   // 4. Footer with Anti-Slop Pickle Badge
-  const footer = createKidFooter(1110);
+  const footer = createKidFooter(1070);
   elements.push(...footer);
 
   return elements;
 }
 
 /**
- * Kit 2: Pet's World
+ * Kit 2: Barnaby's Pet Fan Club
  */
 export function createPetStarterSite(): CanvasElement[] {
   const elements: CanvasElement[] = [];
@@ -366,7 +335,7 @@ export function createPetStarterSite(): CanvasElement[] {
   const hero = createElement('section', 40, 40);
   hero.name = 'Pet Hero';
   hero.width = 1120;
-  hero.height = 380;
+  hero.height = 360;
   hero.styles = {
     ...hero.styles,
     backgroundColor: '#111827',
@@ -374,21 +343,11 @@ export function createPetStarterSite(): CanvasElement[] {
     borderWidth: 2,
     borderRadius: 24,
   };
-  hero.layout = {
-    layoutType: 'flex',
-    direction: 'column',
-    align: 'center',
-    alignItems: 'center',
-    justify: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    padding: { top: 40, right: 30, bottom: 40, left: 30 },
-  };
   elements.push(hero);
 
-  const badge = createElement('text', 460, 65, 1, hero.id);
+  const badge = createElement('text', 420, 70, 1, hero.id);
   badge.content = '🐶 THE OFFICIAL FAN CLUB OF BARNABY';
-  badge.width = 340;
+  badge.width = 360;
   badge.height = 32;
   badge.styles = {
     ...badge.styles,
@@ -404,10 +363,10 @@ export function createPetStarterSite(): CanvasElement[] {
   };
   elements.push(badge);
 
-  const title = createElement('text', 160, 110, 1, hero.id);
+  const title = createElement('text', 180, 120, 1, hero.id);
   title.content = 'Meet Barnaby the Golden Pup!';
-  title.width = 800;
-  title.height = 64;
+  title.width = 840;
+  title.height = 60;
   title.styles = {
     ...title.styles,
     fontSize: 44,
@@ -417,16 +376,16 @@ export function createPetStarterSite(): CanvasElement[] {
   };
   elements.push(title);
 
-  const sub = createElement('text', 210, 185, 1, hero.id);
+  const sub = createElement('text', 220, 195, 1, hero.id);
   sub.content = 'He loves chasing tennis balls, taking naps on the sofa, and stealing socks. Welcome to his official website!';
-  sub.width = 700;
+  sub.width = 760;
   sub.height = 48;
   sub.styles = { ...sub.styles, fontSize: 16, color: '#d1d5db', textAlign: 'center', lineHeight: 1.5 };
   elements.push(sub);
 
-  const treatBtn = createElement('button', 460, 255, 1, hero.id);
+  const treatBtn = createElement('button', 465, 260, 1, hero.id);
   treatBtn.content = '🦴 Give Barnaby a Virtual Treat!';
-  treatBtn.width = 250;
+  treatBtn.width = 270;
   treatBtn.height = 46;
   treatBtn.styles = {
     ...treatBtn.styles,
@@ -442,22 +401,11 @@ export function createPetStarterSite(): CanvasElement[] {
   elements.push(treatBtn);
 
   // 3 Fun Facts
-  const factsSection = createElement('section', 40, 450);
+  const factsSection = createElement('section', 40, 430);
   factsSection.name = 'Fun Facts Section';
   factsSection.width = 1120;
   factsSection.height = 240;
   factsSection.styles = { ...factsSection.styles, backgroundColor: 'transparent', borderWidth: 0 };
-  factsSection.layout = {
-    layoutType: 'flex',
-    direction: 'row',
-    gap: 24,
-    align: 'center',
-    alignItems: 'center',
-    justify: 'space-between',
-    justifyContent: 'space-between',
-    padding: { top: 0, right: 0, bottom: 0, left: 0 },
-    responsiveDirection: { tablet: 'column', mobile: 'column' },
-  };
   elements.push(factsSection);
 
   const facts = [
@@ -467,9 +415,10 @@ export function createPetStarterSite(): CanvasElement[] {
   ];
 
   facts.forEach((f, idx) => {
-    const card = createElement('container', 40 + idx * 380, 450, 1, factsSection.id);
+    const cardX = 40 + idx * 385;
+    const card = createElement('container', cardX, 430, 1, factsSection.id);
     card.name = `${f.title} Card`;
-    card.width = 355;
+    card.width = 350;
     card.height = 220;
     card.styles = {
       ...card.styles,
@@ -478,33 +427,31 @@ export function createPetStarterSite(): CanvasElement[] {
       borderWidth: 1,
       borderRadius: 18,
     };
-    card.layout = {
-      layoutType: 'flex',
-      direction: 'column',
-      gap: 12,
-      padding: { top: 24, right: 24, bottom: 24, left: 24 },
-    };
     elements.push(card);
 
-    const t = createElement('text', 0, 0, 2, card.id);
+    const t = createElement('text', cardX + 24, 454, 2, card.id);
     t.content = f.title;
+    t.width = 302;
+    t.height = 32;
     t.styles = { ...t.styles, fontSize: 20, fontWeight: 800, color: '#fcd34d' };
     elements.push(t);
 
-    const d = createElement('text', 0, 0, 2, card.id);
+    const d = createElement('text', cardX + 24, 498, 2, card.id);
     d.content = f.desc;
+    d.width = 302;
+    d.height = 110;
     d.styles = { ...d.styles, fontSize: 14, color: '#9ca3af', lineHeight: 1.5 };
     elements.push(d);
   });
 
-  const footer = createKidFooter(720);
+  const footer = createKidFooter(690);
   elements.push(...footer);
 
   return elements;
 }
 
 /**
- * Kit 3: Lemonade Stand & Bakery
+ * Kit 3: Sarah's Sweet Lemonade & Bakery
  */
 export function createLemonadeStarterSite(): CanvasElement[] {
   const elements: CanvasElement[] = [];
@@ -520,21 +467,11 @@ export function createLemonadeStarterSite(): CanvasElement[] {
     borderWidth: 2,
     borderRadius: 24,
   };
-  hero.layout = {
-    layoutType: 'flex',
-    direction: 'column',
-    align: 'center',
-    alignItems: 'center',
-    justify: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    padding: { top: 40, right: 30, bottom: 40, left: 30 },
-  };
   elements.push(hero);
 
-  const badge = createElement('text', 460, 65, 1, hero.id);
+  const badge = createElement('text', 400, 70, 1, hero.id);
   badge.content = '🍋 100% FRESH SQUEEZED • OPEN EVERY SATURDAY';
-  badge.width = 380;
+  badge.width = 400;
   badge.height = 32;
   badge.styles = {
     ...badge.styles,
@@ -550,10 +487,10 @@ export function createLemonadeStarterSite(): CanvasElement[] {
   };
   elements.push(badge);
 
-  const title = createElement('text', 160, 110, 1, hero.id);
+  const title = createElement('text', 180, 120, 1, hero.id);
   title.content = "Sarah's Sweet Lemonade & Bakery";
-  title.width = 800;
-  title.height = 64;
+  title.width = 840;
+  title.height = 60;
   title.styles = {
     ...title.styles,
     fontSize: 44,
@@ -563,12 +500,29 @@ export function createLemonadeStarterSite(): CanvasElement[] {
   };
   elements.push(title);
 
-  const sub = createElement('text', 210, 185, 1, hero.id);
+  const sub = createElement('text', 220, 195, 1, hero.id);
   sub.content = "Made with real organic lemons, pure cane sugar, and fresh mint from our garden. Best cold drinks in the neighborhood!";
-  sub.width = 700;
+  sub.width = 760;
   sub.height = 48;
   sub.styles = { ...sub.styles, fontSize: 16, color: '#a8a29e', textAlign: 'center', lineHeight: 1.5 };
   elements.push(sub);
+
+  const orderPill = createElement('button', 480, 260, 1, hero.id);
+  orderPill.name = 'Stand Status Pill';
+  orderPill.content = '📍 Corner of Oak & 5th St • 10am - 2pm';
+  orderPill.width = 240;
+  orderPill.height = 40;
+  orderPill.styles = {
+    ...orderPill.styles,
+    backgroundColor: '#292524',
+    borderColor: '#eab308',
+    borderWidth: 1,
+    color: '#fde047',
+    borderRadius: 9999,
+    fontSize: 12,
+    fontWeight: 700,
+  };
+  elements.push(orderPill);
 
   // Store Items Grid
   const menuSection = createElement('section', 40, 430);
@@ -576,17 +530,6 @@ export function createLemonadeStarterSite(): CanvasElement[] {
   menuSection.width = 1120;
   menuSection.height = 360;
   menuSection.styles = { ...menuSection.styles, backgroundColor: 'transparent', borderWidth: 0 };
-  menuSection.layout = {
-    layoutType: 'flex',
-    direction: 'row',
-    gap: 24,
-    align: 'center',
-    alignItems: 'center',
-    justify: 'space-between',
-    justifyContent: 'space-between',
-    padding: { top: 0, right: 0, bottom: 0, left: 0 },
-    responsiveDirection: { tablet: 'column', mobile: 'column' },
-  };
   elements.push(menuSection);
 
   const items = [
@@ -596,10 +539,11 @@ export function createLemonadeStarterSite(): CanvasElement[] {
   ];
 
   items.forEach((item, idx) => {
-    const card = createElement('container', 40 + idx * 380, 430, 1, menuSection.id);
+    const cardX = 40 + idx * 385;
+    const card = createElement('container', cardX, 430, 1, menuSection.id);
     card.name = `${item.name} Card`;
-    card.width = 355;
-    card.height = 320;
+    card.width = 350;
+    card.height = 340;
     card.styles = {
       ...card.styles,
       backgroundColor: '#292524',
@@ -607,32 +551,33 @@ export function createLemonadeStarterSite(): CanvasElement[] {
       borderWidth: 1,
       borderRadius: 18,
     };
-    card.layout = {
-      layoutType: 'flex',
-      direction: 'column',
-      gap: 12,
-      padding: { top: 24, right: 24, bottom: 24, left: 24 },
-    };
     elements.push(card);
 
-    const t = createElement('text', 0, 0, 2, card.id);
+    const t = createElement('text', cardX + 24, 454, 2, card.id);
     t.content = item.name;
-    t.styles = { ...t.styles, fontSize: 20, fontWeight: 800, color: '#ffffff' };
+    t.width = 302;
+    t.height = 32;
+    t.styles = { ...t.styles, fontSize: 18, fontWeight: 800, color: '#ffffff' };
     elements.push(t);
 
-    const p = createElement('text', 0, 0, 2, card.id);
+    const p = createElement('text', cardX + 24, 494, 2, card.id);
     p.content = item.price;
+    p.width = 302;
+    p.height = 38;
     p.styles = { ...p.styles, fontSize: 28, fontWeight: 900, color: '#eab308' };
     elements.push(p);
 
-    const d = createElement('text', 0, 0, 2, card.id);
+    const d = createElement('text', cardX + 24, 538, 2, card.id);
     d.content = item.desc;
+    d.width = 302;
+    d.height = 70;
     d.styles = { ...d.styles, fontSize: 14, color: '#a8a29e', lineHeight: 1.5 };
     elements.push(d);
 
-    const buyBtn = createElement('button', 0, 0, 2, card.id);
+    const buyBtn = createElement('button', cardX + 24, 690, 2, card.id);
     buyBtn.content = '🛒 Order for Saturday';
-    buyBtn.height = 40;
+    buyBtn.width = 302;
+    buyBtn.height = 42;
     buyBtn.styles = {
       ...buyBtn.styles,
       backgroundColor: '#10b981',
@@ -667,21 +612,11 @@ export function createScienceStarterSite(): CanvasElement[] {
     borderWidth: 2,
     borderRadius: 24,
   };
-  hero.layout = {
-    layoutType: 'flex',
-    direction: 'column',
-    align: 'center',
-    alignItems: 'center',
-    justify: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    padding: { top: 40, right: 30, bottom: 40, left: 30 },
-  };
   elements.push(hero);
 
-  const badge = createElement('text', 460, 65, 1, hero.id);
+  const badge = createElement('text', 400, 70, 1, hero.id);
   badge.content = '🚀 2026 DISTRICT SCIENCE FAIR PROJECT #42';
-  badge.width = 380;
+  badge.width = 400;
   badge.height = 32;
   badge.styles = {
     ...badge.styles,
@@ -697,10 +632,10 @@ export function createScienceStarterSite(): CanvasElement[] {
   };
   elements.push(badge);
 
-  const title = createElement('text', 160, 110, 1, hero.id);
+  const title = createElement('text', 180, 120, 1, hero.id);
   title.content = 'Mission to Mars: Solar Rover 2026';
-  title.width = 800;
-  title.height = 64;
+  title.width = 840;
+  title.height = 60;
   title.styles = {
     ...title.styles,
     fontSize: 44,
@@ -710,16 +645,16 @@ export function createScienceStarterSite(): CanvasElement[] {
   };
   elements.push(title);
 
-  const sub = createElement('text', 210, 185, 1, hero.id);
+  const sub = createElement('text', 220, 195, 1, hero.id);
   sub.content = "By Maya Lin (Grade 4). Can a robot explore Mars using only sunlight and AI-free mechanical sensors? Explore our scientific findings!";
-  sub.width = 700;
+  sub.width = 760;
   sub.height = 48;
   sub.styles = { ...sub.styles, fontSize: 16, color: '#94a3b8', textAlign: 'center', lineHeight: 1.5 };
   elements.push(sub);
 
-  const voteBtn = createElement('button', 460, 255, 1, hero.id);
+  const voteBtn = createElement('button', 475, 260, 1, hero.id);
   voteBtn.content = '⭐ Vote for Maya’s Project!';
-  voteBtn.width = 240;
+  voteBtn.width = 250;
   voteBtn.height = 46;
   voteBtn.styles = {
     ...voteBtn.styles,
@@ -732,7 +667,51 @@ export function createScienceStarterSite(): CanvasElement[] {
   voteBtn.behavior = { actionType: 'confetti', actionSound: 'success' };
   elements.push(voteBtn);
 
-  const footer = createKidFooter(440);
+  // 3 Scientific Findings Cards
+  const findingsSection = createElement('section', 40, 430);
+  findingsSection.name = 'Science Findings';
+  findingsSection.width = 1120;
+  findingsSection.height = 240;
+  findingsSection.styles = { ...findingsSection.styles, backgroundColor: 'transparent', borderWidth: 0 };
+  elements.push(findingsSection);
+
+  const findings = [
+    { title: '☀️ Solar Power Yield', desc: 'Tested 3 mini solar panels with 12V rechargeable capacitor. Output was 4.8W in full direct sun.' },
+    { title: '🤖 Whisker Sensors', desc: 'Used physical bumper micro-switches instead of heavy AI cameras. 100% collision avoidance in trials.' },
+    { title: '🛞 Rocker-Bogie Chassis', desc: 'Designed 6-wheel rocker-bogie chassis with chevron treads for navigating steep sand dunes.' },
+  ];
+
+  findings.forEach((f, idx) => {
+    const cardX = 40 + idx * 385;
+    const card = createElement('container', cardX, 430, 1, findingsSection.id);
+    card.name = `${f.title} Card`;
+    card.width = 350;
+    card.height = 220;
+    card.styles = {
+      ...card.styles,
+      backgroundColor: '#111c33',
+      borderColor: '#1e293b',
+      borderWidth: 1,
+      borderRadius: 18,
+    };
+    elements.push(card);
+
+    const t = createElement('text', cardX + 24, 454, 2, card.id);
+    t.content = f.title;
+    t.width = 302;
+    t.height = 32;
+    t.styles = { ...t.styles, fontSize: 18, fontWeight: 800, color: '#38bdf8' };
+    elements.push(t);
+
+    const d = createElement('text', cardX + 24, 498, 2, card.id);
+    d.content = f.desc;
+    d.width = 302;
+    d.height = 110;
+    d.styles = { ...d.styles, fontSize: 14, color: '#94a3b8', lineHeight: 1.5 };
+    elements.push(d);
+  });
+
+  const footer = createKidFooter(690);
   elements.push(...footer);
 
   return elements;
@@ -745,7 +724,7 @@ export function createKidFooter(offsetY = 600): CanvasElement[] {
   const footer = createElement('section', 40, offsetY);
   footer.name = 'Kid Creator Footer';
   footer.width = 1120;
-  footer.height = 100;
+  footer.height = 80;
   footer.styles = {
     ...footer.styles,
     backgroundColor: '#0c0d12',
@@ -753,24 +732,20 @@ export function createKidFooter(offsetY = 600): CanvasElement[] {
     borderWidth: 1,
     borderRadius: 16,
   };
-  footer.layout = {
-    layoutType: 'flex',
-    direction: 'row',
-    align: 'center',
-    alignItems: 'center',
-    justify: 'space-between',
-    justifyContent: 'space-between',
-    gap: 16,
-    padding: { top: 20, right: 30, bottom: 20, left: 30 },
-  };
 
-  const seal = createElement('text', 0, 0, 1, footer.id);
+  const seal = createElement('text', 70, offsetY + 26, 1, footer.id);
+  seal.name = 'Pickle Guarantee Seal';
   seal.content = '🥒 Built with Pickle Studio — 100% Handcrafted • 0% AI Slop';
+  seal.width = 560;
+  seal.height = 28;
   seal.styles = { ...seal.styles, fontSize: 13, fontWeight: 700, color: '#10b981' };
 
-  const credit = createElement('text', 0, 0, 1, footer.id);
+  const credit = createElement('text', 730, offsetY + 26, 1, footer.id);
+  credit.name = 'Zero Code Credit';
   credit.content = 'Published to the live web with zero code!';
-  credit.styles = { ...credit.styles, fontSize: 12, color: '#71717a' };
+  credit.width = 390;
+  credit.height = 28;
+  credit.styles = { ...credit.styles, fontSize: 12, color: '#71717a', textAlign: 'right' };
 
   return [footer, seal, credit];
 }
@@ -788,32 +763,26 @@ export const KID_LEGO_BLOCKS: KidLegoBlock[] = [
       const sec = createElement('section', 40, offsetY);
       sec.name = 'Big Friendly Banner';
       sec.width = 1120;
-      sec.height = 260;
+      sec.height = 240;
       sec.styles = { ...sec.styles, backgroundColor: '#131626', borderColor: '#262d4a', borderRadius: 20 };
-      sec.layout = {
-        layoutType: 'flex',
-        direction: 'column',
-        align: 'center',
-        alignItems: 'center',
-        justify: 'center',
-        justifyContent: 'center',
-        gap: 12,
-        padding: { top: 24, right: 24, bottom: 24, left: 24 },
-      };
 
-      const b = createElement('text', 0, 0, 1, sec.id);
+      const b = createElement('text', 420, offsetY + 30, 1, sec.id);
       b.content = '✨ WELCOME TO MY OFFICIAL SITE';
-      b.styles = { ...b.styles, fontSize: 11, fontWeight: 800, color: '#a5b4fc' };
+      b.width = 360;
+      b.height = 26;
+      b.styles = { ...b.styles, fontSize: 12, fontWeight: 800, color: '#a5b4fc', textAlign: 'center' };
 
-      const t = createElement('text', 0, 0, 1, sec.id);
+      const t = createElement('text', 180, offsetY + 70, 1, sec.id);
       t.content = 'Hello World! This is My Website 🚀';
-      t.styles = { ...t.styles, fontSize: 36, fontWeight: 900, color: '#ffffff' };
+      t.width = 840;
+      t.height = 50;
+      t.styles = { ...t.styles, fontSize: 36, fontWeight: 900, color: '#ffffff', textAlign: 'center' };
 
-      const btn = createElement('button', 0, 0, 1, sec.id);
+      const btn = createElement('button', 510, offsetY + 138, 1, sec.id);
       btn.content = 'Say Hello! 👋';
-      btn.height = 42;
-      btn.width = 160;
-      btn.styles = { ...btn.styles, backgroundColor: '#10b981', color: '#ffffff', borderRadius: 10 };
+      btn.height = 44;
+      btn.width = 180;
+      btn.styles = { ...btn.styles, backgroundColor: '#10b981', color: '#ffffff', borderRadius: 10, fontWeight: 700 };
       btn.behavior = { actionType: 'confetti', actionSound: 'pop' };
 
       return [sec, b, t, btn];
@@ -828,18 +797,8 @@ export const KID_LEGO_BLOCKS: KidLegoBlock[] = [
       const sec = createElement('section', 40, offsetY);
       sec.name = '3 Fun Facts';
       sec.width = 1120;
-      sec.height = 240;
+      sec.height = 250;
       sec.styles = { ...sec.styles, backgroundColor: 'transparent', borderWidth: 0 };
-      sec.layout = {
-        layoutType: 'flex',
-        direction: 'row',
-        gap: 20,
-        align: 'center',
-        alignItems: 'center',
-        justify: 'space-between',
-        justifyContent: 'space-between',
-        padding: { top: 0, right: 0, bottom: 0, left: 0 },
-      };
 
       const facts = [
         { emoji: '🍕', title: 'Favorite Food', desc: 'Extra cheese pizza with pineapple on Friday nights.' },
@@ -848,32 +807,33 @@ export const KID_LEGO_BLOCKS: KidLegoBlock[] = [
       ];
 
       const els: CanvasElement[] = [sec];
-      facts.forEach((f) => {
-        const card = createElement('container', 0, 0, 1, sec.id);
-        card.width = 360;
-        card.height = 220;
-        card.styles = { ...card.styles, backgroundColor: '#181a24', borderColor: '#292d3f', borderRadius: 16 };
-        card.layout = {
-          layoutType: 'flex',
-          direction: 'column',
-          gap: 8,
-          padding: { top: 20, right: 20, bottom: 20, left: 20 },
-        };
+      facts.forEach((f, idx) => {
+        const cardX = 40 + idx * 385;
+        const card = createElement('container', cardX, offsetY, 1, sec.id);
+        card.width = 350;
+        card.height = 230;
+        card.styles = { ...card.styles, backgroundColor: '#181a24', borderColor: '#292d3f', borderWidth: 1, borderRadius: 16 };
         els.push(card);
 
-        const em = createElement('text', 0, 0, 2, card.id);
+        const em = createElement('text', cardX + 24, offsetY + 24, 2, card.id);
         em.content = f.emoji;
+        em.width = 60;
+        em.height = 40;
         em.styles = { ...em.styles, fontSize: 32 };
         els.push(em);
 
-        const ti = createElement('text', 0, 0, 2, card.id);
+        const ti = createElement('text', cardX + 24, offsetY + 74, 2, card.id);
         ti.content = f.title;
+        ti.width = 302;
+        ti.height = 30;
         ti.styles = { ...ti.styles, fontSize: 18, fontWeight: 800, color: '#ffffff' };
         els.push(ti);
 
-        const de = createElement('text', 0, 0, 2, card.id);
+        const de = createElement('text', cardX + 24, offsetY + 112, 2, card.id);
         de.content = f.desc;
-        de.styles = { ...de.styles, fontSize: 13, color: '#94a3b8' };
+        de.width = 302;
+        de.height = 80;
+        de.styles = { ...de.styles, fontSize: 13, color: '#94a3b8', lineHeight: 1.5 };
         els.push(de);
       });
 
@@ -889,35 +849,27 @@ export const KID_LEGO_BLOCKS: KidLegoBlock[] = [
       const sec = createElement('section', 40, offsetY);
       sec.name = 'Guestbook Box';
       sec.width = 1120;
-      sec.height = 240;
+      sec.height = 230;
       sec.styles = { ...sec.styles, backgroundColor: '#151722', borderColor: '#272c42', borderRadius: 20 };
-      sec.layout = {
-        layoutType: 'flex',
-        direction: 'column',
-        align: 'center',
-        alignItems: 'center',
-        justify: 'center',
-        justifyContent: 'center',
-        gap: 12,
-        padding: { top: 24, right: 24, bottom: 24, left: 24 },
-      };
 
-      const t = createElement('text', 0, 0, 1, sec.id);
+      const t = createElement('text', 360, offsetY + 30, 1, sec.id);
       t.content = '📬 Leave Me a Friendly Note!';
-      t.styles = { ...t.styles, fontSize: 22, fontWeight: 800, color: '#ffffff' };
+      t.width = 480;
+      t.height = 36;
+      t.styles = { ...t.styles, fontSize: 22, fontWeight: 800, color: '#ffffff', textAlign: 'center' };
 
-      const inp = createElement('input', 0, 0, 1, sec.id);
+      const inp = createElement('input', 380, offsetY + 80, 1, sec.id);
       inp.name = 'Visitor Name';
       inp.content = 'Your Name or Secret Agent Code';
-      inp.width = 380;
-      inp.height = 40;
+      inp.width = 440;
+      inp.height = 44;
       inp.styles = { ...inp.styles, backgroundColor: '#0d0e14', borderColor: '#2b3046', borderRadius: 10, color: '#ffffff' };
 
-      const btn = createElement('button', 0, 0, 1, sec.id);
+      const btn = createElement('button', 510, offsetY + 140, 1, sec.id);
       btn.content = 'Send Note 💌';
-      btn.height = 40;
-      btn.width = 160;
-      btn.styles = { ...btn.styles, backgroundColor: '#6366f1', color: '#ffffff', borderRadius: 10 };
+      btn.height = 42;
+      btn.width = 180;
+      btn.styles = { ...btn.styles, backgroundColor: '#6366f1', color: '#ffffff', borderRadius: 10, fontWeight: 700 };
       btn.behavior = { actionType: 'confetti', actionSound: 'pop' };
 
       return [sec, t, inp, btn];
