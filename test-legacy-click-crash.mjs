@@ -97,4 +97,36 @@ const mockContext = {
 executeElementAction({ id: 'raw_el', name: 'Raw', type: 'button', x: 0, y: 0, width: 100, height: 40 }, mockContext);
 console.log('✅ Passed: executeElementAction handled element without behavior safely');
 
+// Test 4: Verify PropertiesPanel complies with React Rules of Hooks (no hooks after early returns)
+console.log('Test 4: PropertiesPanel Rules of Hooks validation');
+import fs from 'node:fs';
+const propertiesPanelCode = fs.readFileSync('./src/components/SidebarRight/PropertiesPanel.tsx', 'utf-8');
+const lines = propertiesPanelCode.split('\n');
+
+let inMultiSelectReturn = false;
+let firstEarlyReturnLine = -1;
+let hookViolationFound = false;
+let violationDetails = '';
+
+for (let i = 0; i < lines.length; i++) {
+  const line = lines[i];
+  if (line.includes('if (selectedElementIds.length > 1)') || line.includes('if (!selectedElement)')) {
+    if (firstEarlyReturnLine === -1) {
+      firstEarlyReturnLine = i + 1;
+    }
+  }
+  if (firstEarlyReturnLine !== -1 && i > firstEarlyReturnLine) {
+    if (/\b(useMemo|useState|useEffect|useCallback|useRef)\s*\(/.test(line)) {
+      hookViolationFound = true;
+      violationDetails = `Found hook call at line ${i + 1} after early return at line ${firstEarlyReturnLine}: ${line.trim()}`;
+      break;
+    }
+  }
+}
+
+if (hookViolationFound) {
+  throw new Error(`Rules of Hooks violation: ${violationDetails}`);
+}
+console.log('✅ Passed: PropertiesPanel adheres strictly to React Rules of Hooks with 0 post-return hook calls');
+
 console.log('\n🎉 ALL CRASH-PREVENTION TESTS PASSED CLEANLY!');

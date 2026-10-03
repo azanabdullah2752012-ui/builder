@@ -2,9 +2,10 @@
   "stats": {
     "engine": "SQLite (node:sqlite)",
     "dbPath": "/Users/azanabdullah/Desktop/design/data/studio.db",
-    "lastSynced": "2026-09-29T13:17:43.158Z",
+    "lastSynced": "2026-10-03T14:13:46.036Z",
     "userCount": 4,
-    "submissionCount": 3
+    "submissionCount": 3,
+    "projectCount": 1
   },
   "users": [
     {
@@ -71,6 +72,28 @@
       "email": "marcus@hypergrowth.co",
       "data_json": "{\"company\":\"Hypergrowth\",\"teamSize\":\"15-50\"}",
       "created_at": "2026-09-29 13:17:06"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj_default_01",
+      "name": "Untitled Project",
+      "data_json": "{\"id\":\"proj_default_01\",\"name\":\"Untitled Project\",\"slug\":\"lol\",\"pages\":[{\"id\":\"page_ujxziv\",\"name\":\"test\",\"slug\":\"/test\",\"elements\":[{\"x\":540,\"y\":340,\"id\":\"el_441ig9f_muqyyb5g\",\"name\":\"Rectangle\",\"role\":\"none\",\"type\":\"shape\",\"width\":120,\"height\":120,\"locked\":false,\"styles\":{\"opacity\":1,\"boxShadow\":\"0 8px 24px -4px rgba(99, 102, 241, 0.25)\",\"shapeKind\":\"rectangle\",\"borderColor\":\"#4338ca\",\"borderWidth\":0,\"backgroundColor\":\"#3b82f6\"},\"zIndex\":1,\"behavior\":{\"actionType\":\"navigate-page\",\"actionSound\":\"pop\",\"actionPayload\":\"__next__\",\"hoverStyles\":{\"translateY\":-6,\"boxShadow\":\"0 20px 30px -8px rgba(0,0,0,0.7)\",\"scale\":1.02},\"activeStyles\":{\"backgroundColor\":\"#4f46e5\",\"scale\":0.98,\"translateY\":1,\"boxShadow\":\"inset 0 2px 4px rgba(0,0,0,0.4)\"},\"focusStyles\":{\"outlineColor\":\"#000000\",\"outlineWidth\":1,\"boxShadow\":\"0 0 0 3px rgba(99,102,241,0.35)\",\"borderColor\":\"#818cf8\"}},\"parentId\":null,\"responsive\":{\"locked\":false,\"mobile\":{\"mode\":\"auto\",\"visible\":true},\"tablet\":{\"mode\":\"auto\",\"visible\":true},\"desktop\":{\"mode\":\"auto\"}}}],\"canvasWidth\":1200,\"canvasHeight\":800,\"backgroundColor\":\"#e63b7a\"}],\"version\":1,\"isPublic\":true,\"updatedAt\":\"2026-10-03T14:13:45.145Z\",\"publishedAt\":\"2026-10-02T13:06:38.694Z\",\"activePageId\":\"page_ujxziv\",\"publishConfig\":{\"seoTitle\":\"Untitled Project\",\"webhookUrl\":\"\",\"publishedAt\":\"2026-10-02T13:06:38.694Z\",\"customDomain\":\"lol\",\"removeBranding\":false,\"seoDescription\":\"Crafted with Craft Studio - Untitled Project\"}}",
+      "updated_at": "2026-10-03T14:13:46.034Z",
+      "user_id": "azan@craftstudio.dev",
+      "slug": "lol",
+      "thumbnail_url": null,
+      "is_public": 1,
+      "created_at": "2026-10-02T10:45:24.067Z"
+    }
+  ],
+  "project_revisions": [
+    {
+      "id": 10,
+      "project_id": "proj_default_01",
+      "name": "🚀 Published Live (2 Oct at 06:36 PM)",
+      "data_json": "{\"version\":1,\"id\":\"proj_default_01\",\"name\":\"Untitled Project\",\"activePageId\":\"page_ujxziv\",\"updatedAt\":\"2026-10-02T12:59:02.565Z\",\"pages\":[{\"id\":\"page_ujxziv\",\"name\":\"test\",\"slug\":\"/test\",\"canvasWidth\":1200,\"canvasHeight\":800,\"backgroundColor\":\"#ef4444\",\"elements\":[{\"id\":\"el_441ig9f_muqyyb5g\",\"name\":\"Rectangle\",\"type\":\"shape\",\"x\":450,\"y\":120,\"width\":120,\"height\":120,\"styles\":{\"backgroundColor\":\"#3b82f6\",\"shapeKind\":\"rectangle\",\"borderColor\":\"#4338ca\",\"borderWidth\":0,\"opacity\":1,\"boxShadow\":\"0 8px 24px -4px rgba(99, 102, 241, 0.25)\"},\"role\":\"none\",\"behavior\":{\"actionType\":\"navigate-page\",\"actionSound\":\"pop\",\"actionPayload\":\"https://\"},\"locked\":false,\"zIndex\":1,\"parentId\":null,\"responsive\":{\"desktop\":{\"mode\":\"auto\"},\"tablet\":{\"mode\":\"auto\",\"visible\":true},\"mobile\":{\"mode\":\"auto\",\"visible\":true},\"locked\":false}}]}],\"slug\":\"lol\",\"isPublic\":true,\"publishConfig\":{\"seoTitle\":\"Untitled Project\",\"seoDescription\":\"Crafted with Craft Studio - Untitled Project\",\"customDomain\":\"lol\",\"removeBranding\":false,\"webhookUrl\":\"\",\"publishedAt\":\"2026-10-02T13:06:38.694Z\"},\"publishedAt\":\"2026-10-02T13:06:38.694Z\"}",
+      "created_at": "2026-10-02 13:06:38"
     }
   ]
 }

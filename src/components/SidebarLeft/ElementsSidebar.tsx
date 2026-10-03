@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useEditor } from '../../context/useEditor';
-import type { ElementType, CanvasElement } from '../../types/editor';
+import type { ElementType, CanvasElement, ShapeKind } from '../../types/editor';
 import {
   Type,
   Square,
@@ -14,271 +14,80 @@ import {
   Copy,
   MousePointerClick,
   Layout,
-  ChevronDown,
   ChevronRight,
-  ArrowUp,
-  ArrowDown,
-  FolderMinus,
-  Check,
+  ChevronDown,
   Search,
-  ChevronsUpDown,
-  ChevronsDownUp,
   FileText,
   Plus,
-  Sparkles,
-  CreditCard,
-  Quote,
-  HelpCircle,
-  Megaphone,
-  PanelBottom,
-  Compass,
-  LayoutTemplate,
-  Grid,
   PanelLeftClose,
-  UserPlus,
+  Shapes,
+  CheckSquare,
+  Quote,
+  Palette,
+  Check,
 } from 'lucide-react';
-import {
-  SECTION_TEMPLATES,
-  getSmartSectionOffsetY,
-  type SectionTemplate,
-} from '../../constants/templates';
-import { Shapes, Smile, Upload, ClipboardPaste } from 'lucide-react';
+import { SECTION_TEMPLATES, getSmartSectionOffsetY } from '../../constants/templates';
 import { SHAPE_DEFINITIONS } from '../../utils/shapeDefinitions';
 import { EMOJI_CATALOG } from '../../constants/emojiCatalog';
-import { STOCK_IMAGES } from '../../constants/stockMedia';
-import type { ShapeKind } from '../../types/editor';
-
-interface ElementToolItem {
-  type: ElementType;
-  label: string;
-  hint: string;
-  icon: React.ReactNode;
-  badge?: string;
-  badgeColor?: string;
-}
-
-interface ElementCategory {
-  title: string;
-  items: ElementToolItem[];
-}
-
-const CATEGORIES: ElementCategory[] = [
-  {
-    title: 'Structure & Layout',
-    items: [
-      {
-        type: 'section',
-        label: 'Section',
-        hint: 'Flex page region',
-        icon: <Layout className="w-4 h-4 text-purple-400" />,
-        badge: 'Layout',
-        badgeColor: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
-      },
-      {
-        type: 'container',
-        label: 'Container',
-        hint: 'Card or grouping frame',
-        icon: <Box className="w-4 h-4 text-indigo-400" />,
-      },
-    ],
-  },
-  {
-    title: 'Content & Media',
-    items: [
-      {
-        type: 'text',
-        label: 'Text',
-        hint: 'Heading or paragraph',
-        icon: <Type className="w-4 h-4 text-blue-400" />,
-      },
-      {
-        type: 'button',
-        label: 'Button',
-        hint: 'Interactive click trigger',
-        icon: <MousePointerClick className="w-4 h-4 text-emerald-400" />,
-        badge: 'Action',
-        badgeColor: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-      },
-      {
-        type: 'image',
-        label: 'Image',
-        hint: 'Photos and graphics',
-        icon: <ImageIcon className="w-4 h-4 text-amber-400" />,
-      },
-    ],
-  },
-  {
-    title: 'Separators',
-    items: [
-      {
-        type: 'divider',
-        label: 'Divider',
-        hint: 'Horizontal line separator',
-        icon: <Minus className="w-4 h-4 text-slate-400" />,
-      },
-    ],
-  },
-];
+import { playSound } from '../../utils/interactiveEffects';
 
 interface ElementsSidebarProps {
-  activeTab?: 'elements' | 'layers' | 'pages';
-  setActiveTab?: (tab: 'elements' | 'layers' | 'pages') => void;
+  activeTab: 'elements' | 'layers' | 'pages' | 'theme';
+  setActiveTab: (tab: 'elements' | 'layers' | 'pages' | 'theme') => void;
 }
 
+const BASIC_ELEMENTS: { type: ElementType; label: string; icon: React.ReactNode }[] = [
+  { type: 'text', label: 'Text', icon: <Type size={16} /> },
+  { type: 'button', label: 'Button', icon: <MousePointerClick size={16} /> },
+  { type: 'container', label: 'Container', icon: <Box size={16} /> },
+  { type: 'image', label: 'Image', icon: <ImageIcon size={16} /> },
+  { type: 'section', label: 'Section', icon: <Layout size={16} /> },
+  { type: 'divider', label: 'Divider', icon: <Minus size={16} /> },
+  { type: 'input', label: 'Text Input', icon: <FileText size={16} /> },
+  { type: 'textarea', label: 'Text Area', icon: <Quote size={16} /> },
+  { type: 'checkbox', label: 'Checkbox', icon: <CheckSquare size={16} /> },
+];
+
 export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
-  activeTab: propActiveTab,
-  setActiveTab: propSetActiveTab,
+  activeTab,
+  setActiveTab,
 }) => {
   const {
     project,
     activePage,
+    selectedElementId,
+    selectElement,
+    addElement,
+    addElements,
+    insertShape,
+    insertEmoji,
+    updateElement,
+    deleteElement,
+    duplicateElement,
+    toggleLock,
     setActivePage,
     addPage,
     duplicatePage,
     deletePage,
     updatePageSettings,
-    addElement,
-    addElements,
-    insertCustomImage,
-    insertShape,
-    insertEmoji,
-    pasteElement,
-    selectedElementId,
-    selectElement,
-    toggleLock,
-    deleteElement,
-    duplicateElement,
-    setElementParent,
-    reorderChild,
-    updateElement,
     setLeftSidebarOpen,
     showToast,
   } = useEditor();
 
-  const [internalTab, setInternalTab] = useState<'elements' | 'layers' | 'pages'>('layers');
-  const activeTab = propActiveTab || internalTab;
-  const setActiveTab = propSetActiveTab || setInternalTab;
-
-  // Elements Sub-tabs: primitives | shapes | emojis | media | templates
-  const [elementsSubTab, setElementsSubTab] = useState<'primitives' | 'shapes' | 'emojis' | 'media' | 'templates'>('primitives');
-  const [templateCategoryFilter, setTemplateCategoryFilter] = useState<string>('all');
-  const [templateSearchQuery, setTemplateSearchQuery] = useState<string>('');
-  const [emojiSearch, setEmojiSearch] = useState<string>('');
-  const [emojiCategory, setEmojiCategory] = useState<string>('All');
-  const uploadFileInputRef = React.useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const handleOpenTemplates = () => {
-      setLeftSidebarOpen(true);
-      setActiveTab('elements');
-      setElementsSubTab('templates');
-    };
-    window.addEventListener('studio:open-templates', handleOpenTemplates);
-    return () => window.removeEventListener('studio:open-templates', handleOpenTemplates);
-  }, [setLeftSidebarOpen, setActiveTab]);
-
-  // Page Management state
-  const [pageSearchQuery, setPageSearchQuery] = useState('');
-  const [newPageInput, setNewPageInput] = useState('');
-  const [editingPageId, setEditingPageId] = useState<string | null>(null);
-  const [editingPageName, setEditingPageName] = useState('');
-
-  // Containers start collapsed by default to prevent vertical clutter
-  const [collapsedIds, setCollapsedIds] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingNameId, setEditingNameId] = useState<string | null>(null);
-  const [editingNameValue, setEditingNameValue] = useState<string>('');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'shapes' | 'emojis' | 'templates'>('all');
+  const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
+  const [editingLayerName, setEditingLayerName] = useState('');
+  const [collapsedIds, setCollapsedIds] = useState<Record<string, boolean>>({});
+  const [newPageName, setNewPageName] = useState('');
 
-  const toggleCollapse = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCollapsedIds((prev) => {
-      const current = prev[id] !== undefined ? prev[id] : true;
-      return { ...prev, [id]: !current };
-    });
+  // Handle element quick-add
+  const handleAdd = (type: ElementType) => {
+    addElement(type);
+    playSound('pop');
   };
 
-  const handleStartRename = (el: CanvasElement, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingNameId(el.id);
-    setEditingNameValue(el.name);
-  };
-
-  const handleSaveRename = (id: string, e?: React.MouseEvent | React.KeyboardEvent) => {
-    if (e) e.stopPropagation();
-    if (editingNameValue.trim()) {
-      updateElement(id, { name: editingNameValue.trim() }, true);
-    }
-    setEditingNameId(null);
-  };
-
-  const getElementIcon = (type: ElementType) => {
-    switch (type) {
-      case 'section':
-        return <Layout className="w-3.5 h-3.5 text-zinc-400" />;
-      case 'container':
-        return <Square className="w-3.5 h-3.5 text-zinc-400" />;
-      case 'text':
-        return <Type className="w-3.5 h-3.5 text-zinc-400" />;
-      case 'button':
-        return <MousePointerClick className="w-3.5 h-3.5 text-zinc-400" />;
-      case 'image':
-        return <ImageIcon className="w-3.5 h-3.5 text-zinc-400" />;
-      case 'divider':
-        return <Minus className="w-3.5 h-3.5 text-zinc-400" />;
-      default:
-        return <Square className="w-3.5 h-3.5 text-zinc-400" />;
-    }
-  };
-
-  const filteredTemplates = useMemo(() => {
-    return SECTION_TEMPLATES.filter((t) => {
-      const matchesCategory =
-        templateCategoryFilter === 'all' || t.category === templateCategoryFilter;
-      const q = templateSearchQuery.toLowerCase().trim();
-      const matchesSearch =
-        !q ||
-        t.name.toLowerCase().includes(q) ||
-        t.description.toLowerCase().includes(q) ||
-        t.categoryLabel.toLowerCase().includes(q);
-      return matchesCategory && matchesSearch;
-    });
-  }, [templateCategoryFilter, templateSearchQuery]);
-
-  const handleInsertSection = (template: SectionTemplate) => {
-    const smartY = getSmartSectionOffsetY(activePage.elements);
-    const elements = template.create(smartY);
-    addElements(elements, true);
-    showToast(`Added ${template.name} at Y: ${smartY}px`, 'info');
-  };
-
-  const renderTemplateIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'Sparkles':
-        return <Sparkles className="w-4 h-4 text-amber-400" />;
-      case 'LayoutGrid':
-        return <Layout className="w-4 h-4 text-sky-400" />;
-      case 'Compass':
-        return <Compass className="w-4 h-4 text-purple-400" />;
-      case 'Layers':
-        return <Layers className="w-4 h-4 text-emerald-400" />;
-      case 'CreditCard':
-        return <CreditCard className="w-4 h-4 text-indigo-400" />;
-      case 'Quote':
-        return <Quote className="w-4 h-4 text-orange-400" />;
-      case 'HelpCircle':
-        return <HelpCircle className="w-4 h-4 text-blue-400" />;
-      case 'Megaphone':
-        return <Megaphone className="w-4 h-4 text-pink-400" />;
-      case 'PanelBottom':
-        return <PanelBottom className="w-4 h-4 text-zinc-400" />;
-      case 'UserPlus':
-        return <UserPlus className="w-4 h-4 text-cyan-400" />;
-      default:
-        return <LayoutTemplate className="w-4 h-4 text-indigo-400" />;
-    }
-  };
-
-  // Build hierarchy tree
+  // Build hierarchy tree for Layers
   const { rootElements, childMap } = useMemo(() => {
     const map = new Map<string, CanvasElement[]>();
     const roots: CanvasElement[] = [];
@@ -298,207 +107,195 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
       }
     }
 
-    map.forEach((children, parentId) => {
-      const parent = elementsById.get(parentId);
-      if (parent?.children && parent.children.length > 0) {
-        children.sort((a, b) => {
-          const idxA = parent.children!.indexOf(a.id);
-          const idxB = parent.children!.indexOf(b.id);
-          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-          return a.y - b.y;
-        });
-      }
-    });
-
     return { rootElements: roots, childMap: map };
   }, [activePage.elements]);
 
-  // Toggle expand/collapse all
-  const allExpandableIds = useMemo(() => {
-    return activePage.elements
-      .filter((el) => (el.type === 'section' || el.type === 'container') && (childMap.get(el.id) || []).length > 0)
-      .map((el) => el.id);
-  }, [activePage.elements, childMap]);
-
-  const areAllExpanded = allExpandableIds.length > 0 && allExpandableIds.every((id) => collapsedIds[id] === false);
-
-  const toggleExpandAll = () => {
-    const targetState = !areAllExpanded;
-    const next: Record<string, boolean> = {};
-    for (const id of allExpandableIds) {
-      next[id] = !targetState; // collapsed is opposite of expanded
-    }
-    setCollapsedIds(next);
+  const toggleCollapse = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCollapsedIds((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Filtered elements if search query is active
-  const filteredElements = useMemo(() => {
-    if (!searchQuery.trim()) return null;
-    const q = searchQuery.toLowerCase();
-    return activePage.elements.filter(
-      (el) => el.name.toLowerCase().includes(q) || el.type.toLowerCase().includes(q) || (el.content && el.content.toLowerCase().includes(q))
-    );
-  }, [activePage.elements, searchQuery]);
-
-  // Recursive tree node renderer
+  // Render tree node in Layers
   const renderTreeNode = (element: CanvasElement, depth = 0) => {
     const isSelected = selectedElementId === element.id;
-    const isContainerLike = element.type === 'section' || element.type === 'container';
     const children = childMap.get(element.id) || [];
     const hasChildren = children.length > 0;
-    // Default collapsed to true for container-like elements with children
-    const isCollapsed = collapsedIds[element.id] !== undefined ? collapsedIds[element.id] : isContainerLike && hasChildren;
-    const isRenaming = editingNameId === element.id;
-
-    const parent = element.parentId ? activePage.elements.find((el) => el.id === element.parentId) : null;
-    const siblings = parent ? childMap.get(parent.id) || [] : rootElements;
-    const siblingIndex = siblings.findIndex((s) => s.id === element.id);
-    const canMoveUp = parent && siblingIndex > 0;
-    const canMoveDown = parent && siblingIndex < siblings.length - 1;
+    const isCollapsed = collapsedIds[element.id] ?? false;
+    const isEditing = editingLayerId === element.id;
 
     return (
-      <div key={element.id} className="flex flex-col">
+      <div key={element.id} style={{ display: 'flex', flexDirection: 'column' }}>
         <div
           onClick={() => selectElement(element.id)}
-          style={{ paddingLeft: `${Math.max(6, depth * 12 + 6)}px` }}
-          className={`group flex items-center justify-between pr-2 py-1.5 rounded-md text-xs cursor-pointer transition-all ${
-            isSelected
-              ? 'bg-[#222226] text-white font-medium shadow-sm'
-              : 'text-zinc-400 hover:bg-[#18181b] hover:text-zinc-200'
-          }`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '4px 8px',
+            paddingLeft: `${depth * 14 + 8}px`,
+            borderRadius: 5,
+            backgroundColor: isSelected ? '#1e1e28' : 'transparent',
+            color: isSelected ? '#ffffff' : '#a1a1aa',
+            cursor: 'pointer',
+            fontSize: 11,
+            transition: 'background-color 0.1s',
+            position: 'relative',
+          }}
+          className="group hover:bg-[#15151c]"
         >
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-            {isContainerLike && hasChildren ? (
-              <button
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
+            {hasChildren ? (
+              <span
                 onClick={(e) => toggleCollapse(element.id, e)}
-                className="p-0.5 rounded text-zinc-500 hover:text-zinc-200 transition-colors"
-                title={isCollapsed ? 'Expand' : 'Collapse'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 14,
+                  height: 14,
+                  color: '#71717a',
+                }}
               >
-                {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-              </button>
+                {isCollapsed ? <ChevronRight size={11} /> : <ChevronDown size={11} />}
+              </span>
             ) : (
-              <span className="w-3 shrink-0" />
+              <span style={{ width: 14 }} />
             )}
 
-            <div className="shrink-0 text-zinc-400">{getElementIcon(element.type)}</div>
+            {/* Element Type Icon */}
+            <span style={{ color: isSelected ? '#818cf8' : '#6366f1', flexShrink: 0 }}>
+              {element.type === 'text' && <Type size={12} />}
+              {element.type === 'button' && <MousePointerClick size={12} />}
+              {element.type === 'container' && <Square size={12} />}
+              {element.type === 'section' && <Layout size={12} />}
+              {element.type === 'image' && <ImageIcon size={12} />}
+              {element.type === 'shape' && <Shapes size={12} />}
+              {element.type === 'divider' && <Minus size={12} />}
+              {element.type === 'input' && <FileText size={12} />}
+              {!['text', 'button', 'container', 'section', 'image', 'shape', 'divider', 'input'].includes(element.type) && (
+                <Box size={12} />
+              )}
+            </span>
 
-            {isRenaming ? (
-              <div className="flex items-center gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+            {/* Layer Name */}
+            {isEditing ? (
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 1 }}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <input
-                  type="text"
-                  value={editingNameValue}
-                  onChange={(e) => setEditingNameValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSaveRename(element.id, e);
-                    if (e.key === 'Escape') setEditingNameId(null);
-                  }}
                   autoFocus
-                  className="bg-[#18181b] border border-[#3f3f46] rounded px-1.5 py-0.5 text-xs text-white outline-none w-full"
+                  value={editingLayerName}
+                  onChange={(e) => setEditingLayerName(e.target.value)}
+                  onBlur={() => {
+                    if (editingLayerName.trim()) updateElement(element.id, { name: editingLayerName.trim() });
+                    setEditingLayerId(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      if (editingLayerName.trim()) updateElement(element.id, { name: editingLayerName.trim() });
+                      setEditingLayerId(null);
+                    }
+                  }}
+                  style={{
+                    backgroundColor: '#181820',
+                    border: '1px solid #6366f1',
+                    borderRadius: 4,
+                    color: '#fff',
+                    fontSize: 11,
+                    padding: '1px 5px',
+                    outline: 'none',
+                    width: '100%',
+                  }}
                 />
-                <button
-                  onClick={(e) => handleSaveRename(element.id, e)}
-                  className="p-1 hover:text-white text-zinc-400"
-                >
-                  <Check className="w-3 h-3" />
-                </button>
               </div>
             ) : (
               <span
-                onDoubleClick={(e) => handleStartRename(element, e)}
-                className="truncate select-none text-[11px]"
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  setEditingLayerId(element.id);
+                  setEditingLayerName(element.name);
+                }}
+                style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontWeight: isSelected ? 500 : 400,
+                }}
                 title="Double click to rename"
               >
                 {element.name}
               </span>
             )}
-
-            {isContainerLike && hasChildren && isCollapsed && (
-              <span className="text-[9px] font-mono text-zinc-500 bg-zinc-800/60 px-1 py-0.2 rounded shrink-0">
-                {children.length}
-              </span>
-            )}
           </div>
 
-          {/* Quick Hover Actions */}
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-            {parent && (
-              <>
-                <button
-                  type="button"
-                  disabled={!canMoveUp}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    reorderChild(parent.id, element.id, 'up');
-                  }}
-                  className="p-0.5 text-zinc-500 hover:text-zinc-200 disabled:opacity-20"
-                  title="Move Up"
-                >
-                  <ArrowUp className="w-2.5 h-2.5" />
-                </button>
-                <button
-                  type="button"
-                  disabled={!canMoveDown}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    reorderChild(parent.id, element.id, 'down');
-                  }}
-                  className="p-0.5 text-zinc-500 hover:text-zinc-200 disabled:opacity-20"
-                  title="Move Down"
-                >
-                  <ArrowDown className="w-2.5 h-2.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setElementParent(element.id, null);
-                  }}
-                  className="p-0.5 text-zinc-500 hover:text-amber-400"
-                  title="Unparent"
-                >
-                  <FolderMinus className="w-2.5 h-2.5" />
-                </button>
-              </>
-            )}
-
+          {/* Quick Hover Controls */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              opacity: isSelected ? 1 : 0,
+            }}
+            className="group-hover:opacity-100"
+          >
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleLock(element.id);
               }}
-              className={`p-1 ${element.locked ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-200'}`}
+              style={{
+                background: 'none',
+                padding: 2,
+              }}
               title={element.locked ? 'Unlock' : 'Lock'}
             >
-              {element.locked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+              {element.locked ? <Lock size={11} /> : <Unlock size={11} />}
             </button>
-
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 duplicateElement(element.id);
+                showToast(`Duplicated ${element.name}`, 'info');
               }}
-              className="p-1 text-zinc-500 hover:text-zinc-200"
-              title="Duplicate"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#71717a',
+                cursor: 'pointer',
+                padding: 2,
+              }}
+              className="hover:text-white"
+              title="Duplicate Layer"
             >
-              <Copy className="w-3 h-3" />
+              <Copy size={11} />
             </button>
-
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 deleteElement(element.id);
               }}
-              disabled={element.locked}
-              className={`p-1 ${element.locked ? 'opacity-20 cursor-not-allowed text-zinc-700' : 'text-zinc-500 hover:text-red-400'}`}
-              title="Delete"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#71717a',
+                cursor: 'pointer',
+                padding: 2,
+              }}
+              className="hover:text-red-400"
+              title="Delete Layer"
             >
-              <Trash2 className="w-3 h-3" />
+              <Trash2 size={11} />
             </button>
           </div>
         </div>
 
+        {/* Children Render */}
         {hasChildren && !isCollapsed && (
-          <div className="flex flex-col space-y-0.5 relative before:absolute before:left-4 before:top-0 before:bottom-2 before:w-px before:bg-[#222226]">
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {children.map((child) => renderTreeNode(child, depth + 1))}
           </div>
         )}
@@ -507,745 +304,858 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
   };
 
   return (
-    <aside className="w-full h-full bg-[#121214] text-zinc-300 flex flex-col select-none text-xs overflow-hidden">
-      {/* 1. Header with Clean Tab Pills and Collapse Toggle */}
-      <div className="p-2 border-b border-[#1e2434] flex items-center justify-between gap-1.5 shrink-0 bg-[#11141d]">
-        <div className="flex-1 flex bg-[#0e121c] p-1 rounded-lg border border-[#22283a] gap-1 shadow-inner">
-          <button
-            onClick={() => setActiveTab('elements')}
-            className={`flex-1 py-1 px-2 text-xs rounded-md transition-all text-center font-medium ${
-              activeTab === 'elements'
-                ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-            }`}
-          >
-            Elements
-          </button>
-          <button
-            onClick={() => setActiveTab('layers')}
-            className={`flex-1 py-1 px-1.5 text-xs rounded-md transition-all text-center font-medium ${
-              activeTab === 'layers'
-                ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-            }`}
-          >
-            Layers
-          </button>
-          <button
-            onClick={() => setActiveTab('pages')}
-            className={`flex-1 py-1 px-1.5 text-xs rounded-md transition-all text-center flex items-center justify-center gap-1 font-medium ${
-              activeTab === 'pages'
-                ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-            }`}
-          >
-            <span>Pages</span>
-            <span
-              className={`text-[9px] font-mono px-1 rounded-full ${
-                activeTab === 'pages' ? 'bg-indigo-900 text-indigo-100' : 'bg-zinc-800 text-zinc-400'
-              }`}
-            >
-              {project.pages.length}
-            </span>
-          </button>
+    <aside
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#0d0d10',
+        color: '#d4d4d8',
+        display: 'flex',
+        flexDirection: 'column',
+        userSelect: 'none',
+        fontSize: 11,
+        overflow: 'hidden',
+        borderRight: '1px solid #1a1a20',
+      }}
+    >
+      {/* 1. Header with Clean Segmented Switcher */}
+      <div
+        style={{
+          height: 42,
+          padding: '0 10px',
+          borderBottom: '1px solid #1a1a20',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexShrink: 0,
+          gap: 6,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: '#141418',
+            border: '1px solid #1e1e24',
+            borderRadius: 6,
+            padding: 2,
+            flex: 1,
+            gap: 2,
+          }}
+        >
+          {(['elements', 'layers', 'pages', 'theme'] as const).map((tab) => {
+            const on = activeTab === tab;
+            const label = tab === 'elements' ? 'Build' : tab === 'layers' ? 'Layers' : tab === 'pages' ? 'Pages' : 'Theme';
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  flex: 1,
+                  height: 24,
+                  borderRadius: 4,
+                  border: 'none',
+                  backgroundColor: on ? '#22222c' : 'transparent',
+                  color: on ? '#ffffff' : '#71717a',
+                  cursor: 'pointer',
+                  fontSize: 10,
+                  fontWeight: on ? 600 : 400,
+                  transition: 'all 0.12s ease',
+                  padding: 0,
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         <button
+          type="button"
           onClick={() => setLeftSidebarOpen(false)}
-          className="p-1.5 rounded-md hover:bg-[#1c2233] text-zinc-400 hover:text-white transition-colors shrink-0"
-          title="Collapse Sidebar"
+          style={{
+            width: 26,
+            height: 26,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            color: '#71717a',
+            cursor: 'pointer',
+            borderRadius: 4,
+          }}
+          title="Collapse Panel"
         >
-          <PanelLeftClose className="w-4 h-4" />
+          <PanelLeftClose size={14} />
         </button>
       </div>
 
-      {/* Tab 1: Clean Categorized Elements & Pre-Built Section Templates */}
+      {/* TAB 1: COMPONENTS & INSERT */}
       {activeTab === 'elements' && (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Sub-Switch: Primitives vs Shapes vs Emojis vs Media vs Sections */}
-          <div className="p-2 border-b border-[#1e2434] bg-[#0c0e14]">
-            {/* Hidden File Input for Image Upload */}
-            <input
-              ref={uploadFileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                  const dataUrl = event.target?.result as string;
-                  if (!dataUrl) return;
-                  insertCustomImage(dataUrl, file.name ? `Image (${file.name})` : 'Uploaded Image');
-                  showToast(`Uploaded "${file.name}" to canvas! 📸`, 'success');
-                };
-                reader.readAsDataURL(file);
-                e.target.value = '';
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* Search Box */}
+          <div style={{ padding: '10px 12px 6px', backgroundColor: '#0d0d10' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#141418',
+                border: '1px solid #202028',
+                borderRadius: 6,
+                padding: '0 8px',
+                height: 28,
+                gap: 6,
               }}
-            />
-
-            <div className="flex bg-[#141824] p-0.5 rounded-lg border border-[#232c3f] gap-0.5 overflow-x-auto no-scrollbar">
-              <button
-                type="button"
-                onClick={() => setElementsSubTab('primitives')}
-                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
-                  elementsSubTab === 'primitives'
-                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-                title="Basic Elements"
-              >
-                <Grid className="w-3 h-3 text-indigo-300" />
-                <span>Basic</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setElementsSubTab('shapes')}
-                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
-                  elementsSubTab === 'shapes'
-                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-                title="Geometric & Symbol Shapes"
-              >
-                <Shapes className="w-3 h-3 text-purple-300" />
-                <span>Shapes</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setElementsSubTab('emojis')}
-                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
-                  elementsSubTab === 'emojis'
-                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-                title="Emoji Stickers"
-              >
-                <Smile className="w-3 h-3 text-amber-300" />
-                <span>Emojis</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setElementsSubTab('media')}
-                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
-                  elementsSubTab === 'media'
-                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-                title="Upload & Stock Media"
-              >
-                <ImageIcon className="w-3 h-3 text-emerald-300" />
-                <span>Media</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setElementsSubTab('templates')}
-                className={`py-1.5 px-2 text-[11px] rounded-md transition-all font-medium flex items-center justify-center gap-1 shrink-0 ${
-                  elementsSubTab === 'templates'
-                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-                title="Pre-built Section Templates"
-              >
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                <span>Sections</span>
-                <span className="text-[9px] font-mono bg-indigo-900 text-indigo-200 px-1 rounded-full font-bold">
-                  {SECTION_TEMPLATES.length}
-                </span>
-              </button>
+            >
+              <Search size={13} color="#71717a" />
+              <input
+                type="text"
+                placeholder="Search components..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: 11,
+                  outline: 'none',
+                  width: '100%',
+                }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: 10 }}
+                >
+                  ✕
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Sub-View A: Primitive Elements */}
-          {elementsSubTab === 'primitives' && (
-            <div className="flex-1 overflow-y-auto p-3 space-y-4">
-              {CATEGORIES.map((cat) => (
-                <div key={cat.title}>
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400/90 px-1 mb-2">
-                    {cat.title}
+          {/* Sub Categories: All | Shapes | Emojis | Templates */}
+          <div style={{ display: 'flex', gap: 4, padding: '0 12px 8px', borderBottom: '1px solid #1a1a20' }}>
+            {[
+              { id: 'all' as const, label: 'All' },
+              { id: 'shapes' as const, label: 'Shapes' },
+              { id: 'emojis' as const, label: 'Emojis' },
+              { id: 'templates' as const, label: 'Templates' },
+            ].map((cat) => {
+              const on = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: 4,
+                    border: on ? '1px solid #2e2e38' : '1px solid transparent',
+                    backgroundColor: on ? '#181820' : 'transparent',
+                    color: on ? '#e4e4e7' : '#71717a',
+                    cursor: 'pointer',
+                    fontSize: 10,
+                    fontWeight: on ? 500 : 400,
+                  }}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Content Views */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+            {/* View A: All Basics */}
+            {activeCategory === 'all' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* 2-Column Grid */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                    Basics
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {cat.items.map((item) => (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    {BASIC_ELEMENTS.filter(
+                      (item) => !searchQuery || item.label.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).map((item) => (
                       <button
                         key={item.type}
+                        type="button"
                         draggable
                         onDragStart={(e) => {
                           e.dataTransfer.setData('application/studio-element-type', item.type);
                           e.dataTransfer.effectAllowed = 'copy';
                         }}
-                        onClick={() => addElement(item.type)}
-                        className="flex flex-col items-center justify-center p-3 rounded-xl border border-[#242c3e] bg-[#141824] hover:bg-[#1a2233] hover:border-indigo-500/60 hover:shadow-[0_4px_16px_rgba(99,102,241,0.22)] transition-all text-center group cursor-grab active:cursor-grabbing relative overflow-hidden"
-                        title={`Click or drag onto canvas to add ${item.label}`}
+                        onClick={() => handleAdd(item.type)}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: 64,
+                          padding: '8px 4px',
+                          borderRadius: 8,
+                          backgroundColor: '#141418',
+                          border: '1px solid #1e1e24',
+                          color: '#d4d4d8',
+                          cursor: 'pointer',
+                          gap: 6,
+                          transition: 'all 0.12s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#1a1a22';
+                          e.currentTarget.style.borderColor = '#2e2e3a';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#141418';
+                          e.currentTarget.style.borderColor = '#1e1e24';
+                        }}
+                        title={`Click to add or drag onto canvas`}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-[#0f131f] border border-[#263148] flex items-center justify-center group-hover:scale-110 group-hover:border-indigo-500/50 group-hover:bg-[#161d2e] transition-all mb-2 text-zinc-300 shadow-inner">
-                          {item.icon}
-                        </div>
-                        <span className="text-xs font-semibold text-zinc-200 group-hover:text-white transition-colors">
-                          {item.label}
-                        </span>
-                        <span className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1 group-hover:text-zinc-300">
-                          {item.hint}
-                        </span>
+                        <span style={{ color: '#a1a1aa' }}>{item.icon}</span>
+                        <span style={{ fontSize: 11, fontWeight: 500 }}>{item.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
 
-          {/* Sub-View B: Shapes Catalog */}
-          {elementsSubTab === 'shapes' && (
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400/90 px-1">
-                Geometric & Symbol Shapes
+                {/* Pre-Built Sections Quick List */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                    SaaS Sections
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {SECTION_TEMPLATES.map((tmpl) => (
+                      <button
+                        key={tmpl.id}
+                        type="button"
+                        onClick={() => {
+                          const smartY = getSmartSectionOffsetY(activePage.elements);
+                          const elements = tmpl.create(smartY);
+                          addElements(elements, true);
+                          showToast(`Added ${tmpl.name}`, 'info');
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '7px 10px',
+                          borderRadius: 6,
+                          backgroundColor: '#141418',
+                          border: '1px solid #1e1e24',
+                          color: '#e4e4e7',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.12s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#1a1a22';
+                          e.currentTarget.style.borderColor = '#2e2e3a';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#141418';
+                          e.currentTarget.style.borderColor = '#1e1e24';
+                        }}
+                      >
+                        <span style={{ fontSize: 11, fontWeight: 500 }}>{tmpl.name}</span>
+                        <Plus size={12} color="#71717a" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+            )}
+
+            {/* View B: Vector Shapes */}
+            {activeCategory === 'shapes' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 {(Object.keys(SHAPE_DEFINITIONS) as ShapeKind[]).map((kind) => {
                   const def = SHAPE_DEFINITIONS[kind];
                   return (
                     <button
                       key={kind}
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData('application/studio-shape-kind', kind);
-                        e.dataTransfer.effectAllowed = 'copy';
-                      }}
+                      type="button"
                       onClick={() => insertShape(kind)}
-                      className="flex flex-col items-center justify-center p-3 rounded-xl border border-[#242c3e] bg-[#141824] hover:bg-[#1a2233] hover:border-purple-500/60 hover:shadow-[0_4px_16px_rgba(168,85,247,0.22)] transition-all text-center group cursor-grab active:cursor-grabbing"
-                      title={`Click or drag onto canvas to add ${def.label}`}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: 64,
+                        padding: '8px',
+                        borderRadius: 8,
+                        backgroundColor: '#141418',
+                        border: '1px solid #1e1e24',
+                        color: '#d4d4d8',
+                        cursor: 'pointer',
+                        gap: 6,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#1a1a22';
+                        e.currentTarget.style.borderColor = '#2e2e3a';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#141418';
+                        e.currentTarget.style.borderColor = '#1e1e24';
+                      }}
                     >
-                      <div className="w-10 h-10 rounded-lg bg-[#0f131f] border border-[#263148] flex items-center justify-center group-hover:scale-110 group-hover:border-purple-500/50 transition-all mb-2 shadow-inner">
-                        <svg viewBox={def.viewBox} className="w-7 h-7" style={{ color: def.defaultColor }}>
-                          {kind === 'circle' && <circle cx="50" cy="50" r="44" fill="currentColor" />}
-                          {kind === 'rectangle' && <rect x="8" y="8" width="84" height="84" fill="currentColor" />}
-                          {kind === 'rounded-rect' && <rect x="8" y="8" width="84" height="84" rx="18" fill="currentColor" />}
-                          {kind === 'pill' && <rect x="6" y="14" width="148" height="52" rx="26" fill="currentColor" />}
-                          {kind === 'triangle' && <polygon points="50,10 90,90 10,90" fill="currentColor" />}
-                          {kind === 'star' && <polygon points="50,8 63,36 94,36 69,56 78,88 50,68 22,88 31,56 6,36 37,36" fill="currentColor" />}
-                          {kind === 'diamond' && <polygon points="50,8 92,50 50,92 8,50" fill="currentColor" />}
-                          {kind === 'heart' && <path d="M50,84 C22,60 8,46 8,30 C8,16 18,8 31,8 C39,8 46,12 50,18 C54,12 61,8 69,8 C82,8 92,16 92,30 C92,46 78,60 50,84 Z" fill="currentColor" />}
-                          {kind === 'hexagon' && <polygon points="50,8 90,29 90,71 50,92 10,71 10,29" fill="currentColor" />}
-                          {kind === 'arrow-right' && <path d="M12,38 L56,38 L56,20 L88,50 L56,80 L56,62 L12,62 Z" fill="currentColor" />}
-                        </svg>
-                      </div>
-                      <span className="text-xs font-semibold text-zinc-200 group-hover:text-white">
-                        {def.label}
-                      </span>
-                      <span className="text-[10px] text-zinc-500 mt-0.5">
-                        {def.category}
-                      </span>
+                      <svg viewBox={def.viewBox} style={{ width: 22, height: 22, color: '#a5b4fc' }}>
+                        {kind === 'circle' && <circle cx="50" cy="50" r="44" fill="currentColor" />}
+                        {kind === 'rectangle' && <rect x="8" y="8" width="84" height="84" fill="currentColor" />}
+                        {kind === 'rounded-rect' && <rect x="8" y="8" width="84" height="84" rx="18" fill="currentColor" />}
+                        {kind === 'pill' && <rect x="6" y="14" width="148" height="52" rx="26" fill="currentColor" />}
+                        {kind === 'triangle' && <polygon points="50,10 90,90 10,90" fill="currentColor" />}
+                        {kind === 'star' && <polygon points="50,8 63,36 94,36 69,56 78,88 50,68 22,88 31,56 6,36 37,36" fill="currentColor" />}
+                        {kind === 'heart' && <path d="M50,84 C22,60 8,46 8,30 C8,16 18,8 31,8 C39,8 46,12 50,18 C54,12 61,8 69,8 C82,8 92,16 92,30 C92,46 78,60 50,84 Z" fill="currentColor" />}
+                      </svg>
+                      <span style={{ fontSize: 10.5 }}>{def.label}</span>
                     </button>
                   );
                 })}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Sub-View C: Emojis Catalog */}
-          {elementsSubTab === 'emojis' && (
-            <div className="flex-1 flex flex-col overflow-hidden p-3 space-y-3">
-              {/* Search */}
-              <div className="relative">
-                <Search className="w-3 h-3 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search emojis (rocket, fire, star)..."
-                  value={emojiSearch}
-                  onChange={(e) => setEmojiSearch(e.target.value)}
-                  className="w-full bg-[#141824] border border-[#232c3f] rounded-lg pl-7 pr-2.5 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-amber-500"
-                />
-              </div>
-
-              {/* Category Filter Pills */}
-              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1">
-                {['All', 'Popular', 'Tech & Code', 'Launch & Growth', 'Business', 'Reactions', 'Badges'].map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setEmojiCategory(cat)}
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors ${
-                      emojiCategory === cat
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                        : 'bg-[#141824] text-zinc-400 hover:text-zinc-200 border border-[#232c3f]'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
-              {/* Emojis Grid */}
-              <div className="flex-1 overflow-y-auto grid grid-cols-4 gap-2 pr-1">
-                {EMOJI_CATALOG.filter((item) => {
-                  const matchesCat = emojiCategory === 'All' || item.category === emojiCategory;
-                  const q = emojiSearch.toLowerCase().trim();
-                  const matchesQ = !q || item.emoji.includes(q) || item.name.toLowerCase().includes(q) || item.keywords.toLowerCase().includes(q);
-                  return matchesCat && matchesQ;
-                }).map((item, idx) => (
+            {/* View C: Emojis */}
+            {activeCategory === 'emojis' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                {EMOJI_CATALOG.slice(0, 48).map((item, idx) => (
                   <button
                     key={idx}
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('application/studio-emoji', item.emoji);
-                      e.dataTransfer.effectAllowed = 'copy';
-                    }}
+                    type="button"
                     onClick={() => insertEmoji(item.emoji)}
-                    className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-[#242c3e] bg-[#141824] hover:bg-[#1d2334] hover:border-amber-500/50 hover:scale-105 transition-all text-center group cursor-grab active:cursor-grabbing"
-                    title={`Click or drag "${item.name}" onto canvas`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: 44,
+                      borderRadius: 6,
+                      backgroundColor: '#141418',
+                      border: '1px solid #1e1e24',
+                      fontSize: 20,
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#1a1a22';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#141418';
+                    }}
+                    title={item.name}
                   >
-                    <span className="text-2xl mb-1 group-hover:scale-110 transition-transform select-none">
-                      {item.emoji}
-                    </span>
-                    <span className="text-[10px] text-zinc-400 group-hover:text-zinc-200 truncate w-full">
-                      {item.name.split(' ')[0]}
-                    </span>
+                    {item.emoji}
                   </button>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Sub-View D: Media & Image Upload */}
-          {elementsSubTab === 'media' && (
-            <div className="flex-1 overflow-y-auto p-3 space-y-4">
-              {/* Upload Dropzone */}
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/90 px-1 mb-2">
-                  Upload Own Image
-                </div>
-                <div
-                  onClick={() => uploadFileInputRef.current?.click()}
-                  className="border-2 border-dashed border-[#263148] hover:border-emerald-500/60 bg-[#121622] hover:bg-[#181e2e] rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all group shadow-inner"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-2 group-hover:scale-110 transition-transform">
-                    <Upload className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs font-semibold text-zinc-200 group-hover:text-white">
-                    Choose an image file
-                  </span>
-                  <span className="text-[10px] text-zinc-400 mt-1">
-                    PNG, JPG, SVG, WebP, GIF from your computer
-                  </span>
-                </div>
-              </div>
-
-              {/* Paste from Clipboard */}
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-sky-400/90 px-1 mb-2">
-                  Clipboard Paste
-                </div>
-                <button
-                  type="button"
-                  onClick={() => pasteElement()}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 text-xs font-semibold transition-all group"
-                >
-                  <ClipboardPaste className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span>Paste Image / Text (Cmd+V)</span>
-                </button>
-              </div>
-
-              {/* Curated Stock Photos */}
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400/90 px-1 mb-2">
-                  Curated Stock Photos
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {STOCK_IMAGES.map((img) => (
-                    <button
-                      key={img.id}
-                      onClick={() => insertCustomImage(img.url, img.name)}
-                      className="relative rounded-xl overflow-hidden border border-[#242c3e] hover:border-indigo-500 group aspect-[4/3] text-left"
-                    >
-                      <img
-                        src={img.thumbnail}
-                        alt={img.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      <div className="absolute bottom-1.5 left-2 right-2 text-white">
-                        <span className="text-[10px] font-semibold block truncate drop-shadow-md">
-                          {img.name}
-                        </span>
-                        <span className="text-[8px] text-zinc-400 font-mono">
-                          {img.category}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Sub-View B: Pre-Built Section Templates Catalog */}
-          {elementsSubTab === 'templates' && (
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Filter & Search Bar */}
-              <div className="p-2 border-b border-[#1e2434] space-y-2 bg-[#0d1017]">
-                <div className="flex items-center bg-[#141824] border border-[#232c3f] rounded-lg px-2 py-1 gap-1.5 text-zinc-400">
-                  <Search className="w-3 h-3 text-zinc-500 shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Search templates (e.g. Hero, Pricing)..."
-                    value={templateSearchQuery}
-                    onChange={(e) => setTemplateSearchQuery(e.target.value)}
-                    className="bg-transparent text-xs text-white placeholder-zinc-500 outline-none w-full"
-                  />
-                  {templateSearchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setTemplateSearchQuery('')}
-                      className="text-zinc-500 hover:text-white text-xs"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                {/* Category Pills */}
-                <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5">
-                  {[
-                    { id: 'all', label: 'All' },
-                    { id: 'auth', label: 'Auth & Lead' },
-                    { id: 'hero', label: 'Hero' },
-                    { id: 'features', label: 'Features' },
-                    { id: 'pricing', label: 'Pricing' },
-                    { id: 'social', label: 'Social' },
-                    { id: 'faq', label: 'FAQ' },
-                    { id: 'cta', label: 'CTA' },
-                    { id: 'nav', label: 'Nav' },
-                    { id: 'footer', label: 'Footer' },
-                  ].map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setTemplateCategoryFilter(cat.id)}
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-all shrink-0 ${
-                        templateCategoryFilter === cat.id
-                          ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                          : 'bg-[#151926] text-zinc-400 hover:text-white border border-[#232c3f]'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Templates Grid List */}
-              <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5">
-                {filteredTemplates.length === 0 ? (
-                  <div className="text-center py-8 text-zinc-500 text-xs">
-                    No section templates found matching &ldquo;{templateSearchQuery}&rdquo;
-                  </div>
-                ) : (
-                  filteredTemplates.map((template) => (
-                    <div
-                      key={template.id}
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData('application/studio-section-template-id', template.id);
-                        e.dataTransfer.effectAllowed = 'copy';
-                      }}
-                      className="rounded-xl border border-[#242c3e] bg-[#121624] hover:bg-[#161c2e] hover:border-indigo-500/50 transition-all p-3 flex flex-col gap-2 group cursor-grab active:cursor-grabbing shadow-sm"
-                    >
-                      {/* Gradient Accent Bar + Icon Header */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-[#0c0f18] border border-[#263148] flex items-center justify-center shadow-inner">
-                            {renderTemplateIcon(template.iconName)}
-                          </div>
-                          <div>
-                            <div className="text-xs font-semibold text-zinc-100 group-hover:text-white">
-                              {template.name}
-                            </div>
-                            <span className="text-[9px] font-mono text-indigo-300">
-                              {template.categoryLabel}
-                            </span>
-                          </div>
-                        </div>
-
-                        {template.badge && (
-                          <span className="text-[9px] font-semibold bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/30">
-                            {template.badge}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Description */}
-                      <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
-                        {template.description}
-                      </p>
-
-                      {/* Action Bar */}
-                      <div className="flex items-center justify-between pt-1 border-t border-[#1c2234] mt-0.5">
-                        <span className="text-[10px] text-zinc-500 font-mono">
-                          Drag or Click to Insert
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleInsertSection(template)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 hover:border-indigo-500 transition-all shadow-sm"
-                          title="Insert Section Below Existing Canvas Content"
-                        >
-                          <Plus className="w-3 h-3" />
-                          <span>Insert Below</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 2: Clean Layers Hierarchy Tree */}
-      {activeTab === 'layers' && (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Quick Search & Expand All */}
-          <div className="px-2 pt-2 pb-1.5 flex items-center gap-1.5 border-b border-[#222226] shrink-0">
-            <div className="flex-1 flex items-center bg-[#18181b] border border-[#27272a] rounded-md px-2 py-1 gap-1.5 text-zinc-400">
-              <Search className="w-3 h-3 text-zinc-500 shrink-0" />
-              <input
-                type="text"
-                placeholder="Filter layers..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent text-xs text-white placeholder-zinc-500 outline-none w-full"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="text-zinc-500 hover:text-white text-xs">
-                  ✕
-                </button>
-              )}
-            </div>
-            {allExpandableIds.length > 0 && (
-              <button
-                onClick={toggleExpandAll}
-                className="p-1 rounded text-zinc-400 hover:text-white hover:bg-[#1c1c20] transition-colors"
-                title={areAllExpanded ? 'Collapse All' : 'Expand All'}
-              >
-                {areAllExpanded ? <ChevronsDownUp className="w-3.5 h-3.5" /> : <ChevronsUpDown className="w-3.5 h-3.5" />}
-              </button>
             )}
-          </div>
 
-          <div className="flex-1 overflow-y-auto p-2">
-            {activePage.elements.length === 0 ? (
-              <div className="text-center py-16 px-4">
-                <Layers className="w-8 h-8 text-zinc-700 mx-auto mb-2 opacity-40" />
-                <p className="text-xs text-zinc-500 font-normal">No elements yet</p>
-              </div>
-            ) : filteredElements ? (
-              <div className="space-y-0.5 pt-1">
-                {filteredElements.map((el) => (
-                  <div
-                    key={el.id}
-                    onClick={() => selectElement(el.id)}
-                    className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-xs cursor-pointer ${
-                      selectedElementId === el.id ? 'bg-[#222226] text-white' : 'text-zinc-400 hover:bg-[#18181b]'
-                    }`}
+            {/* View D: Templates */}
+            {activeCategory === 'templates' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {SECTION_TEMPLATES.map((tmpl) => (
+                  <button
+                    key={tmpl.id}
+                    type="button"
+                    onClick={() => {
+                      const smartY = getSmartSectionOffsetY(activePage.elements);
+                      const elements = tmpl.create(smartY);
+                      addElements(elements, true);
+                      showToast(`Added ${tmpl.name}`, 'info');
+                    }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      backgroundColor: '#141418',
+                      border: '1px solid #1e1e24',
+                      color: '#e4e4e7',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      gap: 3,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#1a1a22';
+                      e.currentTarget.style.borderColor = '#2e2e3a';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#141418';
+                      e.currentTarget.style.borderColor = '#1e1e24';
+                    }}
                   >
-                    {getElementIcon(el.type)}
-                    <span className="truncate">{el.name}</span>
-                  </div>
+                    <span style={{ fontSize: 11, fontWeight: 600 }}>{tmpl.name}</span>
+                    <span style={{ fontSize: 10, color: '#71717a' }}>{tmpl.description}</span>
+                  </button>
                 ))}
               </div>
-            ) : (
-              <div className="space-y-0.5 pt-1">
-                {rootElements.map((rootEl) => renderTreeNode(rootEl, 0))}
-              </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Tab 3: Pages & Routing Management */}
-      {activeTab === 'pages' && (
-        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
-          {/* Search pages */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
-            <input
-              type="text"
-              placeholder="Search pages..."
-              value={pageSearchQuery}
-              onChange={(e) => setPageSearchQuery(e.target.value)}
-              className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 outline-none focus:border-indigo-500"
-            />
-          </div>
+      {/* TAB 2: LAYERS */}
+      {activeTab === 'layers' && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '8px' }}>
+          {activePage.elements.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '32px 16px', color: '#71717a' }}>
+              <Layers size={24} style={{ opacity: 0.3, margin: '0 auto 8px' }} />
+              <p style={{ fontSize: 11 }}>No layers yet</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {rootElements.map((el) => renderTreeNode(el, 0))}
+            </div>
+          )}
+        </div>
+      )}
 
-          {/* Quick Add Page Input */}
+      {/* TAB 3: PAGES */}
+      {activeTab === 'pages' && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '12px', gap: 12 }}>
+          {/* Add Page Form */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (newPageInput.trim()) {
-                addPage(newPageInput.trim());
-                setNewPageInput('');
+              if (newPageName.trim()) {
+                addPage(newPageName.trim());
+                setNewPageName('');
               }
             }}
-            className="flex items-center gap-1.5"
+            style={{ display: 'flex', gap: 6 }}
           >
             <input
               type="text"
               placeholder="New page name..."
-              value={newPageInput}
-              onChange={(e) => setNewPageInput(e.target.value)}
-              className="flex-1 bg-[#18181b] border border-[#27272a] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 outline-none focus:border-indigo-500"
+              value={newPageName}
+              onChange={(e) => setNewPageName(e.target.value)}
+              style={{
+                flex: 1,
+                height: 26,
+                backgroundColor: '#141418',
+                border: '1px solid #202028',
+                borderRadius: 5,
+                padding: '0 8px',
+                color: '#fff',
+                fontSize: 11,
+                outline: 'none',
+              }}
             />
             <button
               type="submit"
-              disabled={!newPageInput.trim()}
-              className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white transition-colors shrink-0"
+              disabled={!newPageName.trim()}
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 5,
+                border: 'none',
+                backgroundColor: '#6366f1',
+                color: '#fff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: newPageName.trim() ? 1 : 0.4,
+              }}
               title="Add Page"
             >
-              <Plus className="w-4 h-4" />
+              <Plus size={13} />
             </button>
           </form>
 
           {/* Pages List */}
-          <div className="space-y-1.5 flex-1">
-            <div className="text-[10px] font-medium uppercase tracking-wider text-zinc-500 px-1 mb-1">
-              Project Pages ({project.pages.length})
-            </div>
-
-            {project.pages
-              .filter(
-                (p) =>
-                  p.name.toLowerCase().includes(pageSearchQuery.toLowerCase()) ||
-                  p.slug.toLowerCase().includes(pageSearchQuery.toLowerCase())
-              )
-              .map((p, idx) => {
-                const isActive = p.id === activePage.id;
-                const isEditing = editingPageId === p.id;
-
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => {
-                      if (!isActive) setActivePage(p.id);
-                    }}
-                    className={`group p-2.5 rounded-xl border cursor-pointer transition-all ${
-                      isActive
-                        ? 'bg-[#1e1e24] border-indigo-500/50 shadow-sm'
-                        : 'bg-[#18181b] border-[#27272a] hover:bg-[#1d1d22] hover:border-[#38383e]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <FileText
-                          className={`w-3.5 h-3.5 shrink-0 ${
-                            isActive ? 'text-indigo-400' : 'text-zinc-500'
-                          }`}
-                        />
-                        <span className="text-[10px] text-zinc-500 font-mono px-1 py-0.2 rounded bg-zinc-800/80 shrink-0">
-                          #{idx + 1}
-                        </span>
-                        {isEditing ? (
-                          <div
-                            className="flex items-center gap-1 flex-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <input
-                              type="text"
-                              value={editingPageName}
-                              onChange={(e) => setEditingPageName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  if (editingPageName.trim()) {
-                                    updatePageSettings(p.id, { name: editingPageName.trim() });
-                                    showToast(`Page renamed to "${editingPageName.trim()}"`, 'info');
-                                  }
-                                  setEditingPageId(null);
-                                }
-                                if (e.key === 'Escape') setEditingPageId(null);
-                              }}
-                              autoFocus
-                              className="bg-[#121214] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-white outline-none w-full"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (editingPageName.trim()) {
-                                  updatePageSettings(p.id, { name: editingPageName.trim() });
-                                }
-                                setEditingPageId(null);
-                              }}
-                              className="p-1 text-emerald-400"
-                            >
-                              <Check className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <span
-                            onDoubleClick={(e) => {
-                              e.stopPropagation();
-                              setEditingPageId(p.id);
-                              setEditingPageName(p.name);
-                            }}
-                            className={`font-medium text-xs truncate ${
-                              isActive ? 'text-white' : 'text-zinc-300'
-                            }`}
-                          >
-                            {p.name}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Active Indicator or Action Buttons */}
-                      <div className="flex items-center gap-1 shrink-0">
-                        {isActive && (
-                          <span className="text-[9px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/30">
-                            Active
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            duplicatePage(p.id);
-                          }}
-                          className="p-1 text-zinc-500 hover:text-white rounded hover:bg-[#27272a] transition-colors"
-                          title="Duplicate Page"
-                        >
-                          <Copy className="w-3 h-3" />
-                        </button>
-                        {project.pages.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deletePage(p.id);
-                            }}
-                            className="p-1 text-zinc-500 hover:text-red-400 rounded hover:bg-red-500/20 transition-colors"
-                            title="Delete Page"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[10px] text-zinc-500">
-                      <span className="font-mono text-zinc-400 bg-black/40 px-1 py-0.5 rounded">
-                        {p.slug}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span>{p.elements.length} elements</span>
-                        <span className="font-mono">{p.canvasWidth}×{p.canvasHeight}</span>
-                      </div>
-                    </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {project.pages.map((p, idx) => {
+              const isActive = p.id === activePage.id;
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => setActivePage(p.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '7px 10px',
+                    borderRadius: 6,
+                    backgroundColor: isActive ? '#1c1c24' : '#141418',
+                    border: isActive ? '1px solid #2a2a38' : '1px solid #1e1e24',
+                    color: isActive ? '#ffffff' : '#a1a1aa',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <FileText size={12} color={isActive ? '#818cf8' : '#71717a'} />
+                    <span style={{ fontSize: 9.5, fontFamily: 'monospace', color: '#71717a' }}>#{idx + 1}</span>
+                    <span style={{ fontSize: 11, fontWeight: isActive ? 600 : 400 }}>{p.name}</span>
                   </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicatePage(p.id);
+                      }}
+                      style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', padding: 2 }}
+                      title="Duplicate"
+                    >
+                      <Copy size={11} />
+                    </button>
+                    {project.pages.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deletePage(p.id);
+                        }}
+                        style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', padding: 2 }}
+                        title="Delete"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {/* TAB 4: GLOBAL THEME & TOKENS */}
+      {activeTab === 'theme' && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '12px 14px' }}>
+          {/* Header */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <Palette size={14} color="#818cf8" />
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#f4f4f5' }}>Theme & Tokens</span>
+            </div>
+            <p style={{ fontSize: 10.5, color: '#71717a', margin: 0, lineHeight: 1.4 }}>
+              Cascade color palettes, canvas tones, typography, and corner radii across your site.
+            </p>
+          </div>
+
+          {/* 1. Theme Presets */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+              Design Systems
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {[
+                {
+                  id: 'indigo',
+                  name: 'Cyber Indigo',
+                  accent: '#6366f1',
+                  bg: '#09090b',
+                  card: '#141418',
+                  text: '#f4f4f5',
+                  font: 'Inter',
+                  radius: 8,
+                },
+                {
+                  id: 'emerald',
+                  name: 'Emerald Minimal',
+                  accent: '#10b981',
+                  bg: '#080d0a',
+                  card: '#101813',
+                  text: '#ecfdf5',
+                  font: 'Plus Jakarta Sans',
+                  radius: 10,
+                },
+                {
+                  id: 'rose',
+                  name: 'Sunset Rose',
+                  accent: '#f43f5e',
+                  bg: '#0e0b10',
+                  card: '#18121d',
+                  text: '#fff1f2',
+                  font: 'Outfit',
+                  radius: 12,
+                },
+                {
+                  id: 'cyan',
+                  name: 'Electric Cyan',
+                  accent: '#06b6d4',
+                  bg: '#070d12',
+                  card: '#0f1722',
+                  text: '#f0fdfa',
+                  font: 'Inter',
+                  radius: 6,
+                },
+                {
+                  id: 'amber',
+                  name: 'Amber Solar',
+                  accent: '#f59e0b',
+                  bg: '#0e0c08',
+                  card: '#1c160e',
+                  text: '#fffbeb',
+                  font: 'Outfit',
+                  radius: 8,
+                },
+                {
+                  id: 'violet',
+                  name: 'Violet Luxe',
+                  accent: '#8b5cf6',
+                  bg: '#0c0a14',
+                  card: '#161222',
+                  text: '#faf5ff',
+                  font: 'Plus Jakarta Sans',
+                  radius: 14,
+                },
+                {
+                  id: 'light',
+                  name: 'Clean Studio Light',
+                  accent: '#2563eb',
+                  bg: '#f8fafc',
+                  card: '#ffffff',
+                  text: '#0f172a',
+                  font: 'Inter',
+                  radius: 8,
+                },
+              ].map((theme) => {
+                const isActive = (activePage.backgroundColor || '#09090b') === theme.bg;
+                return (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    onClick={() => {
+                      // Apply canvas background
+                      updatePageSettings(activePage.id, { backgroundColor: theme.bg });
+
+                      // Cascade to elements
+                      const updated = activePage.elements.map((el) => {
+                        const s = { ...el.styles };
+                        if (el.type === 'button') {
+                          s.backgroundColor = theme.accent;
+                          s.color = '#ffffff';
+                          s.borderRadius = theme.radius;
+                          s.fontFamily = theme.font;
+                        } else if (el.type === 'container' || el.type === 'section') {
+                          if (s.backgroundColor && s.backgroundColor !== 'transparent') {
+                            s.backgroundColor = theme.card;
+                          }
+                          s.borderRadius = theme.radius;
+                        } else if (el.type === 'text') {
+                          s.fontFamily = theme.font;
+                          if (theme.bg === '#f8fafc' && (!s.color || s.color === '#ffffff' || s.color === '#f4f4f5')) {
+                            s.color = '#0f172a';
+                          } else if (theme.bg !== '#f8fafc' && (s.color === '#000000' || s.color === '#0f172a')) {
+                            s.color = '#f4f4f5';
+                          }
+                        }
+                        return { ...el, styles: s };
+                      });
+                      updatePageSettings(activePage.id, { elements: updated });
+                      showToast(`Applied ${theme.name} design tokens`, 'success');
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 10px',
+                      backgroundColor: '#121216',
+                      border: isActive ? `1px solid ${theme.accent}` : '1px solid #1c1c24',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 4,
+                          backgroundColor: theme.accent,
+                          border: `2px solid ${theme.bg}`,
+                          boxShadow: `0 0 8px ${theme.accent}40`,
+                        }}
+                      />
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 500, color: '#f4f4f5' }}>{theme.name}</div>
+                        <div style={{ fontSize: 9.5, color: '#71717a' }}>{theme.font} &bull; {theme.radius}px</div>
+                      </div>
+                    </div>
+                    {isActive && <Check size={12} color={theme.accent} />}
+                  </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* 2. Primary Brand Accent */}
+          <div style={{ marginBottom: 18, padding: '10px 12px', backgroundColor: '#121216', borderRadius: 8, border: '1px solid #1c1c24' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+              Brand Accent Color
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+              {['#6366f1', '#10b981', '#f43f5e', '#f59e0b', '#06b6d4', '#8b5cf6', '#ffffff'].map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => {
+                    const updated = activePage.elements.map((el) => {
+                      if (el.type === 'button') {
+                        return {
+                          ...el,
+                          styles: {
+                            ...el.styles,
+                            backgroundColor: color,
+                            color: color === '#ffffff' ? '#09090b' : '#ffffff',
+                          },
+                        };
+                      }
+                      return el;
+                    });
+                    updatePageSettings(activePage.id, { elements: updated });
+                    showToast(`Updated button accent to ${color}`, 'success');
+                  }}
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 9999,
+                    backgroundColor: color,
+                    border: '2px solid #202028',
+                    cursor: 'pointer',
+                    transition: 'transform 0.1s ease',
+                  }}
+                  title={`Apply ${color} to all buttons`}
+                />
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <input
+                type="color"
+                defaultValue="#6366f1"
+                onChange={(e) => {
+                  const color = e.target.value;
+                  const updated = activePage.elements.map((el) => {
+                    if (el.type === 'button') {
+                      return { ...el, styles: { ...el.styles, backgroundColor: color } };
+                    }
+                    return el;
+                  });
+                  updatePageSettings(activePage.id, { elements: updated });
+                }}
+                style={{
+                  width: 26,
+                  height: 26,
+                  padding: 0,
+                  borderRadius: 4,
+                  border: '1px solid #27272a',
+                  backgroundColor: 'transparent',
+                  cursor: 'pointer',
+                }}
+              />
+              <span style={{ fontSize: 10, color: '#71717a' }}>Custom Button Accent</span>
+            </div>
+          </div>
+
+          {/* 3. Canvas Background Tone */}
+          <div style={{ marginBottom: 18, padding: '10px 12px', backgroundColor: '#121216', borderRadius: 8, border: '1px solid #1c1c24' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+              Canvas Tone
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, marginBottom: 10 }}>
+              {[
+                { hex: '#09090b', name: 'Obsidian' },
+                { hex: '#121216', name: 'Charcoal' },
+                { hex: '#000000', name: 'Pitch' },
+                { hex: '#0f172a', name: 'Slate' },
+                { hex: '#ffffff', name: 'White' },
+              ].map((tone) => (
+                <button
+                  key={tone.hex}
+                  type="button"
+                  onClick={() => {
+                    updatePageSettings(activePage.id, { backgroundColor: tone.hex });
+                    showToast(`Canvas tone: ${tone.name}`, 'info');
+                  }}
+                  style={{
+                    height: 24,
+                    borderRadius: 4,
+                    backgroundColor: tone.hex,
+                    border: (activePage.backgroundColor || '#09090b') === tone.hex ? '2px solid #6366f1' : '1px solid #27272a',
+                    cursor: 'pointer',
+                  }}
+                  title={tone.name}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const currentBg = activePage.backgroundColor || '#09090b';
+                project.pages.forEach((p) => {
+                  updatePageSettings(p.id, { backgroundColor: currentBg });
+                });
+                showToast(`Applied canvas tone to all ${project.pages.length} pages`, 'success');
+              }}
+              style={{
+                width: '100%',
+                padding: '6px 8px',
+                borderRadius: 6,
+                backgroundColor: '#1b1b22',
+                border: '1px solid #272732',
+                color: '#d4d4d8',
+                fontSize: 10.5,
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'background-color 0.12s ease',
+              }}
+            >
+              Sync Tone to All Pages
+            </button>
+          </div>
+
+          {/* 4. Corner Radius Scale */}
+          <div style={{ marginBottom: 18, padding: '10px 12px', backgroundColor: '#121216', borderRadius: 8, border: '1px solid #1c1c24' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+              Corner Radius
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+              {[
+                { label: '0px', val: 0 },
+                { label: '6px', val: 6 },
+                { label: '12px', val: 12 },
+                { label: 'Full', val: 9999 },
+              ].map((rad) => (
+                <button
+                  key={rad.label}
+                  type="button"
+                  onClick={() => {
+                    const updated = activePage.elements.map((el) => {
+                      if (['button', 'container', 'input', 'textarea', 'image'].includes(el.type)) {
+                        return {
+                          ...el,
+                          styles: {
+                            ...el.styles,
+                            borderRadius: rad.val,
+                          },
+                        };
+                      }
+                      return el;
+                    });
+                    updatePageSettings(activePage.id, { elements: updated });
+                    showToast(`Standardized radius to ${rad.label}`, 'success');
+                  }}
+                  style={{
+                    padding: '5px 0',
+                    borderRadius: 4,
+                    backgroundColor: '#181820',
+                    border: '1px solid #242430',
+                    color: '#e4e4e7',
+                    fontSize: 10.5,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                  }}
+                >
+                  {rad.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}

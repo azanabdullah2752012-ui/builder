@@ -1,279 +1,462 @@
 import React, { useState, useEffect } from 'react';
 import { useEditor } from '../../context/useEditor';
-import type {
-  SemanticRole,
-  ActionType,
-  ButtonIconType,
-  ButtonSize,
-  ShapeKind,
-} from '../../types/editor';
-import { FONT_FAMILIES } from '../../constants/defaults';
-import { STOCK_IMAGES } from '../../constants/stockMedia';
-import { SHAPE_DEFINITIONS } from '../../utils/shapeDefinitions';
-import { triggerConfetti, playSound, type SoundEffectType } from '../../utils/interactiveEffects';
-import { BUTTON_VARIANTS, BUTTON_ICONS } from '../../utils/buttonStyles';
-import { ACTION_DEFINITIONS, executeElementAction } from '../../utils/actionExecutor';
-import { ColorPickerControl } from './ColorPickerControl';
 import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  AlignVerticalJustifyCenter,
-  AlignHorizontalJustifyCenter,
   ArrowUp,
   ArrowDown,
-  MousePointerClick,
-  Layout,
-  Rows,
-  Columns,
-  FolderMinus,
-  Maximize2,
-  Sparkles,
-  Play,
-  Palette,
-  Eye,
-  Type,
+  Trash2,
+  Copy,
   PanelRightClose,
-  ArrowLeftRight,
-  ChevronDown,
-  ChevronUp,
-  Image as ImageIcon,
-  Upload,
-  Shapes,
-  PartyPopper,
-  Volume2,
+  FolderPlus,
+  FolderMinus,
+  MoveUp,
+  MoveDown,
+  Lock,
+  Unlock,
+  Play,
+  Sparkles,
+  RotateCcw,
 } from 'lucide-react';
+import { FONT_FAMILIES } from '../../constants/defaults';
+import { triggerConfetti, playSound } from '../../utils/interactiveEffects';
+import { executeElementAction } from '../../utils/actionExecutor';
+import { MOTION_PRESETS } from '../../utils/motionAnimations';
+import type { ActionType, StateVariant } from '../../types/editor';
 
-export interface GradientConfig {
-  type: 'linear' | 'radial';
-  angle: number;
-  color1: string;
-  color2: string;
+const S = {
+  panel: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#0d0d10',
+    color: '#d4d4d8',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    userSelect: 'none' as const,
+    fontSize: 11,
+    overflowY: 'auto' as const,
+    borderLeft: '1px solid #1a1a20',
+  },
+  header: {
+    height: 42,
+    padding: '0 14px',
+    borderBottom: '1px solid #1a1a20',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexShrink: 0,
+    backgroundColor: '#0d0d10',
+  },
+  sectionTitle: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: '#71717a',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.06em',
+    marginBottom: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  input: {
+    height: 26,
+    backgroundColor: '#141418',
+    border: '1px solid #222228',
+    borderRadius: 6,
+    padding: '0 8px',
+    color: '#f4f4f5',
+    fontSize: 11,
+    outline: 'none',
+    width: '100%',
+    transition: 'border-color 0.12s',
+  },
+  row: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  label: {
+    fontSize: 11,
+    color: '#8e8e98',
+    flexShrink: 0,
+    width: 60,
+  },
+  grid2: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 6,
+    marginBottom: 8,
+  },
+  iconBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 26,
+    height: 26,
+    borderRadius: 5,
+    border: '1px solid #222228',
+    backgroundColor: '#141418',
+    color: '#a1a1aa',
+    cursor: 'pointer',
+    transition: 'all 0.12s ease',
+  },
+};
+
+function ColorPickerRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  const displayVal = value || '#ffffff';
+  const isTransparent = displayVal === 'transparent';
+
+  return (
+    <div style={S.row}>
+      <span style={S.label}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+        <label
+          style={{
+            position: 'relative',
+            width: 22,
+            height: 22,
+            borderRadius: 5,
+            border: '1px solid #2a2a35',
+            backgroundColor: isTransparent ? '#18181b' : displayVal,
+            cursor: 'pointer',
+            flexShrink: 0,
+            overflow: 'hidden',
+          }}
+          title="Click to pick color"
+        >
+          <input
+            type="color"
+            value={isTransparent ? '#ffffff' : displayVal.startsWith('#') ? displayVal : '#ffffff'}
+            onChange={(e) => onChange(e.target.value)}
+            style={{ opacity: 0, position: 'absolute', inset: 0, cursor: 'pointer' }}
+          />
+        </label>
+        <input
+          type="text"
+          value={displayVal}
+          onChange={(e) => onChange(e.target.value)}
+          style={{ ...S.input, fontFamily: 'monospace', textTransform: 'uppercase', flex: 1 }}
+        />
+        {displayVal !== 'transparent' && (
+          <button
+            type="button"
+            onClick={() => onChange('transparent')}
+            title="Set Transparent"
+            style={{
+              fontSize: 10,
+              color: '#71717a',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '2px 4px',
+            }}
+          >
+            Clear
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
-
-const GRADIENT_PRESETS = [
-  { name: 'Electric Indigo', color1: '#4f46e5', color2: '#7c3aed', value: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' },
-  { name: 'Sunset Blaze', color1: '#f97316', color2: '#ec4899', value: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)' },
-  { name: 'Cyber Neon', color1: '#06b6d4', color2: '#8b5cf6', value: 'linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)' },
-  { name: 'Emerald Aurora', color1: '#10b981', color2: '#06b6d4', value: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)' },
-  { name: 'Cosmic Violet', color1: '#6366f1', color2: '#d946ef', value: 'linear-gradient(135deg, #6366f1 0%, #d946ef 100%)' },
-  { name: 'Golden Fire', color1: '#f59e0b', color2: '#ef4444', value: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)' },
-  { name: 'Obsidian Night', color1: '#27272a', color2: '#09090b', value: 'linear-gradient(135deg, #27272a 0%, #09090b 100%)' },
-  { name: 'Ocean Breeze', color1: '#2563eb', color2: '#38bdf8', value: 'linear-gradient(135deg, #2563eb 0%, #38bdf8 100%)' },
-  { name: 'Rose Velvet', color1: '#e11d48', color2: '#fda4af', value: 'linear-gradient(135deg, #e11d48 0%, #fda4af 100%)' },
-  { name: 'Midnight Plum', color1: '#581c87', color2: '#1e1b4b', value: 'linear-gradient(135deg, #581c87 0%, #1e1b4b 100%)' },
-  { name: 'Sunburst Gold', color1: '#d97706', color2: '#fbbf24', value: 'linear-gradient(135deg, #d97706 0%, #fbbf24 100%)' },
-  { name: 'Glass Frost', color1: 'rgba(255,255,255,0.18)', color2: 'rgba(255,255,255,0.03)', value: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 100%)' },
-];
-
-function parseGradient(grad?: string): GradientConfig {
-  if (!grad) {
-    return { type: 'linear', angle: 135, color1: '#4f46e5', color2: '#7c3aed' };
-  }
-  const isRadial = grad.includes('radial');
-  const angleMatch = grad.match(/(\d+)deg/);
-  const angle = angleMatch ? parseInt(angleMatch[1], 10) : 135;
-  const colors = grad.match(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)/g);
-  const color1 = colors && colors[0] ? colors[0] : '#4f46e5';
-  const color2 = colors && colors[1] ? colors[1] : '#7c3aed';
-  return { type: isRadial ? 'radial' : 'linear', angle, color1, color2 };
-}
-
-function buildGradient(type: 'linear' | 'radial', angle: number, color1: string, color2: string): string {
-  if (type === 'radial') {
-    return `radial-gradient(circle at center, ${color1} 0%, ${color2} 100%)`;
-  }
-  return `linear-gradient(${angle}deg, ${color1} 0%, ${color2} 100%)`;
-}
-
-const SEMANTIC_ROLES: { value: SemanticRole; label: string; tag: string; group: string; description: string }[] = [
-  // Interactive & Triggers
-  { value: 'button', label: 'Button', tag: '<button>', group: 'Interactive', description: 'Interactive trigger for clicks and actions' },
-  { value: 'link', label: 'Hyperlink', tag: '<a>', group: 'Interactive', description: 'Navigates to external URL or page' },
-  { value: 'input', label: 'Input Field', tag: '<input>', group: 'Interactive', description: 'Interactive form input field' },
-  { value: 'form', label: 'Form Wrapper', tag: '<form>', group: 'Interactive', description: 'Semantic form enclosure' },
-  { value: 'dialog', label: 'Modal Dialog', tag: '<dialog>', group: 'Interactive', description: 'Popup dialog or interactive modal overlay' },
-
-  // Typography & Content
-  { value: 'heading-h1', label: 'Heading 1', tag: '<h1>', group: 'Typography', description: 'Top-level primary document title' },
-  { value: 'heading-h2', label: 'Heading 2', tag: '<h2>', group: 'Typography', description: 'Major section heading' },
-  { value: 'heading-h3', label: 'Heading 3', tag: '<h3>', group: 'Typography', description: 'Sub-section or card heading' },
-  { value: 'text', label: 'Paragraph Text', tag: '<p>', group: 'Typography', description: 'Standard readable paragraph body text' },
-  { value: 'blockquote', label: 'Blockquote', tag: '<blockquote>', group: 'Typography', description: 'Quotation, testimonial, or cited excerpt' },
-  { value: 'badge', label: 'Status Badge', tag: '<span>', group: 'Typography', description: 'Status pill, label tag, or category badge' },
-
-  // Structure & Landmarks
-  { value: 'header', label: 'Page Header', tag: '<header>', group: 'Structure', description: 'Banner header or site navigation bar' },
-  { value: 'navigation', label: 'Navigation', tag: '<nav>', group: 'Structure', description: 'Menu or navigational links container' },
-  { value: 'main', label: 'Main Landmark', tag: '<main>', group: 'Structure', description: 'Primary unique content of document' },
-  { value: 'container', label: 'Section Container', tag: '<section>', group: 'Structure', description: 'Thematic content group section' },
-  { value: 'card', label: 'Card Article', tag: '<article>', group: 'Structure', description: 'Self-contained reusable component card' },
-  { value: 'aside', label: 'Sidebar / Aside', tag: '<aside>', group: 'Structure', description: 'Complementary sidebar or callout box' },
-  { value: 'footer', label: 'Page Footer', tag: '<footer>', group: 'Structure', description: 'Footer containing copyright and links' },
-
-  // Visual & Generic
-  { value: 'image', label: 'Image Graphic', tag: '<img>', group: 'Media', description: 'Visual media graphics with alt tag' },
-  { value: 'none', label: 'Generic Div', tag: '<div>', group: 'Media', description: 'Unstyled plain visual block' },
-];
-
-const ACTION_TYPES = ACTION_DEFINITIONS;
-
-const CANVAS_BG_SWATCHES = [
-  { label: 'White', color: '#ffffff' },
-  { label: 'Slate 50', color: '#f8fafc' },
-  { label: 'Warm', color: '#fafaf9' },
-  { label: 'Dark', color: '#090d16' },
-];
-
-const HOVER_SHADOW_OPTIONS = [
-  { label: 'Default / None', value: '' },
-  { label: 'Soft Ambient Float', value: '0 10px 25px -5px rgba(0,0,0,0.4), 0 8px 10px -6px rgba(0,0,0,0.3)' },
-  { label: 'Deep High Elevation', value: '0 20px 40px -10px rgba(0,0,0,0.6), 0 12px 18px -8px rgba(0,0,0,0.4)' },
-  { label: 'Electric Indigo Glow', value: '0 0 25px rgba(99, 102, 241, 0.65)' },
-  { label: 'Sunset Orange Glow', value: '0 0 25px rgba(249, 115, 22, 0.6)' },
-  { label: 'Cyber Cyan Glow', value: '0 0 25px rgba(6, 182, 212, 0.6)' },
-];
 
 export const PropertiesPanel: React.FC = () => {
   const {
-    project,
-    activePage,
     selectedElement,
+    selectedElementIds,
+    selectedElements,
+    selectElements,
     updateElement,
     updateElementStyles,
     updateElementBehavior,
     updateElementLayout,
-    setElementParent,
-    reorderChild,
-    alignElement,
+    deleteElement,
+    duplicateElement,
+    toggleLock,
+    alignSelectedElements,
+    groupSelectedElements,
+    ungroupSelectedElements,
+    project,
+    activePage,
+    setActivePage,
     updatePageSettings,
     toggleRightSidebar,
+    setPreviewStateVariant,
     showToast,
-    setActivePage,
-    editorComplexity,
   } = useEditor();
 
-  // 3 Primary Focused Tabs
-  const [activeTab, setActiveTab] = useState<'style' | 'hover' | 'layout'>('style');
-  const [gradientSubTab, setGradientSubTab] = useState<'presets' | 'custom'>('presets');
-  const [isLiveHoverPreview, setIsLiveHoverPreview] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const [activeStateVariant, setActiveStateVariant] = useState<StateVariant>('default');
 
-  // Progressive Disclosure states for simplified, uncluttered experience
-  const [showGradients, setShowGradients] = useState<boolean>(false);
-  const [showBorders, setShowBorders] = useState<boolean>(false);
-  const [showElevation, setShowElevation] = useState<boolean>(false);
-
-  // Auto-expand sections if the selected element already has active styling
   useEffect(() => {
-    if (selectedElement) {
-      const st = selectedElement.styles || {};
-      if (st.gradient) {
-        setShowGradients(true);
-      }
-      if (st.borderWidth && st.borderWidth > 0) {
-        setShowBorders(true);
-      }
-      if (st.boxShadow) {
-        setShowElevation(true);
+    setActiveStateVariant('default');
+    setPreviewStateVariant('default');
+  }, [selectedElement?.id, setPreviewStateVariant]);
+
+  const handleStateTabChange = (variant: StateVariant) => {
+    setActiveStateVariant(variant);
+    setPreviewStateVariant(variant);
+  };
+
+  useEffect(() => {
+    if (selectedElement?.behavior?.actionType === 'navigate-page') {
+      const validOptions = ['__next__', '__prev__', ...project.pages.map((p) => p.id)];
+      if (!validOptions.includes(selectedElement.behavior.actionPayload || '')) {
+        updateElementBehavior(selectedElement.id, { actionPayload: '__next__' });
       }
     }
-  }, [selectedElement?.id]);
+  }, [selectedElement?.id, selectedElement?.behavior?.actionType, selectedElement?.behavior?.actionPayload, project.pages]);
 
-  // If no element is selected, display Page Settings
-  if (!selectedElement) {
+  // 1. Multi-Selection Inspector
+  if (selectedElementIds.length > 1) {
+    const hasGroup = selectedElements.some((e) => e.type === 'container' || e.type === 'section');
+
     return (
-      <aside className="w-full h-full bg-[#121214] text-zinc-300 flex flex-col select-none overflow-y-auto text-xs">
-        <div className="h-10 px-3.5 border-b border-[#222226] flex items-center justify-between shrink-0 bg-[#121214]">
-          <span className="font-semibold text-white text-xs tracking-wide">Inspector</span>
+      <aside style={S.panel}>
+        <div style={S.header}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontWeight: 600, color: '#f4f4f5' }}>Selection</span>
+            <span
+              style={{
+                fontSize: 10,
+                fontFamily: 'monospace',
+                backgroundColor: '#1e1e28',
+                color: '#a5b4fc',
+                padding: '1px 6px',
+                borderRadius: 10,
+              }}
+            >
+              {selectedElementIds.length} items
+            </span>
+          </div>
           <button
-            onClick={toggleRightSidebar}
-            className="p-1 rounded text-zinc-400 hover:text-white hover:bg-[#1c1c20] transition-colors"
-            title="Close Inspector"
+            type="button"
+            onClick={() => selectElements([])}
+            style={{ ...S.iconBtn, width: 'auto', padding: '0 8px', fontSize: 10 }}
           >
-            <PanelRightClose className="w-4 h-4" />
+            Deselect
           </button>
         </div>
-        <div className="p-3.5 space-y-4">
+
+        <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Batch Alignment */}
           <div>
-            <label className="text-zinc-400 font-medium block mb-1 text-[11px]">Page Name</label>
-            <input
-              type="text"
-              value={activePage.name}
-              onChange={(e) => updatePageSettings(activePage.id, { name: e.target.value })}
-              className="w-full px-2.5 py-1.5 text-xs bg-[#18181b] border border-[#2a2a30] rounded-md text-zinc-200 outline-none focus:border-indigo-500"
-            />
+            <div style={S.sectionTitle}>Align</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 4 }}>
+              {[
+                { type: 'left' as const, icon: <AlignLeft size={13} />, title: 'Align Left' },
+                { type: 'center' as const, icon: <AlignCenter size={13} />, title: 'Align Center Horizontal' },
+                { type: 'right' as const, icon: <AlignRight size={13} />, title: 'Align Right' },
+                { type: 'top' as const, icon: <ArrowUp size={13} />, title: 'Align Top' },
+                { type: 'middle' as const, icon: <AlignCenter size={13} style={{ transform: 'rotate(90deg)' }} />, title: 'Align Center Vertical' },
+                { type: 'bottom' as const, icon: <ArrowDown size={13} />, title: 'Align Bottom' },
+              ].map((btn) => (
+                <button
+                  key={btn.type}
+                  type="button"
+                  onClick={() => alignSelectedElements(btn.type)}
+                  style={S.iconBtn}
+                  title={btn.title}
+                >
+                  {btn.icon}
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* Grouping */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-zinc-400 font-medium text-[11px]">Canvas Background</label>
-              <div className="flex gap-1">
-                {CANVAS_BG_SWATCHES.map((swatch) => (
-                  <button
-                    key={swatch.color}
-                    type="button"
-                    onClick={() => updatePageSettings(activePage.id, { backgroundColor: swatch.color })}
-                    className="w-4 h-4 rounded-full border border-zinc-700 hover:scale-110 transition-transform"
-                    style={{ backgroundColor: swatch.color }}
-                    title={swatch.label}
-                  />
-                ))}
-              </div>
+            <div style={S.sectionTitle}>Grouping</div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                type="button"
+                onClick={groupSelectedElements}
+                style={{
+                  ...S.iconBtn,
+                  flex: 1,
+                  height: 28,
+                  gap: 6,
+                  color: '#e4e4e7',
+                }}
+              >
+                <FolderPlus size={13} />
+                <span>Group into Frame</span>
+              </button>
+              {hasGroup && (
+                <button
+                  type="button"
+                  onClick={ungroupSelectedElements}
+                  style={{
+                    ...S.iconBtn,
+                    flex: 1,
+                    height: 28,
+                    gap: 6,
+                    color: '#e4e4e7',
+                  }}
+                >
+                  <FolderMinus size={13} />
+                  <span>Ungroup</span>
+                </button>
+              )}
             </div>
-            <ColorPickerControl
-              label="Custom Color"
+          </div>
+
+          {/* Batch Actions */}
+          <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <button
+              type="button"
+              onClick={() => {
+                selectedElementIds.forEach((id) => deleteElement(id));
+                selectElements([]);
+                showToast(`Deleted ${selectedElementIds.length} elements`, 'info');
+              }}
+              style={{
+                width: '100%',
+                height: 28,
+                borderRadius: 6,
+                border: '1px solid #332020',
+                backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                color: '#f87171',
+                fontSize: 11,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+            >
+              <Trash2 size={13} />
+              <span>Delete Selected Items</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
+  // 2. Page Settings (when no element is selected)
+  if (!selectedElement) {
+    return (
+      <aside style={S.panel}>
+        <div style={S.header}>
+          <span style={{ fontWeight: 600, color: '#f4f4f5' }}>Page Settings</span>
+          <button
+            type="button"
+            onClick={toggleRightSidebar}
+            style={{ ...S.iconBtn, border: 'none', background: 'none' }}
+            title="Close Panel"
+          >
+            <PanelRightClose size={15} />
+          </button>
+        </div>
+
+        <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Page Name */}
+          <div>
+            <div style={S.sectionTitle}>General</div>
+            <div style={S.row}>
+              <span style={S.label}>Name</span>
+              <input
+                type="text"
+                value={activePage.name}
+                onChange={(e) => updatePageSettings(activePage.id, { name: e.target.value })}
+                style={S.input}
+              />
+            </div>
+          </div>
+
+          {/* Canvas Background */}
+          <div>
+            <div style={S.sectionTitle}>Canvas Surface</div>
+            <ColorPickerRow
+              label="Fill"
               value={activePage.backgroundColor || '#ffffff'}
               onChange={(val) => updatePageSettings(activePage.id, { backgroundColor: val })}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#222226]">
-            <div>
-              <label className="text-zinc-400 font-medium block mb-1 text-[11px]">Width</label>
-              <div className="flex items-center bg-[#18181b] border border-[#2a2a30] rounded-md px-2 py-1">
+          {/* Canvas Dimensions */}
+          <div>
+            <div style={S.sectionTitle}>Dimensions (Desktop)</div>
+            <div style={S.grid2}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, color: '#71717a', width: 14 }}>W</span>
                 <input
                   type="number"
                   value={activePage.canvasWidth}
                   onChange={(e) => updatePageSettings(activePage.id, { canvasWidth: Number(e.target.value) || 1200 })}
-                  className="w-full bg-transparent text-zinc-200 outline-none text-xs"
+                  style={S.input}
                 />
-                <span className="text-[10px] text-zinc-500">px</span>
               </div>
-            </div>
-
-            <div>
-              <label className="text-zinc-400 font-medium block mb-1 text-[11px]">Height</label>
-              <div className="flex items-center bg-[#18181b] border border-[#2a2a30] rounded-md px-2 py-1">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, color: '#71717a', width: 14 }}>H</span>
                 <input
                   type="number"
                   value={activePage.canvasHeight}
                   onChange={(e) => updatePageSettings(activePage.id, { canvasHeight: Number(e.target.value) || 800 })}
-                  className="w-full bg-transparent text-zinc-200 outline-none text-xs"
+                  style={S.input}
                 />
-                <span className="text-[10px] text-zinc-500">px</span>
               </div>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-[#222226]">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
-              Page Structure
-            </div>
-            <div className="p-3 rounded-lg bg-[#18181b] border border-[#2a2a30] space-y-1.5 text-[11px]">
-              <div className="flex items-center justify-between text-zinc-400">
-                <span>Total Components</span>
-                <span className="font-mono text-zinc-200 font-semibold">{activePage.elements.length}</span>
+          {/* Scroll Progress Bar */}
+          <div>
+            <div style={S.sectionTitle}>Features</div>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '6px 0',
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ fontSize: 11, color: '#d4d4d8' }}>Reading Progress Bar</span>
+              <input
+                type="checkbox"
+                checked={activePage.showScrollProgress ?? false}
+                onChange={(e) => updatePageSettings(activePage.id, { showScrollProgress: e.target.checked })}
+                style={{ cursor: 'pointer' }}
+              />
+            </label>
+          </div>
+
+          {/* Page Stats */}
+          <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <div style={S.sectionTitle}>Structure</div>
+            <div
+              style={{
+                backgroundColor: '#121216',
+                border: '1px solid #1c1c24',
+                borderRadius: 6,
+                padding: '8px 10px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                fontSize: 10.5,
+                color: '#a1a1aa',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Elements</span>
+                <span style={{ fontFamily: 'monospace', color: '#e4e4e7' }}>{activePage.elements.length}</span>
               </div>
-              <div className="flex items-center justify-between text-zinc-400">
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Sections</span>
-                <span className="font-mono text-zinc-200 font-semibold">
+                <span style={{ fontFamily: 'monospace', color: '#e4e4e7' }}>
                   {activePage.elements.filter((e) => e.type === 'section').length}
                 </span>
-              </div>
-              <div className="flex items-center justify-between text-zinc-400">
-                <span>Viewport</span>
-                <span className="text-indigo-400 font-medium">Desktop (1200px)</span>
               </div>
             </div>
           </div>
@@ -282,2311 +465,1576 @@ export const PropertiesPanel: React.FC = () => {
     );
   }
 
+  // 3. Single Element Inspector (Figma-grade clean UI)
   const el = selectedElement;
   const s = el.styles || {};
   const b = el.behavior || { actionType: 'none' };
-  const l = el.layout;
-  const isLocked = el.locked;
-  const isSection = el.type === 'section';
-  const isContainer = el.type === 'container';
-  const isLayoutParent = isSection || isContainer;
-  const hasTextContent = el.type === 'text' || el.type === 'button';
+  const hasText = el.type === 'text' || el.type === 'button';
+  const hasFill = el.type !== 'divider';
   const isImage = el.type === 'image';
-  const isShape = el.type === 'shape';
+  const isContainerLike = el.type === 'container' || el.type === 'section';
 
-  // Toggle live hover preview on canvas
-  const handleToggleLiveHover = () => {
-    const next = !isLiveHoverPreview;
-    setIsLiveHoverPreview(next);
-    window.dispatchEvent(new CustomEvent('canvas:force-hover', { detail: { id: el.id, hover: next } }));
-    showToast(next ? 'Live Hover Preview ON' : 'Live Hover Preview OFF', 'info');
+  const handleNameSave = () => {
+    setIsEditingName(false);
+    if (nameValue.trim()) updateElement(el.id, { name: nameValue.trim() });
   };
-
-  // Pulse animation on canvas
-  const handlePulseHover = () => {
-    window.dispatchEvent(new CustomEvent('canvas:force-hover', { detail: { id: el.id, hover: true } }));
-    setTimeout(() => {
-      if (!isLiveHoverPreview) {
-        window.dispatchEvent(new CustomEvent('canvas:force-hover', { detail: { id: el.id, hover: false } }));
-      }
-    }, 1200);
-  };
-
-  // Potential parents (Sections and Containers, excluding self and descendants)
-  const getDescendantIds = (elementId: string): Set<string> => {
-    const descendants = new Set<string>();
-    const stack = [elementId];
-    while (stack.length > 0) {
-      const currentId = stack.pop()!;
-      for (const item of activePage.elements) {
-        if (item.parentId === currentId && !descendants.has(item.id)) {
-          descendants.add(item.id);
-          stack.push(item.id);
-        }
-      }
-    }
-    return descendants;
-  };
-
-  const disallowedParentIds = getDescendantIds(el.id);
-  disallowedParentIds.add(el.id);
-
-  const availableParents = activePage.elements.filter(
-    (item) => (item.type === 'section' || item.type === 'container') && !disallowedParentIds.has(item.id)
-  );
-
-  const childElements = activePage.elements.filter((item) => item.parentId === el.id);
-
-  const hasActiveHoverSettings =
-    (s.hoverEffect && s.hoverEffect !== 'none') ||
-    b?.hoverStyles?.backgroundColor ||
-    b?.hoverStyles?.color ||
-    b?.hoverStyles?.borderColor ||
-    b?.hoverStyles?.scale ||
-    s.hoverScale ||
-    s.hoverTranslateY !== undefined;
 
   return (
-    <aside className="w-full h-full bg-[#121214] text-zinc-300 flex flex-col select-none overflow-hidden text-xs">
-      {/* 1. Inspector Header */}
-      <div className="h-10 px-3 border-b border-[#222226] bg-[#121214] flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="font-semibold text-white text-xs truncate max-w-[140px]">{el.name}</span>
-          <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
+    <aside style={S.panel}>
+      {/* Header */}
+      <div style={S.header}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+          {isEditingName ? (
+            <input
+              autoFocus
+              value={nameValue}
+              onChange={(e) => setNameValue(e.target.value)}
+              onBlur={handleNameSave}
+              onKeyDown={(e) => e.key === 'Enter' && handleNameSave()}
+              style={{ ...S.input, height: 22, fontSize: 11 }}
+            />
+          ) : (
+            <span
+              onClick={() => {
+                setNameValue(el.name);
+                setIsEditingName(true);
+              }}
+              title="Click to rename layer"
+              style={{
+                fontWeight: 600,
+                color: '#f4f4f5',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+              }}
+            >
+              {el.name}
+            </span>
+          )}
+          <span
+            style={{
+              fontSize: 9,
+              fontFamily: 'monospace',
+              textTransform: 'uppercase',
+              backgroundColor: '#181820',
+              color: '#888892',
+              border: '1px solid #242430',
+              padding: '1px 5px',
+              borderRadius: 4,
+              flexShrink: 0,
+            }}
+          >
             {el.type}
           </span>
         </div>
-        <button
-          onClick={toggleRightSidebar}
-          className="p-1 rounded hover:bg-[#1c1c20] text-zinc-400 hover:text-white transition-colors"
-          title="Close Inspector"
-        >
-          <PanelRightClose className="w-4 h-4" />
-        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button
+            type="button"
+            onClick={() => toggleLock(el.id)}
+            style={{ ...S.iconBtn, width: 22, height: 22, border: 'none', background: 'none' }}
+            title={el.locked ? 'Unlock Element' : 'Lock Element'}
+          >
+            {el.locked ? <Lock size={12} color="#f59e0b" /> : <Unlock size={12} />}
+          </button>
+          <button
+            type="button"
+            onClick={toggleRightSidebar}
+            style={{ ...S.iconBtn, width: 22, height: 22, border: 'none', background: 'none' }}
+            title="Close Inspector"
+          >
+            <PanelRightClose size={14} />
+          </button>
+        </div>
       </div>
 
-      {/* 2. 3 Clean Focused Tabs */}
-      <div className="flex items-center p-1.5 bg-[#131622] border-b border-[#1e2434] shrink-0 gap-1">
-        <button
-          type="button"
-          onClick={() => setActiveTab('style')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md font-semibold text-[11px] transition-all ${
-            activeTab === 'style'
-              ? 'bg-indigo-600 text-white shadow-[0_2px_10px_rgba(99,102,241,0.45)]'
-              : 'text-zinc-400 hover:text-zinc-100 hover:bg-[#1c2233]'
-          }`}
-        >
-          <Palette className="w-3.5 h-3.5 text-indigo-300" />
-          <span>Style</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('hover')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md font-semibold text-[11px] transition-all relative ${
-            activeTab === 'hover'
-              ? 'bg-gradient-to-r from-amber-500 to-indigo-600 text-white shadow-[0_2px_10px_rgba(245,158,11,0.4)]'
-              : 'text-zinc-400 hover:text-zinc-100 hover:bg-[#1c2233]'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-          <span>Hover</span>
-          {hasActiveHoverSettings && (
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse shadow-[0_0_6px_rgba(251,191,36,0.9)]" />
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('layout')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md font-semibold text-[11px] transition-all ${
-            activeTab === 'layout'
-              ? 'bg-indigo-600 text-white shadow-[0_2px_10px_rgba(99,102,241,0.45)]'
-              : 'text-zinc-400 hover:text-zinc-100 hover:bg-[#1c2233]'
-          }`}
-        >
-          <Layout className="w-3.5 h-3.5 text-emerald-300" />
-          <span>Layout</span>
-        </button>
-      </div>
-
-      {/* 3. Tab Content Viewport */}
-      <div className={`flex-1 overflow-y-auto p-3 space-y-4 ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}>
-        {/* ============================================================== */}
-        {/* TAB 1: 🎨 STYLE TAB                                            */}
-        {/* ============================================================== */}
-        {activeTab === 'style' && (
-          <div className="space-y-3.5">
-            {/* Simple Mode Guidance Banner */}
-            {editorComplexity === 'simple' && (
-              <div className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-[11px] text-emerald-300">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Sparkles className="w-3 h-3 text-emerald-400" />
-                  <span>Simple Essentials Mode</span>
-                </span>
-                <span className="text-[10px] text-zinc-400">Click accordions for more</span>
-              </div>
+      <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* State Variant Segmented Control */}
+        <div style={{ padding: '0 0 10px', borderBottom: '1px solid #1a1a20' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Sparkles size={11} color="#818cf8" />
+              <span style={{ fontSize: 10, fontWeight: 600, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Element State
+              </span>
+            </div>
+            {activeStateVariant !== 'default' && (
+              <span style={{ fontSize: 9.5, color: '#818cf8', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#818cf8', display: 'inline-block' }} />
+                Canvas Preview
+              </span>
             )}
+          </div>
 
-            {/* 1. TEXT & CONTENT (Prominent & Top for Text/Buttons) */}
-            {hasTextContent && (
-              <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5 shadow-sm">
-                <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
-                  <span className="flex items-center gap-1.5">
-                    <Type className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Text & Content</span>
-                  </span>
-                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 px-1.5 py-0.5 rounded">
-                    Direct Edit
-                  </span>
-                </div>
+          <div style={{ display: 'flex', backgroundColor: '#141418', border: '1px solid #1f1f28', borderRadius: 6, padding: 2, gap: 2 }}>
+            {(['default', 'hover', 'active', 'focus'] as const).map((variant) => {
+              const isSelected = activeStateVariant === variant;
+              const label = variant === 'default' ? 'Normal' : `:${variant}`;
+              const hasOverrides =
+                variant === 'hover' ? Boolean(b.hoverStyles && Object.keys(b.hoverStyles).length > 0) :
+                variant === 'active' ? Boolean(b.activeStyles && Object.keys(b.activeStyles).length > 0) :
+                variant === 'focus' ? Boolean(b.focusStyles && Object.keys(b.focusStyles).length > 0) : false;
 
-                {/* Direct Text Input */}
-                <div>
-                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Text Content</label>
-                  <textarea
-                    rows={2}
-                    value={el.content || ''}
-                    onChange={(e) => updateElement(el.id, { content: e.target.value }, true)}
-                    className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] focus:border-indigo-500 rounded-md text-white outline-none resize-y transition-colors"
-                    placeholder="Enter text..."
-                  />
-                </div>
-
-                {/* Color & Size Row */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div>
-                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Text Color</label>
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="color"
-                        value={s.color || '#ffffff'}
-                        onChange={(e) => updateElementStyles(el.id, { color: e.target.value })}
-                        className="w-7 h-7 rounded border border-[#27272a] bg-transparent cursor-pointer shrink-0"
-                      />
-                      <input
-                        type="text"
-                        value={s.color || '#ffffff'}
-                        onChange={(e) => updateElementStyles(el.id, { color: e.target.value })}
-                        className="w-full bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Font Size</label>
-                    <div className="flex items-center bg-[#121214] border border-[#27272a] rounded px-2 py-1">
-                      <input
-                        type="number"
-                        min={9}
-                        max={120}
-                        value={s.fontSize || 15}
-                        onChange={(e) => updateElementStyles(el.id, { fontSize: Number(e.target.value) || 12 })}
-                        className="w-full bg-transparent text-zinc-200 outline-none text-xs font-mono"
-                      />
-                      <span className="text-[10px] text-zinc-500">px</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Alignment & Weight */}
-                <div className="flex items-center justify-between pt-1">
-                  {/* Alignment segmented toggle */}
-                  <div className="flex items-center bg-[#101420] border border-[#232c3f] rounded-lg p-0.5 gap-0.5">
-                    {[
-                      { align: 'left', icon: <AlignLeft className="w-3.5 h-3.5" /> },
-                      { align: 'center', icon: <AlignCenter className="w-3.5 h-3.5" /> },
-                      { align: 'right', icon: <AlignRight className="w-3.5 h-3.5" /> },
-                    ].map((a) => (
-                      <button
-                        key={a.align}
-                        type="button"
-                        onClick={() => updateElementStyles(el.id, { textAlign: a.align as any })}
-                        className={`p-1.5 rounded transition-all ${
-                          (s.textAlign || 'left') === a.align
-                            ? 'bg-indigo-600 text-white shadow-sm'
-                            : 'text-zinc-400 hover:text-white'
-                        }`}
-                        title={`Align ${a.align}`}
-                      >
-                        {a.icon}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Font Weight */}
-                  <select
-                    value={s.fontWeight || '400'}
-                    onChange={(e) => updateElementStyles(el.id, { fontWeight: e.target.value })}
-                    className="bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
-                  >
-                    <option value="400">Regular (400)</option>
-                    <option value="500">Medium (500)</option>
-                    <option value="600">Semibold (600)</option>
-                    <option value="700">Bold (700)</option>
-                  </select>
-                </div>
-
-                {/* Font Family */}
-                <div className="pt-1.5 border-t border-[#222226] flex items-center justify-between">
-                  <span className="text-zinc-400 text-[10px]">Font Family</span>
-                  <select
-                    value={s.fontFamily || FONT_FAMILIES[0].value}
-                    onChange={(e) => updateElementStyles(el.id, { fontFamily: e.target.value })}
-                    className="w-36 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
-                  >
-                    <option value="Inter, -apple-system, sans-serif">Inter UI</option>
-                    {FONT_FAMILIES.map((f) => (
-                      <option key={f.label} value={f.value}>{f.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {/* 1.1 IMAGE MEDIA & SOURCE */}
-            {isImage && (
-              <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-3 shadow-sm">
-                <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
-                  <span className="flex items-center gap-1.5">
-                    <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Image Media & Source</span>
-                  </span>
-                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 px-1.5 py-0.5 rounded">
-                    Photo / Graphic
-                  </span>
-                </div>
-
-                {/* Hidden File Input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                      const dataUrl = event.target?.result as string;
-                      if (!dataUrl) return;
-                      const img = new Image();
-                      img.onload = () => {
-                        let w = img.naturalWidth || el.width;
-                        let h = img.naturalHeight || el.height;
-                        const maxW = 500;
-                        if (w > maxW) {
-                          h = Math.round((h * maxW) / w);
-                          w = maxW;
-                        }
-                        updateElement(
-                          el.id,
-                          {
-                            content: dataUrl,
-                            width: w,
-                            height: h,
-                            name: file.name ? `Image (${file.name})` : el.name,
-                          },
-                          true
-                        );
-                        showToast(`Uploaded image "${file.name}"! 📸`, 'success');
-                      };
-                      img.src = dataUrl;
-                    };
-                    reader.readAsDataURL(file);
-                    e.target.value = '';
-                  }}
-                />
-
-                {/* Image Preview & Upload Button */}
-                <div className="flex gap-2.5 items-center">
-                  <div className="w-16 h-16 rounded-lg overflow-hidden border border-[#2e2e34] bg-zinc-900 shrink-0 relative group">
-                    <img
-                      src={
-                        el.content ||
-                        'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80'
-                      }
-                      alt={el.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 space-y-1.5">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full py-1.5 px-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Upload from Device</span>
-                    </button>
-                    <span className="text-[10px] text-zinc-500 block text-center">
-                      PNG, JPG, SVG, WebP supported
-                    </span>
-                  </div>
-                </div>
-
-                {/* Image URL Input */}
-                <div>
-                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Image Source URL</label>
-                  <input
-                    type="text"
-                    value={el.content || ''}
-                    onChange={(e) => updateElement(el.id, { content: e.target.value }, true)}
-                    placeholder="https://..."
-                    className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] focus:border-indigo-500 rounded-md text-white outline-none font-mono transition-colors"
-                  />
-                </div>
-
-                {/* Alt Text */}
-                <div>
-                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">
-                    Alt Description (SEO & Accessibility)
-                  </label>
-                  <input
-                    type="text"
-                    value={s.alt || ''}
-                    onChange={(e) => updateElementStyles(el.id, { alt: e.target.value })}
-                    placeholder="Describe the image..."
-                    className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] focus:border-indigo-500 rounded-md text-white outline-none transition-colors"
-                  />
-                </div>
-
-                {/* Object Fit & Aspect Ratio */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Object Fit</label>
-                    <select
-                      value={s.objectFit || 'cover'}
-                      onChange={(e) => updateElementStyles(el.id, { objectFit: e.target.value as any })}
-                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
-                    >
-                      <option value="cover">Cover (Fill & Crop)</option>
-                      <option value="contain">Contain (Full View)</option>
-                      <option value="fill">Fill (Stretch)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Shape Preset</label>
-                    <div className="flex bg-[#121214] border border-[#27272a] rounded p-0.5 gap-0.5">
-                      <button
-                        type="button"
-                        onClick={() => updateElementStyles(el.id, { borderRadius: 0 })}
-                        className={`flex-1 py-0.5 text-[10px] font-medium rounded ${
-                          !s.borderRadius ? 'bg-[#27272a] text-white' : 'text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        Square
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateElementStyles(el.id, { borderRadius: 12 })}
-                        className={`flex-1 py-0.5 text-[10px] font-medium rounded ${
-                          s.borderRadius === 12 ? 'bg-[#27272a] text-white' : 'text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        Round
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateElementStyles(el.id, { borderRadius: 9999 })}
-                        className={`flex-1 py-0.5 text-[10px] font-medium rounded ${
-                          s.borderRadius === 9999 ? 'bg-[#27272a] text-white' : 'text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        Circle
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Stock Presets Row */}
-                <div>
-                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Quick Stock Presets</label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {STOCK_IMAGES.map((img) => (
-                      <button
-                        key={img.id}
-                        type="button"
-                        onClick={() => updateElement(el.id, { content: img.url, name: img.name }, true)}
-                        className="rounded-lg overflow-hidden border border-[#2a2a30] hover:border-indigo-500 aspect-[4/3] relative group"
-                        title={img.name}
-                      >
-                        <img src={img.thumbnail} alt={img.name} className="w-full h-full object-cover" />
-                        <span className="absolute bottom-0.5 left-1 right-1 text-[8px] text-white truncate drop-shadow">
-                          {img.name.split(' ')[0]}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 1.2 SHAPE GEOMETRY & STYLING */}
-            {isShape && (
-              <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-3 shadow-sm">
-                <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
-                  <span className="flex items-center gap-1.5">
-                    <Shapes className="w-3.5 h-3.5 text-purple-400" />
-                    <span>Shape Geometry</span>
-                  </span>
-                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 px-1.5 py-0.5 rounded">
-                    SVG Vector
-                  </span>
-                </div>
-
-                {/* Shape Type Picker */}
-                <div>
-                  <label className="text-[10px] text-zinc-400 font-medium block mb-1.5">Choose Shape</label>
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {(Object.keys(SHAPE_DEFINITIONS) as ShapeKind[]).map((kind) => {
-                      const def = SHAPE_DEFINITIONS[kind];
-                      const isCurrent = (s.shapeKind || 'circle') === kind;
-                      return (
-                        <button
-                          key={kind}
-                          type="button"
-                          onClick={() => updateElementStyles(el.id, { shapeKind: kind })}
-                          className={`p-1.5 rounded-lg flex flex-col items-center justify-center border transition-all ${
-                            isCurrent
-                              ? 'bg-purple-600/20 border-purple-500 text-white'
-                              : 'bg-[#121214] border-[#27272a] text-zinc-400 hover:text-white hover:border-zinc-600'
-                          }`}
-                          title={def.label}
-                        >
-                          <svg viewBox={def.viewBox} className="w-5 h-5 mb-0.5" style={{ color: def.defaultColor }}>
-                            {kind === 'circle' && <circle cx="50" cy="50" r="44" fill="currentColor" />}
-                            {kind === 'rectangle' && <rect x="8" y="8" width="84" height="84" fill="currentColor" />}
-                            {kind === 'rounded-rect' && <rect x="8" y="8" width="84" height="84" rx="18" fill="currentColor" />}
-                            {kind === 'pill' && <rect x="6" y="14" width="148" height="52" rx="26" fill="currentColor" />}
-                            {kind === 'triangle' && <polygon points="50,10 90,90 10,90" fill="currentColor" />}
-                            {kind === 'star' && <polygon points="50,8 63,36 94,36 69,56 78,88 50,68 22,88 31,56 6,36 37,36" fill="currentColor" />}
-                            {kind === 'diamond' && <polygon points="50,8 92,50 50,92 8,50" fill="currentColor" />}
-                            {kind === 'heart' && <path d="M50,84 C22,60 8,46 8,30 C8,16 18,8 31,8 C39,8 46,12 50,18 C54,12 61,8 69,8 C82,8 92,16 92,30 C92,46 78,60 50,84 Z" fill="currentColor" />}
-                            {kind === 'hexagon' && <polygon points="50,8 90,29 90,71 50,92 10,71 10,29" fill="currentColor" />}
-                            {kind === 'arrow-right' && <path d="M12,38 L56,38 L56,20 L88,50 L56,80 L56,62 L12,62 Z" fill="currentColor" />}
-                          </svg>
-                          <span className="text-[8px] truncate w-full text-center">{def.label.split(' ')[0]}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Rotation & Stroke Width */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">
-                      Rotation ({s.rotation || 0}°)
-                    </label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={360}
-                      value={s.rotation || 0}
-                      onChange={(e) => updateElementStyles(el.id, { rotation: Number(e.target.value) })}
-                      className="w-full accent-purple-500 cursor-pointer"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Stroke Width</label>
-                    <div className="flex items-center bg-[#121214] border border-[#27272a] rounded px-2 py-1">
-                      <input
-                        type="number"
-                        min={0}
-                        max={20}
-                        value={s.borderWidth || 0}
-                        onChange={(e) => updateElementStyles(el.id, { borderWidth: Number(e.target.value) || 0 })}
-                        className="w-full bg-transparent text-zinc-200 outline-none text-xs font-mono"
-                      />
-                      <span className="text-[10px] text-zinc-500">px</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* BUTTON DESIGN & VARIANT PRESETS SUITE */}
-            {el.type === 'button' && (
-              <div className="p-3 bg-[#18181b] border border-indigo-500/40 rounded-xl space-y-3 shadow-lg shadow-black/30">
-                <div className="flex items-center justify-between text-zinc-200 font-semibold text-xs border-b border-[#27272a] pb-2">
-                  <span className="flex items-center gap-1.5 text-indigo-400">
-                    <MousePointerClick className="w-4 h-4" />
-                    <span>Button Styling & Presets</span>
-                  </span>
-                  <span className="text-[10px] font-mono text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
-                    {b.buttonVariant || 'filled'}
-                  </span>
-                </div>
-
-                {/* 1. Button Label Content */}
-                <div>
-                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Button Text Label</label>
-                  <input
-                    type="text"
-                    value={el.content || ''}
-                    onChange={(e) => updateElement(el.id, { content: e.target.value }, true)}
-                    placeholder="Button Text..."
-                    className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] focus:border-indigo-500 rounded-md text-white outline-none font-medium"
-                  />
-                </div>
-
-                {/* 2. Visual Variant Preset Swatches (8 styles) */}
-                <div>
-                  <label className="text-[10px] text-zinc-400 font-medium block mb-1.5">Button Style Variant</label>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {BUTTON_VARIANTS.map((v) => {
-                      const isActive = (b.buttonVariant || 'filled') === v.value;
-                      return (
-                        <button
-                          key={v.value}
-                          type="button"
-                          onClick={() => {
-                            const newBehavior: Partial<typeof b> = { buttonVariant: v.value };
-                            const newStyles: Partial<typeof s> = {};
-                            if (v.value === 'gradient' && !s.gradient) {
-                              newStyles.gradient = 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%)';
-                              newStyles.color = '#ffffff';
-                            } else if (v.value === 'outline') {
-                              newStyles.borderColor = s.borderColor || '#6366f1';
-                              newStyles.borderWidth = s.borderWidth || 2;
-                              newStyles.borderStyle = 'solid';
-                              newStyles.color = s.color || '#818cf8';
-                              newStyles.backgroundColor = 'transparent';
-                            } else if (v.value === 'glow') {
-                              newStyles.boxShadow = '0 0 25px rgba(99, 102, 241, 0.65)';
-                              newStyles.borderColor = '#818cf8';
-                              newStyles.borderWidth = 1;
-                              newStyles.borderStyle = 'solid';
-                            } else if (v.value === 'pill') {
-                              newStyles.borderRadius = 9999;
-                            } else if (v.value === '3d-push') {
-                              newStyles.backgroundColor = '#2563eb';
-                              newStyles.color = '#ffffff';
-                              newStyles.borderRadius = 8;
-                            }
-                            updateElementBehavior(el.id, newBehavior);
-                            if (Object.keys(newStyles).length > 0) {
-                              updateElementStyles(el.id, newStyles);
-                            }
-                            showToast(`Applied ${v.label} button style`, 'info');
-                          }}
-                          className={`p-2 rounded-lg text-left border transition-all cursor-pointer flex flex-col justify-between ${
-                            isActive
-                              ? 'bg-indigo-600/25 border-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.25)]'
-                              : 'bg-[#121214] border-[#27272a] hover:border-zinc-700 hover:bg-[#18181b]'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className={`text-[11px] font-semibold ${isActive ? 'text-white' : 'text-zinc-300'}`}>
-                              {v.label}
-                            </span>
-                            <span className="text-[9px] text-zinc-500 font-mono">{v.badge}</span>
-                          </div>
-                          <span className="text-[9px] text-zinc-500 truncate mt-0.5">{v.description}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 3. Button Size Scale */}
-                <div>
-                  <label className="text-[10px] text-zinc-400 font-medium block mb-1">Button Size Scale</label>
-                  <div className="flex bg-[#121214] border border-[#27272a] rounded-lg p-0.5 gap-0.5">
-                    {(['sm', 'md', 'lg', 'xl'] as ButtonSize[]).map((sz) => {
-                      const isActive = (b.buttonSize || 'md') === sz;
-                      return (
-                        <button
-                          key={sz}
-                          type="button"
-                          onClick={() => {
-                            const heights: Record<ButtonSize, number> = { sm: 36, md: 44, lg: 52, xl: 60 };
-                            const fontSizes: Record<ButtonSize, number> = { sm: 13, md: 15, lg: 17, xl: 19 };
-                            updateElementBehavior(el.id, { buttonSize: sz });
-                            updateElement(el.id, { height: heights[sz] }, true);
-                            updateElementStyles(el.id, { fontSize: fontSizes[sz] });
-                          }}
-                          className={`flex-1 py-1 text-center font-bold text-xs rounded transition-colors ${
-                            isActive ? 'bg-indigo-600 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
-                          }`}
-                        >
-                          {sz.toUpperCase()}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 4. Button Icon & Position */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div>
-                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Button Icon</label>
-                    <select
-                      value={b.buttonIcon || 'none'}
-                      onChange={(e) => updateElementBehavior(el.id, { buttonIcon: e.target.value as ButtonIconType })}
-                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-                    >
-                      {['None', 'Arrows', 'Engagement', 'Actions', 'Commerce', 'Communication', 'Utility', 'Security'].map((cat) => (
-                        <optgroup key={cat} label={`— ${cat} —`}>
-                          {BUTTON_ICONS.filter((i) => i.category === cat).map((i) => (
-                            <option key={i.value} value={i.value}>
-                              {i.label}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-zinc-400 font-medium block mb-1">Icon Position</label>
-                    <div className="flex bg-[#121214] border border-[#27272a] rounded-lg p-0.5 gap-0.5">
-                      <button
-                        type="button"
-                        onClick={() => updateElementBehavior(el.id, { buttonIconPosition: 'left' })}
-                        className={`flex-1 py-1 text-center text-xs font-medium rounded transition-colors ${
-                          (b.buttonIconPosition || 'right') === 'left' ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        Left
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateElementBehavior(el.id, { buttonIconPosition: 'right' })}
-                        className={`flex-1 py-1 text-center text-xs font-medium rounded transition-colors ${
-                          (b.buttonIconPosition || 'right') === 'right' ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        Right
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Fill & Gradients */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5">
-              <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
-                <span>Fill & Background</span>
-                {s.gradient && (
-                  <span className="text-[10px] font-mono text-indigo-300 bg-indigo-500/20 px-1.5 py-0.5 rounded border border-indigo-500/30">
-                    Gradient Active
-                  </span>
-                )}
-              </div>
-
-              {/* Solid Color Picker */}
-              <div className="flex items-center justify-between pt-0.5">
-                <span className="text-zinc-400 text-[11px]">Solid Color</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={s.backgroundColor && s.backgroundColor !== 'transparent' ? s.backgroundColor : '#4f46e5'}
-                    onChange={(e) => updateElementStyles(el.id, { backgroundColor: e.target.value, gradient: undefined })}
-                    className="w-7 h-7 rounded-md border border-[#2e2e34] bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={s.backgroundColor || '#4f46e5'}
-                    onChange={(e) => updateElementStyles(el.id, { backgroundColor: e.target.value, gradient: undefined })}
-                    className="w-24 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => updateElementStyles(el.id, { backgroundColor: 'transparent', gradient: undefined })}
-                    className="w-7 h-7 rounded-md border border-[#2e2e34] bg-[#121214] text-zinc-500 hover:text-zinc-300 flex items-center justify-center text-xs"
-                    title="Clear fill"
-                  >
-                    ⊘
-                  </button>
-                </div>
-              </div>
-
-              {/* 6 Quick Palette Swatches */}
-              <div className="flex items-center justify-between pt-0.5">
-                <span className="text-[10px] text-zinc-500">Quick Swatches</span>
-                <div className="flex items-center gap-1.5">
-                  {[
-                    { color: '#4f46e5', label: 'Indigo' },
-                    { color: '#7c3aed', label: 'Purple' },
-                    { color: '#10b981', label: 'Emerald' },
-                    { color: '#0ea5e9', label: 'Sky' },
-                    { color: '#18181b', label: 'Dark' },
-                    { color: '#ffffff', label: 'White' },
-                  ].map((sw) => (
-                    <button
-                      key={sw.color}
-                      type="button"
-                      onClick={() => updateElementStyles(el.id, { backgroundColor: sw.color, gradient: undefined })}
-                      style={{ backgroundColor: sw.color }}
-                      className="w-4 h-4 rounded-full border border-white/20 hover:scale-125 transition-transform"
-                      title={sw.label}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Collapsible Gradients & Advanced Effects Toggle */}
-              <div className="pt-2 border-t border-[#222226]">
+              return (
                 <button
+                  key={variant}
                   type="button"
-                  onClick={() => setShowGradients(!showGradients)}
-                  className="w-full flex items-center justify-between text-xs text-indigo-300 hover:text-indigo-200 transition-colors py-0.5"
+                  onClick={() => handleStateTabChange(variant)}
+                  style={{
+                    flex: 1,
+                    height: 23,
+                    borderRadius: 4,
+                    border: 'none',
+                    backgroundColor: isSelected ? '#252532' : 'transparent',
+                    color: isSelected ? '#ffffff' : '#71717a',
+                    fontSize: 10,
+                    fontWeight: isSelected ? 600 : 400,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 3,
+                    transition: 'all 0.12s ease',
+                  }}
                 >
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Gradients & Special Effects</span>
-                  </span>
-                  {showGradients ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  <span>{label}</span>
+                  {hasOverrides && (
+                    <span
+                      style={{
+                        width: 4,
+                        height: 4,
+                        borderRadius: '50%',
+                        backgroundColor: isSelected ? '#38bdf8' : '#818cf8',
+                        display: 'inline-block',
+                      }}
+                    />
+                  )}
                 </button>
+              );
+            })}
+          </div>
+        </div>
 
-                {showGradients && (
-                  <div className="pt-2.5 space-y-2.5">
-                    {/* Solid vs Gradient Segmented Switch */}
-                    <div className="flex items-center bg-[#101420] border border-[#232c3f] rounded-lg p-0.5 text-[11px]">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (s.gradient) {
-                            updateElementStyles(el.id, { gradient: undefined, backgroundColor: s.backgroundColor || '#4f46e5' });
-                          }
-                        }}
-                        className={`flex-1 py-1 rounded text-center font-medium transition-all ${
-                          !s.gradient ? 'bg-indigo-600 text-white font-semibold shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
-                        }`}
-                      >
-                        Solid Color
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!s.gradient) {
-                            updateElementStyles(el.id, { gradient: GRADIENT_PRESETS[0].value });
-                          }
-                        }}
-                        className={`flex-1 py-1 rounded text-center font-medium flex items-center justify-center gap-1 transition-all ${
-                          s.gradient ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
-                        }`}
-                      >
-                        <Sparkles className="w-3 h-3 text-amber-300" />
-                        <span>Gradient</span>
-                      </button>
-                    </div>
-
-                    {s.gradient && (
-                      (() => {
-                        const currentGrad = parseGradient(s.gradient);
-
-                  const handleUpdateCustom = (updates: Partial<GradientConfig>) => {
-                    const merged = { ...currentGrad, ...updates };
-                    const nextVal = buildGradient(merged.type, merged.angle, merged.color1, merged.color2);
-                    updateElementStyles(el.id, { gradient: nextVal });
-                  };
-
-                  return (
-                    <div className="space-y-3 pt-1">
-                      {/* Live Gradient Preview Bar */}
-                      <div
-                        style={{
-                          background: s.gradient,
-                          height: '42px',
-                          minHeight: '42px',
-                          borderRadius: '10px',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '0 10px',
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            color: '#ffffff',
-                            textShadow: '0 1px 3px rgba(0,0,0,0.8)',
-                            backgroundColor: 'rgba(0,0,0,0.4)',
-                            padding: '2px 8px',
-                            borderRadius: '6px',
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          {currentGrad.type === 'radial' ? 'Radial' : `${currentGrad.angle}° Linear`}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => updateElementStyles(el.id, { gradient: undefined, backgroundColor: currentGrad.color1 })}
-                          style={{
-                            fontSize: '10px',
-                            color: '#ffffff',
-                            backgroundColor: 'rgba(0,0,0,0.5)',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            borderRadius: '6px',
-                            padding: '2px 8px',
-                            cursor: 'pointer',
-                          }}
-                          title="Revert back to solid color"
-                        >
-                          Revert to Solid
-                        </button>
-                      </div>
-
-                      {/* Sub-tab: Presets vs Custom Stops */}
-                      <div className="flex bg-[#101420] p-0.5 rounded-lg border border-[#232c3f] gap-0.5 text-[11px]">
-                        <button
-                          type="button"
-                          onClick={() => setGradientSubTab('presets')}
-                          className={`flex-1 py-1 rounded text-center font-medium transition-all ${
-                            gradientSubTab === 'presets'
-                              ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                              : 'text-zinc-400 hover:text-zinc-200'
-                          }`}
-                        >
-                          Presets (12)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setGradientSubTab('custom')}
-                          className={`flex-1 py-1 rounded text-center font-medium transition-all ${
-                            gradientSubTab === 'custom'
-                              ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                              : 'text-zinc-400 hover:text-zinc-200'
-                          }`}
-                        >
-                          Custom Stops & Angle
-                        </button>
-                      </div>
-
-                      {/* Sub-Tab 1: 12 Presets Grid */}
-                      {gradientSubTab === 'presets' ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                          {GRADIENT_PRESETS.map((preset) => {
-                            const isSelected = s.gradient === preset.value;
-                            return (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => updateElementStyles(el.id, { gradient: preset.value })}
-                                style={{
-                                  background: preset.value,
-                                  height: '42px',
-                                  minHeight: '42px',
-                                  borderRadius: '8px',
-                                  border: isSelected ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.15)',
-                                  boxShadow: isSelected ? '0 0 12px rgba(255,255,255,0.45)' : 'none',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                  justifyContent: 'flex-end',
-                                  padding: '2px',
-                                  position: 'relative',
-                                  overflow: 'hidden',
-                                  transition: 'all 0.15s ease',
-                                }}
-                                title={preset.name}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: '9px',
-                                    fontWeight: 600,
-                                    color: '#ffffff',
-                                    textShadow: '0 1px 2px rgba(0,0,0,0.85)',
-                                    backgroundColor: 'rgba(0,0,0,0.45)',
-                                    borderRadius: '4px',
-                                    padding: '1px 3px',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    maxWidth: '100%',
-                                    lineHeight: 1.2,
-                                  }}
-                                >
-                                  {preset.name}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        /* Sub-Tab 2: Custom Color Stops & Direction */
-                        <div className="space-y-3 pt-1">
-                          {/* Type: Linear vs Radial */}
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-zinc-400">Gradient Shape</span>
-                            <div className="flex bg-[#121214] border border-[#27272a] rounded-lg p-0.5 gap-0.5">
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateCustom({ type: 'linear' })}
-                                className={`px-2.5 py-0.5 rounded text-[11px] font-medium transition-all ${
-                                  currentGrad.type === 'linear'
-                                    ? 'bg-[#27272a] text-white shadow-sm'
-                                    : 'text-zinc-400 hover:text-white'
-                                }`}
-                              >
-                                Linear
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateCustom({ type: 'radial' })}
-                                className={`px-2.5 py-0.5 rounded text-[11px] font-medium transition-all ${
-                                  currentGrad.type === 'radial'
-                                    ? 'bg-[#27272a] text-white shadow-sm'
-                                    : 'text-zinc-400 hover:text-white'
-                                }`}
-                              >
-                                Radial
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Color Stops Row */}
-                          <div className="p-2.5 bg-[#121214] border border-[#27272a] rounded-lg space-y-2">
-                            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider block">
-                              Color Stops
-                            </span>
-                            <div className="flex items-center justify-between gap-1.5">
-                              {/* Stop 1 */}
-                              <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                <input
-                                  type="color"
-                                  value={currentGrad.color1}
-                                  onChange={(e) => handleUpdateCustom({ color1: e.target.value })}
-                                  className="w-7 h-7 rounded border border-[#2e2e34] bg-transparent cursor-pointer shrink-0"
-                                />
-                                <input
-                                  type="text"
-                                  value={currentGrad.color1}
-                                  onChange={(e) => handleUpdateCustom({ color1: e.target.value })}
-                                  className="w-full bg-[#18181b] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 text-xs font-mono"
-                                />
-                              </div>
-
-                              {/* Swap Button */}
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateCustom({ color1: currentGrad.color2, color2: currentGrad.color1 })}
-                                className="p-1.5 rounded-md bg-[#222226] hover:bg-[#27272a] text-zinc-400 hover:text-white transition-colors"
-                                title="Swap Colors"
-                              >
-                                <ArrowLeftRight className="w-3.5 h-3.5" />
-                              </button>
-
-                              {/* Stop 2 */}
-                              <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                <input
-                                  type="color"
-                                  value={currentGrad.color2}
-                                  onChange={(e) => handleUpdateCustom({ color2: e.target.value })}
-                                  className="w-7 h-7 rounded border border-[#2e2e34] bg-transparent cursor-pointer shrink-0"
-                                />
-                                <input
-                                  type="text"
-                                  value={currentGrad.color2}
-                                  onChange={(e) => handleUpdateCustom({ color2: e.target.value })}
-                                  className="w-full bg-[#18181b] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 text-xs font-mono"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Angle & Direction (if linear) */}
-                          {currentGrad.type === 'linear' && (
-                            <div className="p-2.5 bg-[#121214] border border-[#27272a] rounded-lg space-y-2">
-                              <div className="flex items-center justify-between text-[11px]">
-                                <span className="text-zinc-400 font-medium">Angle Direction</span>
-                                <span className="font-mono text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
-                                  {currentGrad.angle}°
-                                </span>
-                              </div>
-
-                              {/* 8 Directional Buttons */}
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-                                {[
-                                  { label: '↖ 315°', angle: 315 },
-                                  { label: '↑ 0°', angle: 0 },
-                                  { label: '↗ 45°', angle: 45 },
-                                  { label: '→ 90°', angle: 90 },
-                                  { label: '↘ 135°', angle: 135 },
-                                  { label: '↓ 180°', angle: 180 },
-                                  { label: '↙ 225°', angle: 225 },
-                                  { label: '← 270°', angle: 270 },
-                                ].map((dir) => (
-                                  <button
-                                    key={dir.angle}
-                                    type="button"
-                                    onClick={() => handleUpdateCustom({ angle: dir.angle })}
-                                    className={`py-1 px-1 rounded text-[10px] font-mono border transition-all text-center ${
-                                      currentGrad.angle === dir.angle
-                                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm'
-                                        : 'bg-[#18181b] text-zinc-400 border-[#27272a] hover:text-white hover:bg-[#222226]'
-                                    }`}
-                                  >
-                                    {dir.label}
-                                  </button>
-                                ))}
-                              </div>
-
-                              {/* Smooth Angle Slider */}
-                              <div className="flex items-center gap-2 pt-1">
-                                <input
-                                  type="range"
-                                  min={0}
-                                  max={360}
-                                  step={5}
-                                  value={currentGrad.angle}
-                                  onChange={(e) => handleUpdateCustom({ angle: Number(e.target.value) })}
-                                  className="w-full accent-indigo-500 cursor-pointer"
-                                />
-                                <div className="flex items-center bg-[#18181b] border border-[#27272a] rounded px-1.5 py-0.5 shrink-0">
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    max={360}
-                                    value={currentGrad.angle}
-                                    onChange={(e) => handleUpdateCustom({ angle: Number(e.target.value) || 0 })}
-                                    className="w-8 bg-transparent text-center text-xs text-white outline-none font-mono"
-                                  />
-                                  <span className="text-[10px] text-zinc-500">°</span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()
-              )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Dimensions & Size (Essential sizing) */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
-              <span className="text-zinc-200 font-medium text-xs block">Dimensions & Sizing</span>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-[10px] text-zinc-400 block mb-1">Width</span>
-                  <div className="flex items-center bg-[#121214] border border-[#27272a] rounded px-2 py-1">
-                    <input
-                      type="number"
-                      value={el.width}
-                      onChange={(e) => updateElement(el.id, { width: Math.max(10, Number(e.target.value) || 10) }, true)}
-                      className="w-full bg-transparent text-zinc-200 outline-none text-xs font-mono"
-                    />
-                    <span className="text-[10px] text-zinc-500">px</span>
-                  </div>
-                </div>
-                <div>
-                  <span className="text-[10px] text-zinc-400 block mb-1">Height</span>
-                  <div className="flex items-center bg-[#121214] border border-[#27272a] rounded px-2 py-1">
-                    <input
-                      type="number"
-                      value={el.height}
-                      onChange={(e) => updateElement(el.id, { height: Math.max(10, Number(e.target.value) || 10) }, true)}
-                      className="w-full bg-transparent text-zinc-200 outline-none text-xs font-mono"
-                    />
-                    <span className="text-[10px] text-zinc-500">px</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Progressive Disclosure: Borders & Rounded Corners */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
+        {activeStateVariant === 'default' && (
+          <>
+            {/* Alignment Bar */}
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 3 }}>
+            {[
+              { type: 'left' as const, icon: <AlignLeft size={12} />, title: 'Align Left' },
+              { type: 'center' as const, icon: <AlignCenter size={12} />, title: 'Align Center Horizontal' },
+              { type: 'right' as const, icon: <AlignRight size={12} />, title: 'Align Right' },
+              { type: 'top' as const, icon: <ArrowUp size={12} />, title: 'Align Top' },
+              { type: 'middle' as const, icon: <AlignCenter size={12} style={{ transform: 'rotate(90deg)' }} />, title: 'Align Center Vertical' },
+              { type: 'bottom' as const, icon: <ArrowDown size={12} />, title: 'Align Bottom' },
+            ].map((btn) => (
               <button
+                key={btn.type}
                 type="button"
-                onClick={() => setShowBorders(!showBorders)}
-                className="w-full flex items-center justify-between text-xs text-zinc-200 hover:text-white transition-colors"
+                onClick={() => alignSelectedElements(btn.type)}
+                style={S.iconBtn}
+                title={btn.title}
               >
-                <span className="font-medium">Borders & Rounded Corners</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-mono text-zinc-400 bg-[#121214] px-1.5 py-0.5 rounded border border-[#27272a]">
-                    {s.borderRadius === 9999 ? 'Pill' : `${s.borderRadius ?? 0}px`}
-                  </span>
-                  {showBorders ? <ChevronUp className="w-3.5 h-3.5 text-zinc-400" /> : <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />}
-                </div>
+                {btn.icon}
               </button>
+            ))}
+          </div>
+        </div>
 
-              {showBorders && (
-                <div className="pt-2 space-y-2.5 border-t border-[#222226]">
-                  {/* Radius */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400 text-[11px]">Radius</span>
-                    <div className="flex items-center gap-1">
-                      {[0, 8, 12, 16, 9999].map((rad) => (
-                        <button
-                          key={rad}
-                          type="button"
-                          onClick={() => updateElementStyles(el.id, { borderRadius: rad })}
-                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                            (s.borderRadius ?? 0) === rad
-                              ? 'bg-indigo-600 text-white border-indigo-500 font-semibold shadow-sm'
-                              : 'bg-[#141824] text-zinc-400 border-[#263148] hover:text-white hover:border-indigo-500/40'
-                          }`}
-                        >
-                          {rad === 9999 ? 'Pill' : `${rad}px`}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Stroke Width & Color */}
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-zinc-400 text-[11px]">Stroke</span>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={s.borderColor || '#27272a'}
-                        onChange={(e) =>
-                          updateElementStyles(el.id, {
-                            borderColor: e.target.value,
-                            borderWidth: s.borderWidth || 1,
-                            borderStyle: 'solid',
-                          })
-                        }
-                        className="w-7 h-7 rounded-md border border-[#2e2e34] bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="number"
-                        min={0}
-                        max={12}
-                        value={s.borderWidth || 0}
-                        onChange={(e) =>
-                          updateElementStyles(el.id, {
-                            borderWidth: Number(e.target.value) || 0,
-                            borderStyle: Number(e.target.value) > 0 ? 'solid' : 'none',
-                          })
-                        }
-                        className="w-12 bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs text-center font-mono"
-                        placeholder="0px"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => updateElementStyles(el.id, { borderWidth: 0, borderStyle: 'none' })}
-                        className="w-7 h-7 rounded-md border border-[#2e2e34] bg-[#121214] text-zinc-500 hover:text-zinc-300 flex items-center justify-center text-xs"
-                        title="Clear stroke"
-                      >
-                        ⊘
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+        {/* Section: Frame / Geometry */}
+        <div>
+          <div style={S.sectionTitle}>Frame</div>
+          <div style={S.grid2}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, color: '#71717a', width: 12 }}>X</span>
+              <input
+                type="number"
+                value={Math.round(el.x)}
+                onChange={(e) => updateElement(el.id, { x: Number(e.target.value) || 0 })}
+                style={S.input}
+              />
             </div>
-
-            {/* Progressive Disclosure: Elevation & Shadows */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
-              <button
-                type="button"
-                onClick={() => setShowElevation(!showElevation)}
-                className="w-full flex items-center justify-between text-xs text-zinc-200 hover:text-white transition-colors"
-              >
-                <span className="font-medium">Elevation & Shadows</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-mono text-zinc-400 bg-[#121214] px-1.5 py-0.5 rounded border border-[#27272a]">
-                    {s.boxShadow ? 'Shadowed' : 'Flat'}
-                  </span>
-                  {showElevation ? <ChevronUp className="w-3.5 h-3.5 text-zinc-400" /> : <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />}
-                </div>
-              </button>
-
-              {showElevation && (
-                <div className="pt-2 space-y-2.5 border-t border-[#222226]">
-                  <div className="space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-zinc-400 text-[11px]">Shadow</span>
-                      <select
-                        value={s.boxShadow || ''}
-                        onChange={(e) => updateElementStyles(el.id, { boxShadow: e.target.value || undefined })}
-                        className="w-40 bg-[#121214] border border-[#27272a] rounded px-2 py-1 text-zinc-200 outline-none text-xs"
-                      >
-                        <option value="">None</option>
-                        <option value="0 4px 12px rgba(0,0,0,0.15)">Subtle Soft</option>
-                        <option value="0 10px 25px -5px rgba(0,0,0,0.4)">Elevated Card</option>
-                        <option value="0 20px 40px -10px rgba(0,0,0,0.6)">Deep Float</option>
-                        <option value="0 0 25px rgba(99, 102, 241, 0.4)">Indigo Glow</option>
-                      </select>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-zinc-400 text-[11px]">Opacity</span>
-                      <div className="flex items-center gap-2 w-40">
-                        <input
-                          type="range"
-                          min={0.1}
-                          max={1}
-                          step={0.05}
-                          value={s.opacity ?? 1}
-                          onChange={(e) => updateElementStyles(el.id, { opacity: Number(e.target.value) })}
-                          className="w-full accent-indigo-500 cursor-pointer"
-                        />
-                        <span className="font-mono text-[11px] text-zinc-300 w-8 text-right">
-                          {Math.round((s.opacity ?? 1) * 100)}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, color: '#71717a', width: 12 }}>Y</span>
+              <input
+                type="number"
+                value={Math.round(el.y)}
+                onChange={(e) => updateElement(el.id, { y: Number(e.target.value) || 0 })}
+                style={S.input}
+              />
             </div>
+          </div>
+          <div style={S.grid2}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, color: '#71717a', width: 12 }}>W</span>
+              <input
+                type="number"
+                value={Math.round(el.width)}
+                onChange={(e) => updateElement(el.id, { width: Math.max(10, Number(e.target.value) || 10) })}
+                style={S.input}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, color: '#71717a', width: 12 }}>H</span>
+              <input
+                type="number"
+                value={Math.round(el.height)}
+                onChange={(e) => updateElement(el.id, { height: Math.max(10, Number(e.target.value) || 10) })}
+                style={S.input}
+              />
+            </div>
+          </div>
+
+          <div style={S.grid2}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, color: '#71717a', width: 12 }}>R</span>
+              <input
+                type="number"
+                value={s.borderRadius ?? 0}
+                onChange={(e) => updateElementStyles(el.id, { borderRadius: Number(e.target.value) || 0 })}
+                placeholder="0"
+                style={S.input}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, color: '#71717a', width: 12 }}>%</span>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={Math.round((s.opacity ?? 1) * 100)}
+                onChange={(e) => updateElementStyles(el.id, { opacity: (Number(e.target.value) || 100) / 100 })}
+                style={S.input}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Section: Content (for text, button, image) */}
+        {hasText && (
+          <div>
+            <div style={S.sectionTitle}>Content</div>
+            <textarea
+              rows={2}
+              value={el.content || ''}
+              onChange={(e) => updateElement(el.id, { content: e.target.value })}
+              placeholder="Text content..."
+              style={{
+                ...S.input,
+                height: 'auto',
+                padding: '6px 8px',
+                fontFamily: 'inherit',
+                resize: 'vertical',
+              }}
+            />
           </div>
         )}
 
-        {/* ============================================================== */}
-        {/* TAB 2: ✨ HOVER STUDIO (Rich options requested by user)         */}
-        {/* ============================================================== */}
-        {activeTab === 'hover' && (
-          <div className="space-y-3.5">
-            {/* Live Canvas Hover Preview Switch */}
-            <div className="p-3 bg-gradient-to-r from-indigo-950/40 to-purple-950/40 border border-indigo-500/30 rounded-xl space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-indigo-400" />
-                  <div>
-                    <span className="font-medium text-white text-xs block">Preview Hover on Canvas</span>
-                    <span className="text-[10px] text-zinc-400">Lock hover state to preview styles live</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleToggleLiveHover}
-                  className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors ${
-                    isLiveHoverPreview ? 'bg-indigo-600' : 'bg-[#27272a]'
-                  }`}
-                >
-                  <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                      isLiveHoverPreview ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
+        {isImage && (
+          <div>
+            <div style={S.sectionTitle}>Image Source</div>
+            <input
+              type="text"
+              value={el.content || ''}
+              onChange={(e) => updateElement(el.id, { content: e.target.value })}
+              placeholder="Image URL..."
+              style={S.input}
+            />
+          </div>
+        )}
 
-              {/* Pulse Test Trigger */}
-              <button
-                type="button"
-                onClick={handlePulseHover}
-                className="w-full py-1.5 px-3 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-200 border border-indigo-400/30 flex items-center justify-center gap-1.5 font-medium text-[11px] transition-all shadow-sm"
-              >
-                <Play className="w-3 h-3 text-indigo-300" />
-                <span>Test Hover Animation (Pulse)</span>
-              </button>
-            </div>
-
-            {/* Hover Motion Presets */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5">
-              <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
-                <span>Hover Animation Preset</span>
-              </div>
-
+        {/* Section: Typography (if text or button) */}
+        {hasText && (
+          <div>
+            <div style={S.sectionTitle}>Typography</div>
+            {/* Font Family */}
+            <div style={S.row}>
+              <span style={S.label}>Font</span>
               <select
-                value={s.hoverEffect || 'none'}
-                onChange={(e) =>
-                  updateElementStyles(el.id, {
-                    hoverEffect: e.target.value as any,
-                    transitionDuration: s.transitionDuration || 200,
-                  })
-                }
-                className="w-full bg-[#121214] border border-[#27272a] rounded px-2.5 py-1.5 text-zinc-200 outline-none text-xs"
+                value={s.fontFamily || 'Inter'}
+                onChange={(e) => updateElementStyles(el.id, { fontFamily: e.target.value })}
+                style={S.input}
               >
-                <option value="none">None (Standard)</option>
-                <option value="lift">Card Lift & Float (-4px + Shadow)</option>
-                <option value="scale">Scale Pop (1.04x Zoom)</option>
-                <option value="glow">Electric Indigo Border Glow</option>
-                <option value="brighten">Brighten & Highlight</option>
+                {FONT_FAMILIES.map((f) => (
+                  <option key={f.value} value={f.value} style={{ background: '#18181b', color: '#fff' }}>
+                    {f.label}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* Custom Block Hover Color & Appearance */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-3">
-              <span className="text-zinc-200 font-medium text-xs block">Hover Color Overrides</span>
-
-              {/* Hover Background Color */}
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-400 text-[11px]">Hover Background</span>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="color"
-                    value={b.hoverStyles?.backgroundColor || s.backgroundColor || '#4f46e5'}
-                    onChange={(e) =>
-                      updateElementBehavior(el.id, {
-                        hoverStyles: { ...b.hoverStyles, backgroundColor: e.target.value },
-                      })
-                    }
-                    className="w-6 h-6 rounded border border-[#27272a] bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={b.hoverStyles?.backgroundColor || ''}
-                    placeholder="Inherit"
-                    onChange={(e) =>
-                      updateElementBehavior(el.id, {
-                        hoverStyles: { ...b.hoverStyles, backgroundColor: e.target.value },
-                      })
-                    }
-                    className="w-20 bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 text-xs font-mono"
-                  />
-                  {b.hoverStyles?.backgroundColor && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateElementBehavior(el.id, {
-                          hoverStyles: { ...b.hoverStyles, backgroundColor: undefined },
-                        })
-                      }
-                      className="text-zinc-500 hover:text-zinc-300 text-xs p-1"
-                      title="Clear"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
+            {/* Size & Weight */}
+            <div style={S.grid2}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, color: '#71717a', width: 14 }}>Px</span>
+                <input
+                  type="number"
+                  value={s.fontSize || 16}
+                  onChange={(e) => updateElementStyles(el.id, { fontSize: Number(e.target.value) || 16 })}
+                  style={S.input}
+                />
               </div>
-
-              {/* Hover Text Color */}
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-400 text-[11px]">Hover Text Color</span>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="color"
-                    value={b.hoverStyles?.color || s.color || '#ffffff'}
-                    onChange={(e) =>
-                      updateElementBehavior(el.id, {
-                        hoverStyles: { ...b.hoverStyles, color: e.target.value },
-                      })
-                    }
-                    className="w-6 h-6 rounded border border-[#27272a] bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={b.hoverStyles?.color || ''}
-                    placeholder="Inherit"
-                    onChange={(e) =>
-                      updateElementBehavior(el.id, {
-                        hoverStyles: { ...b.hoverStyles, color: e.target.value },
-                      })
-                    }
-                    className="w-20 bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 text-xs font-mono"
-                  />
-                  {b.hoverStyles?.color && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateElementBehavior(el.id, {
-                          hoverStyles: { ...b.hoverStyles, color: undefined },
-                        })
-                      }
-                      className="text-zinc-500 hover:text-zinc-300 text-xs p-1"
-                      title="Clear"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Hover Border Color */}
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-400 text-[11px]">Hover Border</span>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="color"
-                    value={b.hoverStyles?.borderColor || s.borderColor || '#6366f1'}
-                    onChange={(e) =>
-                      updateElementBehavior(el.id, {
-                        hoverStyles: { ...b.hoverStyles, borderColor: e.target.value },
-                      })
-                    }
-                    className="w-6 h-6 rounded border border-[#27272a] bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={b.hoverStyles?.borderColor || ''}
-                    placeholder="Inherit"
-                    onChange={(e) =>
-                      updateElementBehavior(el.id, {
-                        hoverStyles: { ...b.hoverStyles, borderColor: e.target.value },
-                      })
-                    }
-                    className="w-20 bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 text-xs font-mono"
-                  />
-                  {b.hoverStyles?.borderColor && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateElementBehavior(el.id, {
-                          hoverStyles: { ...b.hoverStyles, borderColor: undefined },
-                        })
-                      }
-                      className="text-zinc-500 hover:text-zinc-300 text-xs p-1"
-                      title="Clear"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Custom Lift Elevation & Scale */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-3">
-              <span className="text-zinc-200 font-medium text-xs block">Hover Motion & Lift</span>
-
-              {/* Lift Elevation (translateY) */}
               <div>
-                <div className="flex items-center justify-between text-[11px] mb-1.5">
-                  <span className="text-zinc-400">Elevation Lift</span>
-                  <span className="font-mono text-zinc-300">
-                    {s.hoverTranslateY !== undefined ? `${s.hoverTranslateY}px` : s.hoverEffect === 'lift' ? '-4px' : '0px'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-4 gap-1">
-                  {[0, -2, -4, -8].map((liftVal) => (
-                    <button
-                      key={liftVal}
-                      type="button"
-                      onClick={() => updateElementStyles(el.id, { hoverTranslateY: liftVal })}
-                      className={`py-1 rounded text-[11px] font-mono border transition-all ${
-                        (s.hoverTranslateY === liftVal || (s.hoverTranslateY === undefined && liftVal === (s.hoverEffect === 'lift' ? -4 : 0)))
-                          ? 'bg-indigo-600 text-white border-indigo-500'
-                          : 'bg-[#121214] text-zinc-400 border-[#27272a] hover:text-white'
-                      }`}
-                    >
-                      {liftVal === 0 ? 'None' : `${liftVal}px`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Scale Zoom */}
-              <div>
-                <div className="flex items-center justify-between text-[11px] mb-1.5">
-                  <span className="text-zinc-400">Scale Zoom</span>
-                  <span className="font-mono text-zinc-300">
-                    {b.hoverStyles?.scale ? `${b.hoverStyles.scale}x` : s.hoverScale ? `${s.hoverScale}x` : (s.hoverEffect === 'scale' ? '1.04x' : '1.00x')}
-                  </span>
-                </div>
-                <div className="grid grid-cols-4 gap-1">
-                  {[1.0, 1.02, 1.04, 1.08].map((scaleVal) => (
-                    <button
-                      key={scaleVal}
-                      type="button"
-                      onClick={() => {
-                        updateElementBehavior(el.id, {
-                          hoverStyles: { ...b.hoverStyles, scale: scaleVal },
-                        });
-                        updateElementStyles(el.id, { hoverScale: scaleVal });
-                      }}
-                      className={`py-1 rounded text-[11px] font-mono border transition-all ${
-                        (b.hoverStyles?.scale === scaleVal || s.hoverScale === scaleVal)
-                          ? 'bg-indigo-600 text-white border-indigo-500'
-                          : 'bg-[#121214] text-zinc-400 border-[#27272a] hover:text-white'
-                      }`}
-                    >
-                      {scaleVal === 1 ? '1.0x' : `${scaleVal}x`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Hover Shadow */}
-              <div>
-                <span className="text-zinc-400 text-[11px] block mb-1">Hover Shadow Glow</span>
                 <select
-                  value={b.hoverStyles?.boxShadow || s.hoverShadow || ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    updateElementBehavior(el.id, {
-                      hoverStyles: { ...b.hoverStyles, boxShadow: val || undefined },
-                    });
-                    updateElementStyles(el.id, { hoverShadow: val || undefined });
-                  }}
-                  className="w-full bg-[#121214] border border-[#27272a] rounded px-2.5 py-1.5 text-zinc-200 outline-none text-xs"
+                  value={s.fontWeight || 'normal'}
+                  onChange={(e) => updateElementStyles(el.id, { fontWeight: e.target.value })}
+                  style={S.input}
                 >
-                  {HOVER_SHADOW_OPTIONS.map((opt) => (
-                    <option key={opt.label} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
+                  <option value="300" style={{ background: '#18181b' }}>Light (300)</option>
+                  <option value="normal" style={{ background: '#18181b' }}>Regular (400)</option>
+                  <option value="500" style={{ background: '#18181b' }}>Medium (500)</option>
+                  <option value="600" style={{ background: '#18181b' }}>SemiBold (600)</option>
+                  <option value="bold" style={{ background: '#18181b' }}>Bold (700)</option>
+                  <option value="800" style={{ background: '#18181b' }}>Black (800)</option>
                 </select>
               </div>
             </div>
 
-            {/* Speed & Transition Duration */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
-              <span className="text-zinc-200 font-medium text-xs block">Transition Timing</span>
-              <div className="grid grid-cols-3 gap-1 bg-[#121214] border border-[#27272a] rounded-lg p-0.5 text-[11px]">
+            {/* Text Color */}
+            <ColorPickerRow
+              label="Color"
+              value={s.color || '#ffffff'}
+              onChange={(val) => updateElementStyles(el.id, { color: val })}
+            />
+
+            {/* Text Alignment */}
+            <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+              {[
+                { align: 'left', icon: <AlignLeft size={13} /> },
+                { align: 'center', icon: <AlignCenter size={13} /> },
+                { align: 'right', icon: <AlignRight size={13} /> },
+              ].map((item) => (
                 <button
+                  key={item.align}
                   type="button"
-                  onClick={() => updateElementStyles(el.id, { transitionDuration: 150 })}
-                  className={`py-1 rounded text-center font-medium transition-all ${
-                    (s.transitionDuration || 180) <= 150
-                      ? 'bg-[#27272a] text-white shadow-sm'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
+                  onClick={() => updateElementStyles(el.id, { textAlign: item.align as any })}
+                  style={{
+                    ...S.iconBtn,
+                    flex: 1,
+                    backgroundColor: s.textAlign === item.align ? '#22222e' : '#141418',
+                    color: s.textAlign === item.align ? '#ffffff' : '#71717a',
+                    border: s.textAlign === item.align ? '1px solid #383848' : '1px solid #222228',
+                  }}
                 >
-                  150ms Fast
+                  {item.icon}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => updateElementStyles(el.id, { transitionDuration: 250 })}
-                  className={`py-1 rounded text-center font-medium transition-all ${
-                    s.transitionDuration === 250
-                      ? 'bg-[#27272a] text-white shadow-sm'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  250ms Smooth
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateElementStyles(el.id, { transitionDuration: 400 })}
-                  className={`py-1 rounded text-center font-medium transition-all ${
-                    s.transitionDuration === 400
-                      ? 'bg-[#27272a] text-white shadow-sm'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  400ms Gentle
-                </button>
-              </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* ============================================================== */}
-        {/* TAB 3: 📐 LAYOUT & ACTION TAB                                  */}
-        {/* ============================================================== */}
-        {activeTab === 'layout' && (
-          <div className="space-y-4">
-            {/* Dimensions & Position (Clean 4-column row) */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
-              <div className="flex items-center justify-between text-zinc-200 font-medium text-xs">
-                <span>Dimensions & Coordinates</span>
-                <Maximize2 className="w-3.5 h-3.5 text-zinc-500" />
-              </div>
+        {/* Section: Fill & Appearance */}
+        {hasFill && (
+          <div>
+            <div style={S.sectionTitle}>Fill</div>
+            <ColorPickerRow
+              label="Background"
+              value={s.backgroundColor || 'transparent'}
+              onChange={(val) => updateElementStyles(el.id, { backgroundColor: val })}
+            />
+          </div>
+        )}
 
-              <div className="grid grid-cols-4 gap-1.5">
-                <div>
-                  <span className="text-[10px] text-zinc-500 block mb-0.5 text-center font-medium">X</span>
-                  <input
-                    type="number"
-                    value={el.x}
-                    onChange={(e) => updateElement(el.id, { x: Number(e.target.value) || 0 }, true)}
-                    className="w-full bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs text-center font-mono"
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] text-zinc-500 block mb-0.5 text-center font-medium">Y</span>
-                  <input
-                    type="number"
-                    value={el.y}
-                    onChange={(e) => updateElement(el.id, { y: Number(e.target.value) || 0 }, true)}
-                    className="w-full bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs text-center font-mono"
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] text-zinc-500 block mb-0.5 text-center font-medium">W</span>
-                  <input
-                    type="number"
-                    value={el.width}
-                    onChange={(e) => updateElement(el.id, { width: Math.max(10, Number(e.target.value) || 10) }, true)}
-                    className="w-full bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs text-center font-mono"
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] text-zinc-500 block mb-0.5 text-center font-medium">H</span>
-                  <input
-                    type="number"
-                    value={el.height}
-                    onChange={(e) => updateElement(el.id, { height: Math.max(10, Number(e.target.value) || 10) }, true)}
-                    className="w-full bg-[#121214] border border-[#27272a] rounded px-1.5 py-1 text-zinc-200 outline-none text-xs text-center font-mono"
-                  />
-                </div>
-              </div>
+        {/* Section: Stroke / Border */}
+        <div>
+          <div style={S.sectionTitle}>Stroke</div>
+          <div style={S.grid2}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, color: '#71717a', width: 22 }}>Width</span>
+              <input
+                type="number"
+                min="0"
+                value={s.borderWidth || 0}
+                onChange={(e) => updateElementStyles(el.id, { borderWidth: Number(e.target.value) || 0 })}
+                style={S.input}
+              />
             </div>
+            <div>
+              <select
+                value={s.borderStyle || 'solid'}
+                onChange={(e) => updateElementStyles(el.id, { borderStyle: e.target.value as any })}
+                style={S.input}
+              >
+                <option value="solid" style={{ background: '#18181b' }}>Solid</option>
+                <option value="dashed" style={{ background: '#18181b' }}>Dashed</option>
+                <option value="dotted" style={{ background: '#18181b' }}>Dotted</option>
+              </select>
+            </div>
+          </div>
+          {(s.borderWidth ?? 0) > 0 && (
+            <ColorPickerRow
+              label="Color"
+              value={s.borderColor || '#333333'}
+              onChange={(val) => updateElementStyles(el.id, { borderColor: val })}
+            />
+          )}
+        </div>
 
-            {/* Alignment & Distribution */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5">
-              <span className="text-zinc-200 font-medium text-xs block">Alignment & Layout</span>
+        {/* Section: Layout & Padding (for container / section) */}
+        {isContainerLike && (
+          <div>
+            <div style={S.sectionTitle}>Auto Layout</div>
+            <div style={S.row}>
+              <span style={S.label}>Padding</span>
+              <input
+                type="number"
+                value={s.padding || 0}
+                onChange={(e) => updateElementStyles(el.id, { padding: Number(e.target.value) || 0 })}
+                style={S.input}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button
+                type="button"
+                onClick={() => updateElementLayout(el.id, { direction: 'row' })}
+                style={{
+                  ...S.iconBtn,
+                  flex: 1,
+                  height: 24,
+                  fontSize: 10,
+                  backgroundColor: el.layout?.direction === 'row' ? '#22222e' : '#141418',
+                  color: el.layout?.direction === 'row' ? '#fff' : '#71717a',
+                  border: el.layout?.direction === 'row' ? '1px solid #383848' : '1px solid #222228',
+                }}
+              >
+                Horizontal (Row)
+              </button>
+              <button
+                type="button"
+                onClick={() => updateElementLayout(el.id, { direction: 'column' })}
+                style={{
+                  ...S.iconBtn,
+                  flex: 1,
+                  height: 24,
+                  fontSize: 10,
+                  backgroundColor: el.layout?.direction !== 'row' ? '#22222e' : '#141418',
+                  color: el.layout?.direction !== 'row' ? '#fff' : '#71717a',
+                  border: el.layout?.direction !== 'row' ? '1px solid #383848' : '1px solid #222228',
+                }}
+              >
+                Vertical (Column)
+              </button>
+            </div>
+          </div>
+        )}
 
-              <div className="space-y-2 text-xs">
-                {/* Flex Direction if container or section */}
-                {isLayoutParent && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400 text-[11px]">Direction</span>
-                    <div className="flex items-center bg-[#121214] border border-[#27272a] rounded-lg p-0.5 text-[11px]">
-                      <button
-                        type="button"
-                        onClick={() => updateElementLayout(el.id, { direction: 'row' })}
-                        className={`px-3 py-1 rounded transition-all ${
-                          l?.direction === 'row' ? 'bg-[#27272a] text-white' : 'text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        Row (Horizontal)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateElementLayout(el.id, { direction: 'column' })}
-                        className={`px-3 py-1 rounded transition-all ${
-                          l?.direction === 'column' || !l?.direction ? 'bg-[#27272a] text-white' : 'text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        Column (Vertical)
-                      </button>
-                    </div>
+        {/* Interactive States Trigger Card in Appearance */}
+        <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 10.5, fontWeight: 500, color: '#f4f4f5' }}>State Overrides</span>
+            <span style={{ fontSize: 9.5, color: '#71717a' }}>hover &bull; active &bull; focus</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+            {(['hover', 'active', 'focus'] as const).map((st) => {
+              const hasSt =
+                st === 'hover' ? Boolean(b.hoverStyles && Object.keys(b.hoverStyles).length > 0) :
+                st === 'active' ? Boolean(b.activeStyles && Object.keys(b.activeStyles).length > 0) :
+                Boolean(b.focusStyles && Object.keys(b.focusStyles).length > 0);
+              return (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => handleStateTabChange(st)}
+                  style={{
+                    padding: '6px 4px',
+                    borderRadius: 5,
+                    border: hasSt ? '1px solid #6366f1' : '1px solid #22222a',
+                    backgroundColor: hasSt ? 'rgba(99, 102, 241, 0.12)' : '#141418',
+                    color: hasSt ? '#c7d2fe' : '#a1a1aa',
+                    fontSize: 10,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 3,
+                  }}
+                >
+                  <span>:{st}</span>
+                  {hasSt && <span style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: '#818cf8' }} />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section: Interactivity & Click Action */}
+        <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+          <div style={S.sectionTitle}>
+            <span>Interactivity</span>
+            {b.actionType && b.actionType !== 'none' && (
+              <span style={{ fontSize: 9.5, color: '#818cf8', fontWeight: 500 }}>Active</span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Trigger Action</span>
+            <select
+              value={b.actionType || 'none'}
+              onChange={(e) => {
+                const act = e.target.value as ActionType;
+                let nextPayload = b.actionPayload || '';
+                if (act === 'navigate-page') {
+                  nextPayload = '__next__';
+                } else if (act === 'copy-text') {
+                  if (!nextPayload || nextPayload.startsWith('http') || nextPayload === '__next__') {
+                    nextPayload = 'SAVE2026';
+                  }
+                } else if (act === 'submit-form') {
+                  if (!nextPayload || nextPayload.startsWith('http') || nextPayload === '__next__') {
+                    nextPayload = '🎉 Thank you for signing up! Check your inbox.';
+                  }
+                } else if (act === 'navigate-url') {
+                  if (!nextPayload || !nextPayload.startsWith('http')) {
+                    nextPayload = 'https://example.com';
+                  }
+                } else if (act === 'alert') {
+                  if (!nextPayload || nextPayload.startsWith('http') || nextPayload === '__next__') {
+                    nextPayload = 'Button action triggered successfully!';
+                  }
+                }
+                updateElementBehavior(el.id, {
+                  actionType: act,
+                  actionPayload: nextPayload,
+                });
+                if (act === 'confetti') triggerConfetti();
+                if (act !== 'none') playSound('pop');
+              }}
+              style={S.input}
+            >
+              <option value="none" style={{ background: '#18181b' }}>None (Static)</option>
+              <option value="navigate-page" style={{ background: '#18181b' }}>📄 Switch Page (Next, Prev, Specific)</option>
+              <option value="submit-form" style={{ background: '#18181b' }}>🚀 Sign Up / Submit Form</option>
+              <option value="open-modal" style={{ background: '#18181b' }}>🪟 Open Modal Popup</option>
+              <option value="scroll-section" style={{ background: '#18181b' }}>⚓ Scroll to Section</option>
+              <option value="navigate-url" style={{ background: '#18181b' }}>↗ Open External URL</option>
+              <option value="confetti" style={{ background: '#18181b' }}>🎉 Trigger Confetti Burst</option>
+              <option value="scroll-top" style={{ background: '#18181b' }}>↑ Scroll to Top</option>
+              <option value="copy-text" style={{ background: '#18181b' }}>📋 Copy Promo / Text</option>
+              <option value="alert" style={{ background: '#18181b' }}>🔔 Show Notification Alert</option>
+            </select>
+          </div>
+
+          {/* If Page Navigation */}
+          {b.actionType === 'navigate-page' && (() => {
+            const validOptions = ['__next__', '__prev__', ...project.pages.map((p) => p.id)];
+            const currentVal = validOptions.includes(b.actionPayload || '')
+              ? b.actionPayload
+              : '__next__';
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+                <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Target Page</span>
+                <select
+                  value={currentVal}
+                  onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                  style={S.input}
+                >
+                  <option value="__next__" style={{ background: '#18181b' }}>→ Next Page in Flow</option>
+                  <option value="__prev__" style={{ background: '#18181b' }}>← Previous Page</option>
+                  <optgroup label="Specific Project Pages" style={{ background: '#18181b', color: '#818cf8' }}>
+                    {project.pages.map((p) => (
+                      <option key={p.id} value={p.id} style={{ background: '#18181b', color: '#e4e4e7' }}>
+                        {p.name} {p.id === activePage.id ? '(Current)' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                {project.pages.length <= 1 && (
+                  <div style={{ fontSize: 10, color: '#71717a', lineHeight: 1.3, marginTop: 2 }}>
+                    Tip: Project currently has 1 page. Click the "+" button in the top header or Pages tab to add a 2nd page!
                   </div>
                 )}
-
-                {/* Alignment */}
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-400 text-[11px]">Align</span>
-                  <div className="flex items-center bg-[#121214] border border-[#27272a] rounded-lg p-0.5 gap-0.5">
-                    <button
-                      type="button"
-                      onClick={() => alignElement(el.id, 'left')}
-                      className="p-1.5 rounded hover:bg-[#27272a] text-zinc-400 hover:text-white transition-colors"
-                      title="Align Left"
-                    >
-                      <AlignLeft className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => alignElement(el.id, 'center')}
-                      className="p-1.5 rounded hover:bg-[#27272a] text-zinc-400 hover:text-white transition-colors"
-                      title="Align Center"
-                    >
-                      <AlignHorizontalJustifyCenter className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => alignElement(el.id, 'middle')}
-                      className="p-1.5 rounded hover:bg-[#27272a] text-zinc-400 hover:text-white transition-colors"
-                      title="Align Middle"
-                    >
-                      <AlignVerticalJustifyCenter className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => alignElement(el.id, 'right')}
-                      className="p-1.5 rounded hover:bg-[#27272a] text-zinc-400 hover:text-white transition-colors"
-                      title="Align Right"
-                    >
-                      <AlignRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Distribution */}
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-400 text-[11px]">Distribute</span>
-                  <div className="flex items-center bg-[#121214] border border-[#27272a] rounded-lg p-0.5 gap-0.5">
-                    <button
-                      type="button"
-                      onClick={() => updateElementLayout(el.id, { justifyContent: 'start' })}
-                      className="p-1.5 rounded hover:bg-[#27272a] text-zinc-400 hover:text-white transition-colors"
-                      title="Start"
-                    >
-                      <Rows className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateElementLayout(el.id, { justifyContent: 'center' })}
-                      className="p-1.5 rounded hover:bg-[#27272a] text-zinc-400 hover:text-white transition-colors"
-                      title="Center"
-                    >
-                      <Columns className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateElementLayout(el.id, { justifyContent: 'space-between' })}
-                      className="p-1.5 rounded hover:bg-[#27272a] text-zinc-400 hover:text-white transition-colors"
-                      title="Space Between"
-                    >
-                      <Layout className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
               </div>
+            );
+          })()}
+
+          {/* If Submit Form / Sign Up */}
+          {b.actionType === 'submit-form' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Confirmation Message</span>
+                <span style={{ fontSize: 9.5, color: '#71717a' }}>Form validation + celebration</span>
+              </div>
+              <input
+                type="text"
+                placeholder="e.g. Welcome aboard! Check your inbox."
+                value={b.actionPayload || ''}
+                onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                style={S.input}
+              />
             </div>
+          )}
 
-            {/* Parent Frame & Nesting */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2">
-              <span className="text-zinc-200 font-medium text-xs block">Hierarchy Parent Frame</span>
-              <select
-                value={el.parentId || ''}
-                onChange={(e) => setElementParent(el.id, e.target.value ? e.target.value : null)}
-                className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-              >
-                <option value="">None (Canvas Root Element)</option>
-                {availableParents.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.type === 'section' ? '§ ' : '□ '} {p.name}
-                  </option>
-                ))}
-              </select>
-
-              {isLayoutParent && childElements.length > 0 && (
-                <div className="mt-2 p-2 rounded-lg bg-[#121214] border border-[#27272a] space-y-1 max-h-28 overflow-y-auto">
-                  {childElements.map((child, idx) => (
-                    <div
-                      key={child.id}
-                      className="flex items-center justify-between px-2 py-0.5 rounded bg-[#18181b] border border-[#27272a] text-[11px] text-zinc-300"
-                    >
-                      <span className="truncate max-w-[120px]">{child.name}</span>
-                      <div className="flex items-center gap-0.5">
-                        <button
-                          type="button"
-                          disabled={idx === 0}
-                          onClick={() => reorderChild(el.id, child.id, 'up')}
-                          className="p-0.5 text-zinc-500 hover:text-white disabled:opacity-20"
-                          title="Move up"
-                        >
-                          <ArrowUp className="w-2.5 h-2.5" />
-                        </button>
-                        <button
-                          type="button"
-                          disabled={idx === childElements.length - 1}
-                          onClick={() => reorderChild(el.id, child.id, 'down')}
-                          className="p-0.5 text-zinc-500 hover:text-white disabled:opacity-20"
-                          title="Move down"
-                        >
-                          <ArrowDown className="w-2.5 h-2.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setElementParent(child.id, null)}
-                          className="p-0.5 hover:text-amber-400 text-zinc-500 ml-1"
-                          title="Unparent"
-                        >
-                          <FolderMinus className="w-2.5 h-2.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          {/* If Scroll to Section */}
+          {b.actionType === 'scroll-section' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+              <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Target Section</span>
+              {activePage.elements.filter((e) => e.type === 'section').length > 0 ? (
+                <select
+                  value={b.actionPayload || ''}
+                  onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                  style={S.input}
+                >
+                  <option value="" style={{ background: '#18181b' }}>Select a Section...</option>
+                  {activePage.elements
+                    .filter((e) => e.type === 'section')
+                    .map((sec) => (
+                      <option key={sec.id} value={`#${sec.id}`} style={{ background: '#18181b' }}>
+                        {sec.name || `Section (${sec.id.slice(0, 6)})`}
+                      </option>
+                    ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="#section-id or #pricing"
+                  value={b.actionPayload || ''}
+                  onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                  style={S.input}
+                />
               )}
             </div>
+          )}
 
-            {/* Click Action & Destination */}
-            <div className="p-3 bg-[#18181b] border border-[#27272a] rounded-xl space-y-2.5">
-              <div className="flex items-center gap-1.5 text-zinc-200 font-medium text-xs">
-                <MousePointerClick className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Click Actions & Role</span>
+          {/* If Open Modal */}
+          {b.actionType === 'open-modal' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+              <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Modal Title</span>
+              <input
+                type="text"
+                placeholder="Modal Title (e.g. Sign Up)"
+                value={b.actionModalTitle || ''}
+                onChange={(e) => updateElementBehavior(el.id, { actionModalTitle: e.target.value })}
+                style={S.input}
+              />
+              <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500, marginTop: 4 }}>Modal Message</span>
+              <input
+                type="text"
+                placeholder="Modal body or description..."
+                value={b.actionModalBody || b.actionPayload || ''}
+                onChange={(e) =>
+                  updateElementBehavior(el.id, {
+                    actionModalBody: e.target.value,
+                    actionPayload: e.target.value,
+                  })
+                }
+                style={S.input}
+              />
+            </div>
+          )}
+
+          {/* If Navigate URL */}
+          {b.actionType === 'navigate-url' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+              <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Destination URL</span>
+              <input
+                type="text"
+                placeholder="https://example.com"
+                value={b.actionPayload || ''}
+                onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                style={S.input}
+              />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '2px 0' }}>
+                <input
+                  type="checkbox"
+                  checked={b.targetBlank ?? true}
+                  onChange={(e) => updateElementBehavior(el.id, { targetBlank: e.target.checked })}
+                  style={{ accentColor: '#6366f1' }}
+                />
+                <span style={{ fontSize: 10.5, color: '#a1a1aa' }}>Open link in new tab</span>
+              </label>
+            </div>
+          )}
+
+          {/* If Copy Text */}
+          {b.actionType === 'copy-text' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Text to Copy</span>
+                <span style={{ fontSize: 9.5, color: '#71717a' }}>Copies to user's clipboard</span>
+              </div>
+              <input
+                type="text"
+                placeholder="e.g. DISCOUNT2026 or promo code"
+                value={b.actionPayload || ''}
+                onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                style={S.input}
+              />
+            </div>
+          )}
+
+          {/* If Alert */}
+          {b.actionType === 'alert' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+              <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Notification Alert Message</span>
+              <input
+                type="text"
+                placeholder="Message to display..."
+                value={b.actionPayload || ''}
+                onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
+                style={S.input}
+              />
+            </div>
+          )}
+
+          {/* Universal Test Action Live Button */}
+          {b.actionType && b.actionType !== 'none' && (
+            <button
+              type="button"
+              onClick={(e) => {
+                executeElementAction(
+                  el,
+                  {
+                    project,
+                    activePage,
+                    setActivePage,
+                    updatePageSettings,
+                    showToast,
+                  },
+                  e
+                );
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                width: '100%',
+                height: 28,
+                marginTop: 6,
+                borderRadius: 6,
+                backgroundColor: 'rgba(99,102,241,0.12)',
+                border: '1px solid rgba(99,102,241,0.3)',
+                color: '#a5b4fc',
+                cursor: 'pointer',
+                fontSize: 11,
+                fontWeight: 600,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(99,102,241,0.22)';
+                e.currentTarget.style.borderColor = '#6366f1';
+                e.currentTarget.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(99,102,241,0.12)';
+                e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)';
+                e.currentTarget.style.color = '#a5b4fc';
+              }}
+              title="Click to test this action immediately"
+            >
+              <Play size={11} style={{ fill: 'currentColor' }} />
+              <span>Test Action Live</span>
+            </button>
+          )}
+        </div>
+
+        {/* Section: Motion & Animation */}
+        <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+          <div style={S.sectionTitle}>
+            <span>Motion & Animation</span>
+            {s.animationName && s.animationName !== 'none' && (
+              <span style={{ fontSize: 9.5, color: '#818cf8', fontWeight: 500 }}>Active</span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Animation Preset</span>
+            <select
+              value={s.animationName || 'none'}
+              onChange={(e) => {
+                const name = e.target.value as any;
+                const preset = MOTION_PRESETS.find((p) => p.id === name);
+                updateElementStyles(el.id, {
+                  animationName: name,
+                  animationDuration: preset?.defaultDuration || 0.7,
+                  animationIterationCount: preset?.defaultIteration || '1',
+                  animationTimingFunction: preset?.defaultTiming || 'cubic-bezier(0.16, 1, 0.3, 1)',
+                  animationTrigger: 'entrance',
+                });
+              }}
+              style={S.input}
+            >
+              <option value="none" style={{ background: '#18181b' }}>None (Static)</option>
+              <optgroup label="Entrance Motion" style={{ background: '#18181b', color: '#818cf8' }}>
+                <option value="fadeIn" style={{ background: '#18181b', color: '#e4e4e7' }}>Fade In (Smooth Opacity)</option>
+                <option value="slideUp" style={{ background: '#18181b', color: '#e4e4e7' }}>Slide Up (Upward Entrance)</option>
+                <option value="slideDown" style={{ background: '#18181b', color: '#e4e4e7' }}>Slide Down</option>
+                <option value="slideLeft" style={{ background: '#18181b', color: '#e4e4e7' }}>Slide Left</option>
+                <option value="slideRight" style={{ background: '#18181b', color: '#e4e4e7' }}>Slide Right</option>
+                <option value="zoomIn" style={{ background: '#18181b', color: '#e4e4e7' }}>Zoom In (Scale 85% → 100%)</option>
+                <option value="popIn" style={{ background: '#18181b', color: '#e4e4e7' }}>Pop In (Spring Bounce)</option>
+                <option value="blurIn" style={{ background: '#18181b', color: '#e4e4e7' }}>Blur In (Cinematic Focus)</option>
+              </optgroup>
+              <optgroup label="Ambient Loops" style={{ background: '#18181b', color: '#34d399' }}>
+                <option value="float" style={{ background: '#18181b', color: '#e4e4e7' }}>Ambient Float (Gentle Hover)</option>
+                <option value="pulse" style={{ background: '#18181b', color: '#e4e4e7' }}>Pulse Glow (Breathing Scale)</option>
+                <option value="shimmer" style={{ background: '#18181b', color: '#e4e4e7' }}>Shimmer Sweep (Luminance)</option>
+                <option value="spin" style={{ background: '#18181b', color: '#e4e4e7' }}>Continuous Spin (360° Loop)</option>
+              </optgroup>
+            </select>
+          </div>
+
+          {s.animationName && s.animationName !== 'none' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {/* Trigger */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500 }}>Trigger</span>
+                <select
+                  value={s.animationTrigger || 'entrance'}
+                  onChange={(e) => updateElementStyles(el.id, { animationTrigger: e.target.value as any })}
+                  style={S.input}
+                >
+                  <option value="entrance" style={{ background: '#18181b' }}>On Page Load (Entrance)</option>
+                  <option value="hover" style={{ background: '#18181b' }}>On Hover Only</option>
+                  <option value="scroll" style={{ background: '#18181b' }}>When Scrolled into View</option>
+                </select>
               </div>
 
-              <div className="space-y-2 text-xs">
-                {/* Button Icon (if button) */}
-                {el.type === 'button' && (
-                  <div>
-                    <span className="text-[11px] text-zinc-400 block mb-1">Button Icon</span>
-                    <select
-                      value={b.buttonIcon || 'none'}
-                      onChange={(e) => updateElementBehavior(el.id, { buttonIcon: e.target.value as ButtonIconType })}
-                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-                    >
-                      <option value="none">No Icon</option>
-                      <option value="arrow-right">Right Arrow (→)</option>
-                      <option value="external-link">External Link (↗)</option>
-                      <option value="sparkles">Sparkles (✨)</option>
-                      <option value="download">Download (↓)</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Semantic HTML Role */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] text-zinc-400">Semantic Role & Tag</span>
-                    <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-1 rounded">
-                      {SEMANTIC_ROLES.find((r) => r.value === el.role)?.tag || '<div>'}
-                    </span>
-                  </div>
-                  <select
-                    value={el.role}
-                    onChange={(e) => updateElement(el.id, { role: e.target.value as SemanticRole }, true)}
-                    className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-                  >
-                    {['Interactive', 'Typography', 'Structure', 'Media'].map((grp) => (
-                      <optgroup key={grp} label={`— ${grp} —`}>
-                        {SEMANTIC_ROLES.filter((r) => r.group === grp).map((r) => (
-                          <option key={r.value} value={r.value}>
-                            {r.label} ({r.tag})
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                  <p className="text-[10px] text-zinc-500 mt-1">
-                    {SEMANTIC_ROLES.find((r) => r.value === el.role)?.description}
-                  </p>
+              {/* Duration & Delay */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 10.5, color: '#8e8e98' }}>Duration (s)</span>
+                  <input
+                    type="number"
+                    min="0.1"
+                    max="10"
+                    step="0.1"
+                    value={s.animationDuration ?? 0.7}
+                    onChange={(e) => updateElementStyles(el.id, { animationDuration: parseFloat(e.target.value) || 0.7 })}
+                    style={S.input}
+                  />
                 </div>
-
-                {/* Destination Action Type */}
-                <div className="pt-2 border-t border-[#222226]">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] text-zinc-400">Action Trigger</span>
-                    <span className="text-[10px] text-zinc-500">
-                      {ACTION_TYPES.find((a) => a.value === b.actionType)?.category}
-                    </span>
-                  </div>
-                  <select
-                    value={b.actionType}
-                    onChange={(e) => updateElementBehavior(el.id, { actionType: e.target.value as ActionType })}
-                    className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-                  >
-                    {['Navigation', 'Interactive', 'Effects & Audio', 'Utility', 'Communication', 'Advanced'].map((cat) => (
-                      <optgroup key={cat} label={`— ${cat} —`}>
-                        {ACTION_TYPES.filter((a) => a.category === cat).map((a) => (
-                          <option key={a.value} value={a.value}>
-                            {a.icon} {a.label}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 10.5, color: '#8e8e98' }}>Delay (s)</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={s.animationDelay ?? 0}
+                    onChange={(e) => updateElementStyles(el.id, { animationDelay: parseFloat(e.target.value) || 0 })}
+                    style={S.input}
+                  />
                 </div>
+              </div>
 
-                {/* ACTION PAYLOAD CONTROLS */}
+              {/* Loop / Iteration */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
+                <span style={{ fontSize: 11, color: '#a1a1aa' }}>Loop Continuously</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateElementStyles(el.id, {
+                      animationIterationCount: s.animationIterationCount === 'infinite' ? '1' : 'infinite',
+                    })
+                  }
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    fontSize: 10.5,
+                    fontWeight: 600,
+                    border: s.animationIterationCount === 'infinite' ? '1px solid #6366f1' : '1px solid #27272a',
+                    backgroundColor: s.animationIterationCount === 'infinite' ? 'rgba(99,102,241,0.2)' : '#18181b',
+                    color: s.animationIterationCount === 'infinite' ? '#a5b4fc' : '#71717a',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {s.animationIterationCount === 'infinite' ? 'Infinite Loop' : 'Play Once'}
+                </button>
+              </div>
 
-                {/* 1. Internal Page Selector */}
-                {b.actionType === 'navigate-page' && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Target Page</span>
-                    <select
-                      value={b.actionPayload || activePage.id}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-                    >
-                      {project.pages.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.slug})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+              {/* Re-trigger Preview Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const currentName = s.animationName;
+                  updateElementStyles(el.id, { animationName: 'none' });
+                  setTimeout(() => {
+                    updateElementStyles(el.id, { animationName: currentName });
+                  }, 30);
+                }}
+                style={{
+                  ...S.iconBtn,
+                  width: '100%',
+                  height: 24,
+                  fontSize: 10,
+                  gap: 5,
+                  backgroundColor: '#181822',
+                  borderColor: '#2d2d3d',
+                  color: '#a5b4fc',
+                }}
+              >
+                <Sparkles size={11} />
+                <span>Replay Animation</span>
+              </button>
+            </div>
+          )}
+        </div>
 
-                {/* 2. External URL */}
-                {b.actionType === 'navigate-url' && (
-                  <div className="space-y-1.5 pt-1">
-                    <input
-                      type="url"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="https://example.com"
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
-                    />
-                    <label className="flex items-center gap-2 cursor-pointer text-zinc-300 text-[11px]">
-                      <input
-                        type="checkbox"
-                        checked={b.targetBlank ?? true}
-                        onChange={(e) => updateElementBehavior(el.id, { targetBlank: e.target.checked })}
-                        className="rounded bg-[#121214] border-[#27272a] text-indigo-600 focus:ring-0"
-                      />
-                      <span>Open link in new tab</span>
-                    </label>
-                  </div>
-                )}
+        {/* Section: Layer Arrange & Actions */}
+        <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+          <div style={S.sectionTitle}>Arrange</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
+            <button
+              type="button"
+              onClick={() => updateElement(el.id, { zIndex: (el.zIndex || 1) + 1 })}
+              style={{ ...S.iconBtn, width: '100%', gap: 5, fontSize: 10.5 }}
+            >
+              <MoveUp size={12} />
+              <span>Bring Forward</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => updateElement(el.id, { zIndex: Math.max(1, (el.zIndex || 1) - 1) })}
+              style={{ ...S.iconBtn, width: '100%', gap: 5, fontSize: 10.5 }}
+            >
+              <MoveDown size={12} />
+              <span>Send Backward</span>
+            </button>
+          </div>
 
-                {/* 3. Scroll to Section / Element */}
-                {b.actionType === 'scroll-section' && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Target Element / Anchor</span>
-                    <select
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-                    >
-                      <option value="">Select Target Element...</option>
-                      {activePage.elements
-                        .filter((item) => item.id !== el.id)
-                        .map((item) => (
-                          <option key={item.id} value={item.id}>
-                            #{item.id} ({item.name || item.type})
-                          </option>
-                        ))}
-                    </select>
-                    <input
-                      type="text"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="Or enter custom ID (e.g. features or #pricing)"
-                      className="w-full px-2 py-1 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
-                    />
-                  </div>
-                )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => duplicateElement(el.id)}
+              style={{ ...S.iconBtn, width: '100%', gap: 5, fontSize: 10.5 }}
+            >
+              <Copy size={12} />
+              <span>Duplicate</span>
+            </button>
+            <button
+              type="button"
+              disabled={el.locked}
+              onClick={() => {
+                deleteElement(el.id);
+                showToast(`Deleted ${el.name}`, 'info');
+              }}
+              style={{
+                ...S.iconBtn,
+                width: '100%',
+                gap: 5,
+                fontSize: 10.5,
+                color: el.locked ? '#52525b' : '#f87171',
+                borderColor: el.locked ? '#222228' : '#382222',
+                backgroundColor: el.locked ? '#141418' : 'rgba(239, 68, 68, 0.08)',
+                cursor: el.locked ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <Trash2 size={12} />
+              <span>Delete</span>
+            </button>
+          </div>
+        </div>
+      </>
+    )}
 
-                {/* 4. Scroll to Top */}
-                {b.actionType === 'scroll-top' && (
-                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
-                    Smoothly scrolls the browser viewport back to the top of the page.
-                  </div>
-                )}
+        {/* ── STATE STUDIO: HOVER ─────────────────────────────── */}
+        {activeStateVariant === 'hover' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Header & Reset */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', backgroundColor: '#141418', border: '1px solid #1f1f28', borderRadius: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#818cf8', backgroundColor: '#1c1c28', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>:hover</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#f4f4f5' }}>Hover State</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  updateElementBehavior(el.id, { hoverStyles: undefined });
+                  showToast('Cleared hover overrides', 'info');
+                }}
+                style={{ background: 'none', border: 'none', color: '#71717a', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
+                title="Reset to Normal State"
+              >
+                <RotateCcw size={10} />
+                <span>Reset</span>
+              </button>
+            </div>
 
-                {/* 4b. Scroll to Bottom */}
-                {b.actionType === 'scroll-bottom' && (
-                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
-                    Smoothly scrolls the viewport down to the page footer and bottom content.
-                  </div>
-                )}
-
-                {/* 4c. Back to Previous */}
-                {b.actionType === 'back-to-previous' && (
-                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
-                    Navigates the browser backwards one step in history (like the browser Back button).
-                  </div>
-                )}
-
-                {/* 5. Open Modal Dialog */}
-                {b.actionType === 'open-modal' && (
-                  <div className="space-y-2 pt-1">
-                    <div>
-                      <span className="text-[11px] text-zinc-400 block mb-1">Modal Title</span>
-                      <input
-                        type="text"
-                        value={b.actionModalTitle ?? 'Special Announcement'}
-                        onChange={(e) => updateElementBehavior(el.id, { actionModalTitle: e.target.value })}
-                        placeholder="Modal Title"
-                        className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-zinc-400 block mb-1">Modal Content</span>
-                      <textarea
-                        rows={2}
-                        value={b.actionModalBody ?? 'Get 25% off this week only with code SPRING26.'}
-                        onChange={(e) => updateElementBehavior(el.id, { actionModalBody: e.target.value })}
-                        placeholder="Detailed message or announcement..."
-                        className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none resize-none"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* 6. Toggle Element Visibility */}
-                {b.actionType === 'toggle-visibility' && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Target Element to Toggle</span>
-                    <select
-                      value={b.actionTargetId || b.actionPayload || ''}
-                      onChange={(e) =>
-                        updateElementBehavior(el.id, {
-                          actionTargetId: e.target.value,
-                          actionPayload: e.target.value,
-                        })
-                      }
-                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-                    >
-                      <option value="">Select Element to Toggle...</option>
-                      {activePage.elements
-                        .filter((item) => item.id !== el.id)
-                        .map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.name || item.type} ({item.id})
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* 6b. Accordion Toggle */}
-                {b.actionType === 'accordion-toggle' && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Accordion Panel Target ID</span>
-                    <select
-                      value={b.actionTargetId || b.actionPayload || ''}
-                      onChange={(e) =>
-                        updateElementBehavior(el.id, {
-                          actionTargetId: e.target.value,
-                          actionPayload: e.target.value,
-                        })
-                      }
-                      className="w-full bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-                    >
-                      <option value="">Select Panel / Container to Expand...</option>
-                      {activePage.elements
-                        .filter((item) => item.id !== el.id)
-                        .map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.name || item.type} ({item.id})
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* 7. Copy Text to Clipboard */}
-                {b.actionType === 'copy-text' && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Text to Copy</span>
-                    <input
-                      type="text"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="e.g. DISCOUNT2026 or promo link"
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
-                    />
-                  </div>
-                )}
-
-                {/* 7b. Discount Voucher Reveal */}
-                {b.actionType === 'discount-reveal' && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Voucher Promo Code</span>
-                    <input
-                      type="text"
-                      value={b.actionPayload || 'SAVE25'}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="e.g. SAVE25 or VIP50"
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono uppercase font-bold text-amber-300"
-                    />
-                    <p className="text-[10px] text-zinc-500">Unlocks discount, triggers celebratory confetti & copies code to user clipboard.</p>
-                  </div>
-                )}
-
-                {/* 7c. Submit Form */}
-                {b.actionType === 'submit-form' && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Form Success Message</span>
-                    <input
-                      type="text"
-                      value={b.actionPayload || '🎉 Thank you! Your submission has been received.'}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="Success toast message..."
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none"
-                    />
-                  </div>
-                )}
-
-                {/* 8. Alert Toast Message */}
-                {b.actionType === 'alert' && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Alert Message</span>
-                    <input
-                      type="text"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="Action successful!"
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none"
-                    />
-                  </div>
-                )}
-
-                {/* 9. Email (mailto:) */}
-                {b.actionType === 'email-mailto' && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Recipient Email</span>
-                    <input
-                      type="email"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="contact@example.com"
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
-                    />
-                  </div>
-                )}
-
-                {/* 10. Phone Call (tel:) */}
-                {b.actionType === 'tel-call' && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Phone Number</span>
-                    <input
-                      type="tel"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="+1 (555) 234-5678"
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
-                    />
-                  </div>
-                )}
-
-                {/* 10b. Send SMS Message */}
-                {b.actionType === 'open-sms' && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">SMS Phone Number & Message</span>
-                    <input
-                      type="text"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="+15552345678?body=Hi there"
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
-                    />
-                  </div>
-                )}
-
-                {/* 11. Download File */}
-                {b.actionType === 'download-file' && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Download File URL</span>
-                    <input
-                      type="text"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="https://example.com/assets/guide.pdf"
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
-                    />
-                  </div>
-                )}
-
-                {/* 11b. Print Page */}
-                {b.actionType === 'print-page' && (
-                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
-                    Triggers the native browser print dialogue (print directly or save as PDF).
-                  </div>
-                )}
-
-                {/* 11c. Fullscreen */}
-                {b.actionType === 'launch-fullscreen' && (
-                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
-                    Toggles browser full-screen presentation mode for an immersive experience.
-                  </div>
-                )}
-
-                {/* 11d. Vibrate Device */}
-                {b.actionType === 'vibrate-device' && (
-                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
-                    Triggers gentle physical haptic feedback pulse on mobile devices and gamepads.
-                  </div>
-                )}
-
-                {/* 11e. Reload Page */}
-                {b.actionType === 'reload-page' && (
-                  <div className="p-2 bg-[#121214] border border-[#27272a] rounded text-[11px] text-zinc-400">
-                    Refreshes or reloads the current page view.
-                  </div>
-                )}
-
-                {/* 12. Custom JS Snippet */}
-                {b.actionType === 'custom-js' && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">JavaScript Snippet</span>
-                    <textarea
-                      rows={3}
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="toast('Clicked!'); playSound('success');"
-                      className="w-full px-2 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono resize-none text-[11px]"
-                    />
-                  </div>
-                )}
-
-                {/* 13. Confetti Effect */}
-                {b.actionType === 'confetti' && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Confetti Trigger Effect</span>
-                    <p className="text-[11px] text-zinc-400 bg-[#121214] p-2 rounded border border-[#27272a] leading-relaxed">
-                      Launches an interactive celebratory confetti explosion with gravity, particle drag, and physics when clicked.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        triggerConfetti();
-                        playSound('success');
-                        showToast('🎉 Confetti Celebration!', 'success');
-                      }}
-                      className="w-full py-1.5 px-3 rounded-lg bg-pink-600/20 hover:bg-pink-600/30 text-pink-300 border border-pink-500/30 flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors"
-                    >
-                      <PartyPopper className="w-3.5 h-3.5" />
-                      <span>Launch Preview Confetti</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* 14. Sound Effect */}
-                {b.actionType === 'play-sound' && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Sound Tone</span>
-                    <div className="flex gap-2">
-                      <select
-                        value={b.actionPayload || 'success'}
-                        onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                        className="flex-1 bg-[#121214] border border-[#27272a] rounded px-2 py-1.5 text-zinc-200 outline-none text-xs"
-                      >
-                        <option value="success">Success Chime</option>
-                        <option value="chime">Triple Ascending Chime</option>
-                        <option value="pop">Bubbly Pop</option>
-                        <option value="click">Subtle Click</option>
-                        <option value="bell">Notification Bell</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => playSound((b.actionPayload as SoundEffectType) || 'success')}
-                        className="px-3 py-1.5 bg-[#222226] hover:bg-[#27272a] text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
-                      >
-                        <Volume2 className="w-3.5 h-3.5" />
-                        <span>Play</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* 15. Toggle Dark/Light Theme */}
-                {b.actionType === 'toggle-dark-mode' && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Theme Toggle</span>
-                    <p className="text-[11px] text-zinc-400 bg-[#121214] p-2 rounded border border-[#27272a] leading-relaxed">
-                      Toggles between dark mode (#0c0e14) and light mode (#ffffff) on the canvas and preview mode.
-                    </p>
-                  </div>
-                )}
-
-                {/* 16. WhatsApp Direct Link */}
-                {b.actionType === 'whatsapp' && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">WhatsApp Number (with Country Code)</span>
-                    <input
-                      type="text"
-                      value={b.actionPayload || ''}
-                      onChange={(e) => updateElementBehavior(el.id, { actionPayload: e.target.value })}
-                      placeholder="+14155552671"
-                      className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#27272a] rounded text-zinc-200 outline-none font-mono"
-                    />
-                  </div>
-                )}
-
-                {/* 17. Share Page */}
-                {b.actionType === 'share-page' && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] text-zinc-400 block">Share Link</span>
-                    <p className="text-[11px] text-zinc-400 bg-[#121214] p-2 rounded border border-[#27272a] leading-relaxed">
-                      Triggers native Web Share API on mobile devices or copies page URL to clipboard on desktop.
-                    </p>
-                  </div>
-                )}
-
-                {/* Live Action Test Trigger */}
-                {b.actionType !== 'none' && (
-                  <div className="pt-2 border-t border-[#222226]">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        executeElementAction(
-                          el,
-                          {
-                            project,
-                            activePage,
-                            setActivePage,
-                            updatePageSettings,
-                            showToast,
-                          },
-                          e
-                        );
-                      }}
-                      className="w-full py-2 px-3 rounded-lg bg-emerald-600/25 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 flex items-center justify-center gap-1.5 font-semibold text-xs transition-all shadow-md shadow-emerald-950/40 cursor-pointer active:scale-98"
-                    >
-                      <Play className="w-3.5 h-3.5 text-emerald-400 fill-current" />
-                      <span>⚡ Test Action Now</span>
-                    </button>
-                  </div>
-                )}
+            {/* Presets */}
+            <div>
+              <div style={S.sectionTitle}>Presets</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 5 }}>
+                {[
+                  { label: 'Subtle Lift', styles: { translateY: -4, boxShadow: '0 12px 24px -4px rgba(0,0,0,0.5)' } },
+                  { label: 'Scale Pop', styles: { scale: 1.05, translateY: 0 } },
+                  { label: 'Indigo Glow', styles: { borderColor: '#6366f1', boxShadow: '0 0 20px rgba(99,102,241,0.5)' } },
+                  { label: 'Glass Glaze', styles: { backgroundColor: 'rgba(255,255,255,0.08)', boxShadow: '0 8px 16px rgba(0,0,0,0.3)' } },
+                  { label: 'Emerald Glow', styles: { borderColor: '#10b981', boxShadow: '0 0 18px rgba(16,185,129,0.4)' } },
+                  { label: 'Floating High', styles: { translateY: -6, scale: 1.02, boxShadow: '0 20px 30px -8px rgba(0,0,0,0.7)' } },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      updateElementBehavior(el.id, {
+                        hoverStyles: {
+                          ...b.hoverStyles,
+                          ...preset.styles,
+                        },
+                      });
+                      showToast(`Applied ${preset.label}`, 'success');
+                    }}
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      backgroundColor: '#141418',
+                      border: '1px solid #1f1f28',
+                      color: '#d4d4d8',
+                      fontSize: 10,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.12s ease',
+                    }}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Colors */}
+            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+              <div style={S.sectionTitle}>Colors</div>
+              <ColorPickerRow
+                label="Hover Fill"
+                value={b.hoverStyles?.backgroundColor || 'transparent'}
+                onChange={(val: string) => {
+                  updateElementBehavior(el.id, {
+                    hoverStyles: {
+                      ...b.hoverStyles,
+                      backgroundColor: val === 'transparent' ? undefined : val,
+                    },
+                  });
+                }}
+              />
+              {hasText && (
+                <ColorPickerRow
+                  label="Hover Text"
+                  value={b.hoverStyles?.color || 'transparent'}
+                  onChange={(val: string) => {
+                    updateElementBehavior(el.id, {
+                      hoverStyles: {
+                        ...b.hoverStyles,
+                        color: val === 'transparent' ? undefined : val,
+                      },
+                    });
+                  }}
+                />
+              )}
+              <ColorPickerRow
+                label="Hover Border"
+                value={b.hoverStyles?.borderColor || 'transparent'}
+                onChange={(val: string) => {
+                  updateElementBehavior(el.id, {
+                    hoverStyles: {
+                      ...b.hoverStyles,
+                      borderColor: val === 'transparent' ? undefined : val,
+                    },
+                  });
+                }}
+              />
+            </div>
+
+            {/* Transforms */}
+            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+              <div style={S.sectionTitle}>Transforms & Lift</div>
+              <div style={S.row}>
+                <span style={S.label}>Scale Zoom</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                  <input
+                    type="number"
+                    min="0.8"
+                    max="1.5"
+                    step="0.01"
+                    value={b.hoverStyles?.scale !== undefined ? b.hoverStyles.scale : 1.0}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 1.0;
+                      updateElementBehavior(el.id, {
+                        hoverStyles: {
+                          ...b.hoverStyles,
+                          scale: val === 1.0 ? undefined : val,
+                        },
+                      });
+                    }}
+                    style={{ ...S.input, width: 60 }}
+                  />
+                  <span style={{ fontSize: 10, color: '#71717a' }}>
+                    {(b.hoverStyles?.scale || 1.0) !== 1.0
+                      ? `${(b.hoverStyles?.scale || 1.0) > 1.0 ? '+' : ''}${Math.round(((b.hoverStyles?.scale || 1.0) - 1) * 100)}%`
+                      : 'None'}
+                  </span>
+                </div>
+              </div>
+
+              <div style={S.row}>
+                <span style={S.label}>Elevation Lift (Y)</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                  <input
+                    type="number"
+                    min="-30"
+                    max="30"
+                    step="1"
+                    value={b.hoverStyles?.translateY !== undefined ? b.hoverStyles.translateY : 0}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10) || 0;
+                      updateElementBehavior(el.id, {
+                        hoverStyles: {
+                          ...b.hoverStyles,
+                          translateY: val === 0 ? undefined : val,
+                        },
+                      });
+                    }}
+                    style={{ ...S.input, width: 60 }}
+                  />
+                  <span style={{ fontSize: 10, color: '#71717a' }}>
+                    {(b.hoverStyles?.translateY || 0) !== 0
+                      ? `${b.hoverStyles?.translateY}px ${b.hoverStyles!.translateY! < 0 ? 'up' : 'down'}`
+                      : 'None'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Effects */}
+            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+              <div style={S.sectionTitle}>Effects</div>
+              <div style={S.row}>
+                <span style={S.label}>Shadow Preset</span>
+                <select
+                  value={b.hoverStyles?.boxShadow || 'none'}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateElementBehavior(el.id, {
+                      hoverStyles: {
+                        ...b.hoverStyles,
+                        boxShadow: val === 'none' ? undefined : val,
+                      },
+                    });
+                  }}
+                  style={S.input}
+                >
+                  <option value="none" style={{ background: '#18181b' }}>Default (Unchanged)</option>
+                  <option value="0 12px 24px -4px rgba(0,0,0,0.5), 0 6px 12px -4px rgba(0,0,0,0.3)" style={{ background: '#18181b' }}>Elevated Drop</option>
+                  <option value="0 20px 35px -8px rgba(0,0,0,0.7)" style={{ background: '#18181b' }}>Floating High</option>
+                  <option value="0 0 25px rgba(99, 102, 241, 0.6)" style={{ background: '#18181b' }}>Indigo Glow</option>
+                  <option value="0 0 25px rgba(16, 185, 129, 0.6)" style={{ background: '#18181b' }}>Emerald Glow</option>
+                  <option value="0 0 25px rgba(244, 63, 94, 0.6)" style={{ background: '#18181b' }}>Rose Glow</option>
+                  <option value="inset 0 2px 6px rgba(0,0,0,0.5)" style={{ background: '#18181b' }}>Inset Bevel</option>
+                </select>
+              </div>
+
+              <div style={S.row}>
+                <span style={S.label}>Opacity</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={b.hoverStyles?.opacity !== undefined ? b.hoverStyles.opacity : 1}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    updateElementBehavior(el.id, {
+                      hoverStyles: {
+                        ...b.hoverStyles,
+                        opacity: isNaN(val) || val === 1 ? undefined : val,
+                      },
+                    });
+                  }}
+                  style={{ ...S.input, width: 60 }}
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleStateTabChange('default')}
+              style={{
+                marginTop: 6,
+                padding: '7px 12px',
+                borderRadius: 6,
+                backgroundColor: '#1b1b22',
+                border: '1px solid #272732',
+                color: '#d4d4d8',
+                fontSize: 10.5,
+                fontWeight: 500,
+                cursor: 'pointer',
+                textAlign: 'center',
+              }}
+            >
+              Done Editing :hover &rarr;
+            </button>
+          </div>
+        )}
+
+        {/* ── STATE STUDIO: ACTIVE ────────────────────────────── */}
+        {activeStateVariant === 'active' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Header & Reset */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', backgroundColor: '#141418', border: '1px solid #1f1f28', borderRadius: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#c084fc', backgroundColor: '#201828', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>:active</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#f4f4f5' }}>Pressed State</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  updateElementBehavior(el.id, { activeStyles: undefined });
+                  showToast('Cleared active overrides', 'info');
+                }}
+                style={{ background: 'none', border: 'none', color: '#71717a', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
+                title="Reset to Normal State"
+              >
+                <RotateCcw size={10} />
+                <span>Reset</span>
+              </button>
+            </div>
+
+            {/* Presets */}
+            <div>
+              <div style={S.sectionTitle}>Presets</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 5 }}>
+                {[
+                  { label: 'Push Down', styles: { scale: 0.96, translateY: 2, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)' } },
+                  { label: 'Subtle Click', styles: { scale: 0.98, translateY: 1 } },
+                  { label: 'Color Flash', styles: { backgroundColor: '#4f46e5', scale: 0.97 } },
+                  { label: 'Deep Depress', styles: { scale: 0.94, translateY: 3, boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.6)' } },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      updateElementBehavior(el.id, {
+                        activeStyles: {
+                          ...b.activeStyles,
+                          ...preset.styles,
+                        },
+                      });
+                      showToast(`Applied ${preset.label}`, 'success');
+                    }}
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      backgroundColor: '#141418',
+                      border: '1px solid #1f1f28',
+                      color: '#d4d4d8',
+                      fontSize: 10,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.12s ease',
+                    }}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Colors */}
+            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+              <div style={S.sectionTitle}>Colors</div>
+              <ColorPickerRow
+                label="Active Fill"
+                value={b.activeStyles?.backgroundColor || 'transparent'}
+                onChange={(val: string) => {
+                  updateElementBehavior(el.id, {
+                    activeStyles: {
+                      ...b.activeStyles,
+                      backgroundColor: val === 'transparent' ? undefined : val,
+                    },
+                  });
+                }}
+              />
+              {hasText && (
+                <ColorPickerRow
+                  label="Active Text"
+                  value={b.activeStyles?.color || 'transparent'}
+                  onChange={(val: string) => {
+                    updateElementBehavior(el.id, {
+                      activeStyles: {
+                        ...b.activeStyles,
+                        color: val === 'transparent' ? undefined : val,
+                      },
+                    });
+                  }}
+                />
+              )}
+              <ColorPickerRow
+                label="Active Border"
+                value={b.activeStyles?.borderColor || 'transparent'}
+                onChange={(val: string) => {
+                  updateElementBehavior(el.id, {
+                    activeStyles: {
+                      ...b.activeStyles,
+                      borderColor: val === 'transparent' ? undefined : val,
+                    },
+                  });
+                }}
+              />
+            </div>
+
+            {/* Transforms */}
+            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+              <div style={S.sectionTitle}>Press Dynamics</div>
+              <div style={S.row}>
+                <span style={S.label}>Pressed Scale</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                  <input
+                    type="number"
+                    min="0.8"
+                    max="1.2"
+                    step="0.01"
+                    value={b.activeStyles?.scale !== undefined ? b.activeStyles.scale : 0.96}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0.96;
+                      updateElementBehavior(el.id, {
+                        activeStyles: {
+                          ...b.activeStyles,
+                          scale: val,
+                        },
+                      });
+                    }}
+                    style={{ ...S.input, width: 60 }}
+                  />
+                  <span style={{ fontSize: 10, color: '#71717a' }}>e.g. 0.96</span>
+                </div>
+              </div>
+
+              <div style={S.row}>
+                <span style={S.label}>Push Offset (Y)</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                  <input
+                    type="number"
+                    min="-10"
+                    max="15"
+                    step="1"
+                    value={b.activeStyles?.translateY !== undefined ? b.activeStyles.translateY : 2}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10) || 0;
+                      updateElementBehavior(el.id, {
+                        activeStyles: {
+                          ...b.activeStyles,
+                          translateY: val,
+                        },
+                      });
+                    }}
+                    style={{ ...S.input, width: 60 }}
+                  />
+                  <span style={{ fontSize: 10, color: '#71717a' }}>+2px down</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Effects */}
+            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+              <div style={S.sectionTitle}>Effects</div>
+              <div style={S.row}>
+                <span style={S.label}>Pressed Shadow</span>
+                <select
+                  value={b.activeStyles?.boxShadow || 'inset 0 2px 4px rgba(0,0,0,0.4)'}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateElementBehavior(el.id, {
+                      activeStyles: {
+                        ...b.activeStyles,
+                        boxShadow: val === 'none' ? undefined : val,
+                      },
+                    });
+                  }}
+                  style={S.input}
+                >
+                  <option value="none" style={{ background: '#18181b' }}>None</option>
+                  <option value="inset 0 2px 4px rgba(0,0,0,0.4)" style={{ background: '#18181b' }}>Standard Inset</option>
+                  <option value="inset 0 4px 8px rgba(0,0,0,0.6)" style={{ background: '#18181b' }}>Deep Bevel</option>
+                  <option value="0 1px 2px rgba(0,0,0,0.2)" style={{ background: '#18181b' }}>Flat Pressed</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleStateTabChange('default')}
+              style={{
+                marginTop: 6,
+                padding: '7px 12px',
+                borderRadius: 6,
+                backgroundColor: '#1b1b22',
+                border: '1px solid #272732',
+                color: '#d4d4d8',
+                fontSize: 10.5,
+                fontWeight: 500,
+                cursor: 'pointer',
+                textAlign: 'center',
+              }}
+            >
+              Done Editing :active &rarr;
+            </button>
+          </div>
+        )}
+
+        {/* ── STATE STUDIO: FOCUS ─────────────────────────────── */}
+        {activeStateVariant === 'focus' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Header & Reset */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', backgroundColor: '#141418', border: '1px solid #1f1f28', borderRadius: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#38bdf8', backgroundColor: '#13202d', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>:focus</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#f4f4f5' }}>Focus State</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  updateElementBehavior(el.id, { focusStyles: undefined });
+                  showToast('Cleared focus overrides', 'info');
+                }}
+                style={{ background: 'none', border: 'none', color: '#71717a', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
+                title="Reset to Normal State"
+              >
+                <RotateCcw size={10} />
+                <span>Reset</span>
+              </button>
+            </div>
+
+            {/* Presets */}
+            <div>
+              <div style={S.sectionTitle}>Presets</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 5 }}>
+                {[
+                  { label: 'Indigo Ring', styles: { outlineColor: '#6366f1', outlineWidth: 2, boxShadow: '0 0 0 3px rgba(99,102,241,0.35)' } },
+                  { label: 'High Contrast', styles: { outlineColor: '#ffffff', outlineWidth: 2, boxShadow: '0 0 0 3px rgba(0,0,0,0.8)' } },
+                  { label: 'Emerald Ring', styles: { outlineColor: '#10b981', outlineWidth: 2, boxShadow: '0 0 0 3px rgba(16,185,129,0.35)' } },
+                  { label: 'Subtle Border', styles: { borderColor: '#818cf8', outlineWidth: 1, outlineColor: '#818cf8' } },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      updateElementBehavior(el.id, {
+                        focusStyles: {
+                          ...b.focusStyles,
+                          ...preset.styles,
+                        },
+                      });
+                      showToast(`Applied ${preset.label}`, 'success');
+                    }}
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      backgroundColor: '#141418',
+                      border: '1px solid #1f1f28',
+                      color: '#d4d4d8',
+                      fontSize: 10,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.12s ease',
+                    }}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Focus Ring & Outline */}
+            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+              <div style={S.sectionTitle}>Focus Ring & Outline</div>
+              <ColorPickerRow
+                label="Ring Color"
+                value={b.focusStyles?.outlineColor || '#6366f1'}
+                onChange={(val: string) => {
+                  updateElementBehavior(el.id, {
+                    focusStyles: {
+                      ...b.focusStyles,
+                      outlineColor: val === 'transparent' ? undefined : val,
+                    },
+                  });
+                }}
+              />
+
+              <div style={S.row}>
+                <span style={S.label}>Ring Width</span>
+                <div style={{ display: 'flex', gap: 4, flex: 1 }}>
+                  {[1, 2, 3, 4].map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => {
+                        updateElementBehavior(el.id, {
+                          focusStyles: {
+                            ...b.focusStyles,
+                            outlineWidth: w,
+                          },
+                        });
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '4px 0',
+                        borderRadius: 4,
+                        border: (b.focusStyles?.outlineWidth || 2) === w ? '1px solid #6366f1' : '1px solid #242430',
+                        backgroundColor: (b.focusStyles?.outlineWidth || 2) === w ? '#222232' : '#141418',
+                        color: (b.focusStyles?.outlineWidth || 2) === w ? '#fff' : '#a1a1aa',
+                        fontSize: 10,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {w}px
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Colors */}
+            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+              <div style={S.sectionTitle}>Border & Fill Highlights</div>
+              <ColorPickerRow
+                label="Focus Border"
+                value={b.focusStyles?.borderColor || 'transparent'}
+                onChange={(val: string) => {
+                  updateElementBehavior(el.id, {
+                    focusStyles: {
+                      ...b.focusStyles,
+                      borderColor: val === 'transparent' ? undefined : val,
+                    },
+                  });
+                }}
+              />
+              <ColorPickerRow
+                label="Focus Fill"
+                value={b.focusStyles?.backgroundColor || 'transparent'}
+                onChange={(val: string) => {
+                  updateElementBehavior(el.id, {
+                    focusStyles: {
+                      ...b.focusStyles,
+                      backgroundColor: val === 'transparent' ? undefined : val,
+                    },
+                  });
+                }}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleStateTabChange('default')}
+              style={{
+                marginTop: 6,
+                padding: '7px 12px',
+                borderRadius: 6,
+                backgroundColor: '#1b1b22',
+                border: '1px solid #272732',
+                color: '#d4d4d8',
+                fontSize: 10.5,
+                fontWeight: 500,
+                cursor: 'pointer',
+                textAlign: 'center',
+              }}
+            >
+              Done Editing :focus &rarr;
+            </button>
           </div>
         )}
       </div>

@@ -1,5 +1,8 @@
 import type { ActionType, CanvasElement, ProjectState, Page } from '../types/editor';
 import { triggerConfetti, playSound, type SoundEffectType } from './interactiveEffects';
+import { executeFormSubmission } from './formSubmitHandler';
+import { setCartOpen, addToCart, addProductConfigToCart } from './cartManager';
+import { trackAnalyticsEvent } from './analyticsEngine';
 
 export interface ActionDefinition {
   value: ActionType;
@@ -128,6 +131,32 @@ export const ACTION_DEFINITIONS: ActionDefinition[] = [
     payloadLabel: 'Discount Code',
     payloadPlaceholder: 'SAVE25 or VIP2026',
     payloadType: 'text',
+  },
+  {
+    value: 'open-cart',
+    label: 'Open Shopping Bag / Cart',
+    icon: '🛍️',
+    category: 'Interactive',
+    description: 'Opens slide-out e-commerce shopping bag drawer with order summary and checkout',
+    payloadType: 'none',
+  },
+  {
+    value: 'add-to-cart',
+    label: 'Add Item to Shopping Bag',
+    icon: '🛒',
+    category: 'Interactive',
+    description: 'Adds configured product item to shopping bag and opens slide-over cart drawer',
+    payloadType: 'none',
+  },
+  {
+    value: 'checkout-stripe',
+    label: 'Direct Checkout (Stripe / Link)',
+    icon: '💳',
+    category: 'Interactive',
+    description: 'Redirects buyer directly to Stripe Payment Link or Lemon Squeezy checkout',
+    payloadLabel: 'Checkout URL (Stripe Payment Link)',
+    payloadPlaceholder: 'https://buy.stripe.com/test_...',
+    payloadType: 'url',
   },
 
   // Effects & Audio
@@ -310,6 +339,25 @@ export function executeElementAction(
     return;
   }
 
+  try {
+    trackAnalyticsEvent({
+      type: actionType === 'add-to-cart' ? 'cart_add' : actionType === 'checkout-stripe' ? 'checkout' : 'click',
+      targetName: element.content || element.name || element.id,
+      pageSlug: context.project?.pages.find((p) => p.id === context.project?.activePageId)?.slug || 'home',
+      device: typeof window !== 'undefined' && window.innerWidth < 640 ? 'mobile' : typeof window !== 'undefined' && window.innerWidth < 1024 ? 'tablet' : 'desktop',
+      revenue: element.productConfig?.price || undefined,
+    });
+  } catch {}
+
+  if (behavior.actionConfirm && typeof window !== 'undefined') {
+    const msg = behavior.actionConfirmText || `Are you sure you want to proceed?`;
+    if (!window.confirm(msg)) return;
+  }
+
+  if (behavior.actionSound) {
+    playSound(behavior.actionSound);
+  }
+
   const payload = actionPayload || '';
   const clientX = e && 'clientX' in e ? e.clientX : typeof window !== 'undefined' ? window.innerWidth / 2 : 0;
   const clientY = e && 'clientY' in e ? e.clientY : typeof window !== 'undefined' ? window.innerHeight / 2 : 0;
@@ -320,6 +368,21 @@ export function executeElementAction(
         context.showToast('Please specify a destination URL for this button', 'warning');
         return;
       }
+      if (payload.startsWith('#')) {
+        const anchorId = payload.substring(1);
+        const targetEl =
+          document.getElementById(anchorId) ||
+          document.querySelector(`[data-element-id="${anchorId}"]`) ||
+          document.querySelector(`.${anchorId}`) ||
+          document.querySelector(`.el-${anchorId}`);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          context.showToast(`Scrolled smoothly to #${anchorId}`, 'info');
+        } else {
+          context.showToast(`Target section #${anchorId} not found`, 'warning');
+        }
+        return;
+      }
       const url = payload.startsWith('http://') || payload.startsWith('https://') || payload.startsWith('mailto:') || payload.startsWith('tel:')
         ? payload
         : `https://${payload}`;
@@ -328,18 +391,37 @@ export function executeElementAction(
     }
 
     case 'navigate-page': {
-      if (!payload) {
-        context.showToast('Please select a target page to navigate to', 'warning');
+      if (!context.setActivePage || !context.project) return;
+
+      let targetPayload = payload;
+      // If payload is an invalid URL leftover or empty, sanitize it to '__next__'
+      if (!targetPayload || targetPayload.startsWith('http') || targetPayload === 'none') {
+        targetPayload = '__next__';
+      }
+
+      if (context.project.pages.length <= 1) {
+        context.showToast('This project currently has 1 page. Click "+" by the page name in the header to add more pages!', 'info');
         return;
       }
-      if (context.setActivePage && context.project) {
-        const targetPage = context.project.pages.find((p) => p.id === payload || p.slug === payload);
-        if (targetPage) {
-          context.setActivePage(targetPage.id);
-          context.showToast(`Navigated to page: ${targetPage.name}`, 'info');
-        } else {
-          context.showToast(`Target page "${payload}" not found`, 'warning');
-        }
+
+      let targetPage = context.project.pages.find((p) => p.id === targetPayload || p.slug === targetPayload);
+      if (!targetPage && (targetPayload === '__next__' || targetPayload === 'next')) {
+        const currIdx = context.project.pages.findIndex((p) => p.id === context.activePage?.id);
+        targetPage = context.project.pages[(currIdx + 1) % context.project.pages.length];
+      } else if (!targetPage && (targetPayload === '__prev__' || targetPayload === 'prev')) {
+        const currIdx = context.project.pages.findIndex((p) => p.id === context.activePage?.id);
+        targetPage = context.project.pages[(currIdx - 1 + context.project.pages.length) % context.project.pages.length];
+      }
+
+      if (!targetPage) {
+        targetPage = context.project.pages.find((p) => p.id !== context.activePage?.id) || context.project.pages[0];
+      }
+
+      if (targetPage) {
+        context.setActivePage(targetPage.id);
+        context.showToast(`Navigated to page: ${targetPage.name}`, 'info');
+      } else {
+        context.showToast('Add another page in the header to navigate between pages', 'info');
       }
       break;
     }
@@ -455,7 +537,16 @@ export function executeElementAction(
     case 'submit-form': {
       playSound('success');
       triggerConfetti(clientX, clientY);
-      context.showToast(payload || '🎉 Form submitted successfully! Confirmation email sent.', 'success');
+      const defaultMsg = payload || element.formConfig?.successMessage || '🎉 Form submitted successfully!';
+      context.showToast(defaultMsg, 'success');
+
+      if (context.activePage) {
+        executeFormSubmission(element, context.activePage, context.project, clientX, clientY).then((res) => {
+          if (!res.success && res.error) {
+            context.showToast(res.error, 'warning');
+          }
+        });
+      }
       break;
     }
 
@@ -507,12 +598,43 @@ export function executeElementAction(
         context.showToast('Please enter text to copy in the button payload', 'warning');
         return;
       }
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        navigator.clipboard.writeText(payload);
+      const doSuccess = () => {
         playSound('pop');
-        context.showToast(`Copied to clipboard: "${payload}"`, 'success');
+        triggerConfetti(clientX, clientY);
+        context.showToast(`📋 Copied to clipboard: "${payload}"`, 'success');
+      };
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(payload).then(doSuccess).catch(() => {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = payload;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'absolute';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            doSuccess();
+          } catch {
+            context.showToast(`Copied text: "${payload}"`, 'info');
+          }
+        });
       } else {
-        context.showToast(`Copied: "${payload}"`, 'success');
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = payload;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'absolute';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          doSuccess();
+        } catch {
+          context.showToast(`Copied text: "${payload}"`, 'info');
+        }
       }
       break;
     }
@@ -637,6 +759,38 @@ export function executeElementAction(
       } catch (err: any) {
         context.showToast(`JS Error: ${err.message}`, 'warning');
       }
+      break;
+    }
+
+    case 'open-cart': {
+      setCartOpen(true);
+      context.showToast('Shopping Bag opened', 'info');
+      break;
+    }
+
+    case 'add-to-cart': {
+      if (element.productConfig) {
+        addProductConfigToCart(element.productConfig);
+        context.showToast(`Added "${element.productConfig.title}" to Shopping Bag!`, 'success');
+      } else {
+        addToCart({
+          productId: element.id,
+          title: element.content || element.name || 'Product Item',
+          price: 99,
+          currency: '$',
+          imageUrl: element.imageUrl || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+        });
+        context.showToast('Added item to Shopping Bag!', 'success');
+      }
+      break;
+    }
+
+    case 'checkout-stripe': {
+      const url = payload || element.productConfig?.checkoutUrl || 'https://checkout.stripe.com/test';
+      if (typeof window !== 'undefined') {
+        window.open(url, '_blank');
+      }
+      context.showToast('Redirecting to secure Stripe Checkout...', 'info');
       break;
     }
 

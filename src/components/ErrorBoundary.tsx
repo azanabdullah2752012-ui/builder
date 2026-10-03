@@ -31,7 +31,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleHardReset = () => {
     try {
-      localStorage.removeItem('craft_project_state');
+      localStorage.removeItem('visual_website_builder_project_v14');
+      localStorage.removeItem('craft_auth_user');
+      localStorage.removeItem('craft_editor_complexity');
+      localStorage.removeItem('craft_onboarding_completed');
+      sessionStorage.clear();
     } catch {}
     window.location.href = window.location.pathname;
   };
@@ -42,7 +46,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleTryRecover = () => {
     if (this.props.onReset) {
-      this.props.onReset();
+      try {
+        this.props.onReset();
+      } catch (err) {
+        console.error('Error in onReset:', err);
+      }
     }
     this.setState({ hasError: false, error: null, errorInfo: null });
   };

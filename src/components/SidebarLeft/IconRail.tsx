@@ -2,16 +2,16 @@ import React from 'react';
 import { useEditor } from '../../context/useEditor';
 import {
   LayoutGrid,
-  MoveHorizontal,
-  Square,
   Layers,
   Files,
-  Copy,
-  Crop,
+  LayoutTemplate,
+  Shapes,
+  Square,
+  Maximize2,
   HelpCircle,
-  ExternalLink,
+  PanelLeftClose,
+  PanelLeft,
 } from 'lucide-react';
-import type { ElementType } from '../../types/editor';
 
 interface IconRailProps {
   activeTab: 'elements' | 'layers' | 'pages';
@@ -24,7 +24,6 @@ export const IconRail: React.FC<IconRailProps> = ({ activeTab, setActiveTab }) =
     leftSidebarOpen,
     setLeftSidebarOpen,
     addElement,
-    selectElement,
     showToast,
   } = useEditor();
 
@@ -39,121 +38,290 @@ export const IconRail: React.FC<IconRailProps> = ({ activeTab, setActiveTab }) =
     }
   };
 
-  const handleQuickAdd = (type: ElementType) => {
-    addElement(type);
-  };
+  const navItems = [
+    {
+      id: 'elements' as const,
+      label: 'Components',
+      icon: <LayoutGrid size={17} />,
+      onClick: () => handleTabClick('elements'),
+      isActive: leftSidebarOpen && activeTab === 'elements',
+    },
+    {
+      id: 'layers' as const,
+      label: 'Layers',
+      icon: <Layers size={17} />,
+      onClick: () => handleTabClick('layers'),
+      isActive: leftSidebarOpen && activeTab === 'layers',
+    },
+    {
+      id: 'pages' as const,
+      label: 'Pages',
+      icon: <Files size={17} />,
+      badge: project.pages.length,
+      onClick: () => handleTabClick('pages'),
+      isActive: leftSidebarOpen && activeTab === 'pages',
+    },
+  ];
+
+  const toolItems = [
+    {
+      id: 'templates',
+      label: 'Templates',
+      icon: <LayoutTemplate size={17} />,
+      onClick: () => {
+        window.dispatchEvent(new CustomEvent('studio:open-templates'));
+        if (!leftSidebarOpen) setLeftSidebarOpen(true);
+        setActiveTab('elements');
+      },
+    },
+    {
+      id: 'shapes',
+      label: 'Shapes',
+      icon: <Shapes size={17} />,
+      onClick: () => {
+        if (!leftSidebarOpen) setLeftSidebarOpen(true);
+        setActiveTab('elements');
+        window.dispatchEvent(new CustomEvent('studio:open-shapes'));
+      },
+    },
+    {
+      id: 'container',
+      label: 'Container',
+      icon: <Square size={17} />,
+      onClick: () => {
+        addElement('container');
+        showToast('Added container frame', 'info');
+      },
+    },
+  ];
 
   return (
-    <div className="w-12 h-full bg-[#121214] border-r border-[#222226] flex flex-col items-center py-3 select-none shrink-0 z-20 justify-between text-zinc-400">
-      {/* Top Tools Matching Reference Mockup */}
-      <div className="flex flex-col items-center gap-2">
-        {/* 1. Grid / Elements (Active pill outline) */}
-        <button
-          onClick={() => handleTabClick('elements')}
-          className={`p-2 rounded-lg transition-all ${
-            leftSidebarOpen && activeTab === 'elements'
-              ? 'bg-[#222226] text-white shadow-sm'
-              : 'hover:bg-[#1c1c20] hover:text-zinc-200'
-          }`}
-          title="Components & Elements"
-        >
-          <LayoutGrid className="w-4 h-4" />
-        </button>
+    <aside
+      style={{
+        width: 62,
+        height: '100%',
+        backgroundColor: '#0c0c0e',
+        borderRight: '1px solid #1a1a1f',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px 0 12px 0',
+        userSelect: 'none',
+        flexShrink: 0,
+        zIndex: 20,
+      }}
+    >
+      {/* Top Navigation Strip */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: '100%' }}>
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={item.onClick}
+            title={item.label}
+            style={{
+              position: 'relative',
+              width: 52,
+              height: 50,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 3,
+              borderRadius: 8,
+              border: item.isActive ? '1px solid #2a2a35' : '1px solid transparent',
+              backgroundColor: item.isActive ? '#1a1a24' : 'transparent',
+              color: item.isActive ? '#ffffff' : '#888892',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              padding: 0,
+            }}
+            onMouseEnter={(e) => {
+              if (!item.isActive) {
+                e.currentTarget.style.backgroundColor = '#14141a';
+                e.currentTarget.style.color = '#e2e2e8';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!item.isActive) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = '#888892';
+              }
+            }}
+          >
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {item.icon}
+              {item.badge !== undefined && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -7,
+                    minWidth: 14,
+                    height: 14,
+                    borderRadius: 7,
+                    backgroundColor: '#6366f1',
+                    color: '#ffffff',
+                    fontSize: 9,
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 3px',
+                  }}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </div>
+            <span style={{ fontSize: 9.5, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1 }}>
+              {item.label}
+            </span>
+          </button>
+        ))}
 
-        {/* 2. Move / Selection Tool */}
-        <button
-          onClick={() => {
-            selectElement(null);
-            showToast('Selection cleared • Drag mode active', 'info');
-          }}
-          className="p-2 rounded-lg hover:bg-[#1c1c20] hover:text-zinc-200 transition-colors text-zinc-400"
-          title="Move & Select Tool (Clear Selection)"
-        >
-          <MoveHorizontal className="w-4 h-4" />
-        </button>
+        {/* Divider */}
+        <div style={{ width: 36, height: 1, backgroundColor: '#1a1a22', margin: '4px 0' }} />
 
-        {/* 3. Rectangle / Container Frame */}
-        <button
-          onClick={() => handleQuickAdd('container')}
-          className="p-2 rounded-lg hover:bg-[#1c1c20] hover:text-zinc-200 transition-colors text-zinc-400"
-          title="Add Container / Frame"
-        >
-          <Square className="w-4 h-4" />
-        </button>
+        {/* Quick Tools */}
+        {toolItems.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={item.onClick}
+            title={item.label}
+            style={{
+              width: 52,
+              height: 48,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 3,
+              borderRadius: 8,
+              border: '1px solid transparent',
+              backgroundColor: 'transparent',
+              color: '#767682',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              padding: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#14141a';
+              e.currentTarget.style.color = '#e2e2e8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#767682';
+            }}
+          >
+            {item.icon}
+            <span style={{ fontSize: 9.5, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1 }}>
+              {item.label}
+            </span>
+          </button>
+        ))}
+      </div>
 
-        {/* 4. Layers Tree */}
+      {/* Bottom Rail Controls */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: '100%' }}>
         <button
-          onClick={() => handleTabClick('layers')}
-          className={`p-2 rounded-lg transition-all ${
-            leftSidebarOpen && activeTab === 'layers'
-              ? 'bg-[#222226] text-white shadow-sm'
-              : 'hover:bg-[#1c1c20] hover:text-zinc-200'
-          }`}
-          title="Layers & Hierarchy"
-        >
-          <Layers className="w-4 h-4" />
-        </button>
-
-        {/* 5. Pages & Multi-page Routing */}
-        <button
-          onClick={() => handleTabClick('pages')}
-          className={`p-2 rounded-lg transition-all relative ${
-            leftSidebarOpen && activeTab === 'pages'
-              ? 'bg-[#222226] text-white shadow-sm'
-              : 'hover:bg-[#1c1c20] hover:text-zinc-200'
-          }`}
-          title="Pages & Routing"
-        >
-          <Files className="w-4 h-4" />
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-indigo-600 text-[9px] font-bold text-white rounded-full flex items-center justify-center">
-            {project.pages.length}
-          </span>
-        </button>
-
-        {/* 5. Components / Cards */}
-        <button
-          onClick={() => handleQuickAdd('section')}
-          className="p-2 rounded-lg hover:bg-[#1c1c20] hover:text-zinc-200 transition-colors text-zinc-400"
-          title="Add Section"
-        >
-          <Copy className="w-4 h-4" />
-        </button>
-
-        {/* 6. Crop / Fit to Screen Tool */}
-        <button
+          type="button"
           onClick={() => {
             window.dispatchEvent(new CustomEvent('canvas:fit-to-screen'));
             showToast('Canvas fitted to screen', 'info');
           }}
-          className="p-2 rounded-lg hover:bg-[#1c1c20] hover:text-zinc-200 transition-colors text-zinc-400"
           title="Fit Canvas to Screen"
-        >
-          <Crop className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Bottom Rail Actions Matching Reference Mockup */}
-      <div className="flex flex-col items-center gap-2">
-        <button
-          onClick={() => {
-            showToast('💡 Double-click text to edit • Drag handles/edges to resize • Backspace to delete', 'info');
+          style={{
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 7,
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#60606d',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
           }}
-          className="p-2 rounded-lg hover:bg-[#1c1c20] hover:text-zinc-200 transition-colors text-zinc-500 hover:text-zinc-300"
-          title="Help & Shortcuts"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#14141a';
+            e.currentTarget.style.color = '#ffffff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = '#60606d';
+          }}
         >
-          <HelpCircle className="w-4 h-4" />
+          <Maximize2 size={15} />
         </button>
 
         <button
-          onClick={() => setLeftSidebarOpen((o) => !o)}
-          className={`p-2 rounded-lg hover:bg-[#1c1c20] hover:text-zinc-200 transition-colors ${
-            leftSidebarOpen ? 'text-zinc-400' : 'text-blue-400'
-          }`}
-          title={leftSidebarOpen ? 'Collapse Left Drawer' : 'Expand Left Drawer'}
+          type="button"
+          onClick={() => {
+            showToast('💡 Tips: Double click text to edit • Drag elements onto canvas • Del to remove', 'info');
+          }}
+          title="Keyboard shortcuts & tips"
+          style={{
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 7,
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#60606d',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#14141a';
+            e.currentTarget.style.color = '#ffffff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = '#60606d';
+          }}
         >
-          <ExternalLink className="w-4 h-4" />
+          <HelpCircle size={15} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+          title={leftSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+          style={{
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 7,
+            border: leftSidebarOpen ? '1px solid #272733' : 'none',
+            backgroundColor: leftSidebarOpen ? '#171720' : 'transparent',
+            color: leftSidebarOpen ? '#a5b4fc' : '#60606d',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (!leftSidebarOpen) {
+              e.currentTarget.style.backgroundColor = '#14141a';
+              e.currentTarget.style.color = '#ffffff';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!leftSidebarOpen) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#60606d';
+            }
+          }}
+        >
+          {leftSidebarOpen ? <PanelLeftClose size={15} /> : <PanelLeft size={15} />}
         </button>
       </div>
-    </div>
+    </aside>
   );
 };

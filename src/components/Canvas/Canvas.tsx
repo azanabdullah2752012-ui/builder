@@ -23,17 +23,28 @@ import {
   createSignUpSection,
 } from '../../constants/templates';
 import { CanvasContextMenu } from './CanvasContextMenu';
-import { CanvasQuickDock } from './CanvasQuickDock';
-import type { ShapeKind } from '../../types/editor';
+import { CanvasFloatingControls } from './CanvasFloatingControls';
+import { CanvasRulers } from './CanvasRulers';
+import { FigmaDistanceOverlay } from './FigmaDistanceOverlay';
+import { SmartGuidesOverlay } from './SmartGuidesOverlay';
+import type { ShapeKind, SmartSnapLine, EqualSpacingIndicator } from '../../types/editor';
 
 export const Canvas: React.FC = () => {
   const {
     activePage,
     selectedElementId,
+    selectedElement,
+    selectedElementIds,
     selectElement,
+    selectElements,
     zoom,
     setZoom,
     showGrid,
+    showRulers,
+    userGuides,
+    addUserGuide,
+    updateUserGuide,
+    removeUserGuide,
     viewportMode,
     addElement,
     addElements,
@@ -47,17 +58,29 @@ export const Canvas: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const pageSurfaceRef = useRef<HTMLDivElement>(null);
 
-  const [guides, setGuides] = React.useState<{
-    x: number | null;
-    y: number | null;
-    labelX?: string;
-    labelY?: string;
-  }>({ x: null, y: null });
+  const [marqueeBox, setMarqueeBox] = React.useState<{
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+  } | null>(null);
+
+  const [smartGuides, setSmartGuides] = React.useState<{
+    snapLines: SmartSnapLine[];
+    equalSpacings: EqualSpacingIndicator[];
+  }>({ snapLines: [], equalSpacings: [] });
 
   useEffect(() => {
     const handleGuides = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      setGuides(detail || { x: null, y: null });
+      if (!detail) {
+        setSmartGuides({ snapLines: [], equalSpacings: [] });
+        return;
+      }
+      setSmartGuides({
+        snapLines: detail.snapLines || [],
+        equalSpacings: detail.equalSpacings || [],
+      });
     };
     window.addEventListener('canvas:guides', handleGuides);
     return () => window.removeEventListener('canvas:guides', handleGuides);
@@ -73,7 +96,7 @@ export const Canvas: React.FC = () => {
     if (contextMenu) setContextMenu(null);
     // Only deselect if clicked directly on canvas background or page wrapper, not on elements
     if (e.target === canvasRef.current || (e.target as HTMLElement).dataset.canvasSurface === 'true') {
-      selectElement(null);
+      selectElements([]);
     }
   };
 
@@ -195,6 +218,67 @@ export const Canvas: React.FC = () => {
     setZoom(newZoom);
   }, [displayWidth, setZoom]);
 
+  // Handle Marquee Drag Selection on Canvas Surface
+  const handleSurfaceMouseDown = useCallback((e: React.MouseEvent) => {
+    // Only left click
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    // Ensure user clicked on the canvas surface, background, or artboard wrapper, not on interactive element
+    if (target.closest('[data-element-id]')) return;
+
+    if (contextMenu) setContextMenu(null);
+
+    const surface = pageSurfaceRef.current;
+    if (!surface) return;
+    const rect = surface.getBoundingClientRect();
+    const startX = (e.clientX - rect.left) / zoom;
+    const startY = (e.clientY - rect.top) / zoom;
+
+    let hasDragged = false;
+    const initialSelected = (e.shiftKey || e.metaKey) ? [...selectedElementIds] : [];
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const curX = (moveEvent.clientX - rect.left) / zoom;
+      const curY = (moveEvent.clientY - rect.top) / zoom;
+      const dist = Math.hypot(curX - startX, curY - startY);
+
+      if (dist > 4) {
+        hasDragged = true;
+        setMarqueeBox({ startX, startY, currentX: curX, currentY: curY });
+
+        const minX = Math.min(startX, curX);
+        const maxX = Math.max(startX, curX);
+        const minY = Math.min(startY, curY);
+        const maxY = Math.max(startY, curY);
+
+        const intersecting = elementsToRender.filter((el) => {
+          return (
+            el.x < maxX &&
+            el.x + el.width > minX &&
+            el.y < maxY &&
+            el.y + el.height > minY
+          );
+        });
+
+        const newIds = intersecting.map((el) => el.id);
+        const merged = Array.from(new Set([...initialSelected, ...newIds]));
+        selectElements(merged);
+      }
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      setMarqueeBox(null);
+      if (!hasDragged && !e.shiftKey && !e.metaKey) {
+        selectElements([]);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }, [contextMenu, zoom, selectedElementIds, elementsToRender, selectElements]);
+
   // Listen to global 'canvas:fit-to-screen' event triggered by ContextBar 'Fit' button
   useEffect(() => {
     const handleFit = () => fitToScreen();
@@ -234,145 +318,145 @@ export const Canvas: React.FC = () => {
     <main
       ref={canvasRef}
       onClick={handleCanvasClick}
+      onMouseDown={handleSurfaceMouseDown}
       onContextMenu={handleContextMenu}
-      className="flex-1 bg-[#0b0e14] overflow-auto relative flex flex-col items-center justify-start p-6 lg:p-8 select-none"
+      className="flex-1 bg-[#0c0c0e] overflow-auto relative flex flex-col items-center justify-start p-8 pb-24 select-none"
       style={{
         backgroundImage: showGrid
-          ? 'radial-gradient(circle, rgba(147, 197, 253, 0.08) 1px, transparent 1px)'
+          ? 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px)'
           : 'none',
         backgroundSize: '24px 24px',
       }}
     >
-      {/* Radiant Studio Nebula Glow behind Artboard */}
-      <div
-        className="absolute pointer-events-none -inset-10 overflow-hidden opacity-90"
-        style={{
-          background:
-            'radial-gradient(ellipse 950px 650px at 50% 36%, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.09), transparent 75%)',
-        }}
-      />
 
-      {/* Floating Canvas Quick Insertion Dock */}
-      <CanvasQuickDock />
-
-      {/* Scaled Canvas Container Wrapper */}
+      {/* Scaled Canvas Container Wrapper with Rulers and Guides */}
       <div
         style={{
-          width: `${displayWidth * zoom}px`,
-          minHeight: `${displayHeight * zoom + 32}px`,
+          width: `${displayWidth * zoom + (showRulers ? 20 : 0)}px`,
+          minHeight: `${displayHeight * zoom + (showRulers ? 20 : 0) + 32}px`,
           transition: 'width 0.12s ease-out, height 0.12s ease-out',
         }}
         className="relative my-auto shrink-0 flex flex-col z-10"
       >
         {/* Artboard Header Badge */}
-        <div className="text-[11px] text-indigo-300 font-mono font-medium mb-2.5 pl-0.5 select-none flex items-center justify-between">
+        <div className="text-[11px] text-zinc-400 font-mono font-medium mb-2.5 pl-0.5 select-none flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.9)]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
             <span className="font-sans font-semibold text-zinc-300 tracking-tight">Artboard</span>
             <span className="text-zinc-600 font-normal">/</span>
-            <span className="text-indigo-400 font-sans">{activePage.name}</span>
+            <span className="text-zinc-300 font-sans">{activePage.name}</span>
           </div>
-          <span className="text-[10px] text-zinc-500 font-mono">{displayWidth} × {displayHeight}px</span>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] text-zinc-500 font-mono">
+              {viewportMode === 'mobile' ? 'Mobile (iPhone 15 Pro • 390×844)' : viewportMode === 'tablet' ? 'Tablet (iPad • 768×1024)' : `Desktop (${displayWidth}×${displayHeight})`}
+            </span>
+            <span className="text-[10px] text-zinc-600 font-mono hidden sm:inline">• Shift+R: Rulers • Alt: Distances</span>
+          </div>
         </div>
 
-        <div
-          style={{
-            width: `${displayWidth}px`,
-            minHeight: `${displayHeight}px`,
-            transform: `scale(${zoom})`,
-            transformOrigin: 'top left',
-            transition: 'transform 0.12s ease-out',
-          }}
-          className="relative"
+        <CanvasRulers
+          canvasWidth={displayWidth}
+          canvasHeight={displayHeight}
+          zoom={zoom}
+          showRulers={showRulers}
+          userGuides={userGuides}
+          onAddGuide={addUserGuide}
+          onUpdateGuide={updateUserGuide}
+          onRemoveGuide={removeUserGuide}
         >
-          {/* Page Boundary */}
           <div
-            ref={pageSurfaceRef}
-            data-canvas-surface="true"
-            onClick={handleCanvasClick}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
             style={{
               width: `${displayWidth}px`,
               minHeight: `${displayHeight}px`,
-              backgroundColor: activePage.backgroundColor || '#ffffff',
-              boxShadow:
-                viewportMode === 'mobile'
-                  ? '0 30px 70px -15px rgba(0, 0, 0, 0.8), 0 0 0 10px #11141e, 0 0 0 11px #262f44, 0 0 35px rgba(99, 102, 241, 0.15)'
-                  : '0 25px 60px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.14), 0 0 40px rgba(99, 102, 241, 0.1)',
-              transition: 'width 0.28s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top left',
+              transition: 'transform 0.12s ease-out',
             }}
-            className={`relative overflow-hidden ${viewportMode === 'mobile' ? 'rounded-3xl' : 'rounded-xl'}`}
+            className="relative"
           >
-          {/* Phone Top Speaker/Camera notch simulation when in phone mode */}
-          {viewportMode === 'mobile' && (
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-zinc-900 rounded-full z-40 flex items-center justify-center opacity-80 pointer-events-none">
-              <div className="w-3 h-3 rounded-full bg-zinc-950 mr-2" />
-              <div className="w-10 h-1 bg-zinc-800 rounded-full" />
-            </div>
-          )}
-
-          {/* Ambient Studio Hero Lighting Glow (vibrant, modern studio depth) */}
-          <div
-            data-canvas-surface="true"
-            className="absolute inset-0 pointer-events-none overflow-hidden"
-            style={{
-              background:
-                'radial-gradient(ellipse 700px 380px at 50% 26%, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.08), transparent 72%)',
-            }}
-          />
-
-          {/* Subtle grid on canvas surface if enabled */}
-          {showGrid && (
+            {/* Page Boundary */}
             <div
+              ref={pageSurfaceRef}
               data-canvas-surface="true"
-              className="absolute inset-0 pointer-events-none"
+              onClick={handleCanvasClick}
+              onMouseDown={handleSurfaceMouseDown}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
               style={{
-                backgroundImage: 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px)',
-                backgroundSize: '24px 24px',
+                width: `${displayWidth}px`,
+                minHeight: `${displayHeight}px`,
+                backgroundColor: activePage.backgroundColor || '#ffffff',
+                boxShadow:
+                  viewportMode === 'mobile'
+                    ? '0 30px 80px -15px rgba(0, 0, 0, 0.9), 0 0 0 10px #18181b, 0 0 0 12px #27272a, 0 0 0 13px #09090b'
+                    : viewportMode === 'tablet'
+                    ? '0 25px 70px -15px rgba(0, 0, 0, 0.8), 0 0 0 10px #18181b, 0 0 0 11px #27272a'
+                    : '0 20px 50px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+                transition: 'width 0.28s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
-            />
-          )}
-
-          {/* Render Elements with Auto-Adjusted Responsive Positions */}
-          {elementsToRender.map((element) => (
-            <CanvasElementComponent
-              key={element.id}
-              element={element}
-              isSelected={selectedElementId === element.id}
-              canvasWidth={displayWidth}
-              canvasHeight={displayHeight}
-            />
-          ))}
-
-          {/* Dynamic Magnetic Smart Alignment Guides (Figma & Canva standard) */}
-          {guides.x !== null && (
-            <div
-              className="absolute top-0 bottom-0 pointer-events-none z-40 flex flex-col items-center"
-              style={{ left: `${guides.x}px` }}
+              className={`relative overflow-hidden ${viewportMode === 'mobile' ? 'rounded-[44px]' : viewportMode === 'tablet' ? 'rounded-2xl' : 'rounded-xl'}`}
             >
-              <div className="w-[1.5px] h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.9)]" />
-              {guides.labelX && (
-                <div className="absolute top-3 px-2 py-0.5 rounded-full bg-indigo-600 text-[10px] font-mono font-medium text-white shadow-xl pointer-events-none whitespace-nowrap border border-indigo-400/50 backdrop-blur-sm -translate-x-1/2">
-                  {guides.labelX} • {guides.x}px
-                </div>
+              {/* Dynamic Island pill simulation when in phone mode */}
+              {viewportMode === 'mobile' && (
+                <>
+                  <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-40 flex items-center justify-between px-2.5 shadow-md pointer-events-none">
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-900 border border-zinc-800" />
+                    <div className="w-2 h-2 rounded-full bg-indigo-950/60" />
+                  </div>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-zinc-400/30 rounded-full z-40 pointer-events-none" />
+                </>
               )}
-            </div>
-          )}
 
-          {guides.y !== null && (
-            <div
-              className="absolute left-0 right-0 pointer-events-none z-40 flex items-center"
-              style={{ top: `${guides.y}px` }}
-            >
-              <div className="h-[1.5px] w-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.9)]" />
-              {guides.labelY && (
-                <div className="absolute left-4 -top-6 px-2 py-0.5 rounded-full bg-indigo-600 text-[10px] font-mono font-medium text-white shadow-xl pointer-events-none whitespace-nowrap border border-indigo-400/50 backdrop-blur-sm">
-                  {guides.labelY} • {guides.y}px
-                </div>
+              {/* Subtle grid on canvas surface if enabled */}
+              {showGrid && (
+                <div
+                  data-canvas-surface="true"
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    backgroundImage: 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px)',
+                    backgroundSize: '24px 24px',
+                  }}
+                />
               )}
-            </div>
-          )}
+
+              {/* Render Elements with Auto-Adjusted Responsive Positions */}
+              {elementsToRender.map((element) => (
+                <CanvasElementComponent
+                  key={element.id}
+                  element={element}
+                  isSelected={selectedElementIds.includes(element.id)}
+                  canvasWidth={displayWidth}
+                  canvasHeight={displayHeight}
+                />
+              ))}
+
+              {/* Marquee Selection Box Overlay */}
+              {marqueeBox && (
+                <div
+                  className="absolute pointer-events-none rounded border border-indigo-400 bg-indigo-500/15 backdrop-blur-[0.5px] shadow-[0_0_12px_rgba(99,102,241,0.35)] z-50 transition-none"
+                  style={{
+                    left: `${Math.min(marqueeBox.startX, marqueeBox.currentX)}px`,
+                    top: `${Math.min(marqueeBox.startY, marqueeBox.currentY)}px`,
+                    width: `${Math.abs(marqueeBox.currentX - marqueeBox.startX)}px`,
+                    height: `${Math.abs(marqueeBox.currentY - marqueeBox.startY)}px`,
+                  }}
+                />
+              )}
+
+              {/* Dynamic Magnetic Smart Alignment Guides & Equal Spacing (Figma & Canva standard) */}
+              <SmartGuidesOverlay
+                snapLines={smartGuides.snapLines}
+                equalSpacings={smartGuides.equalSpacings}
+              />
+
+              {/* Figma Alt / Option Distance Inspector */}
+              <FigmaDistanceOverlay
+                selectedElement={selectedElement}
+                allElements={activePage.elements}
+                canvasWidth={displayWidth}
+                canvasHeight={displayHeight}
+                zoom={zoom}
+              />
 
           {/* Welcoming Empty State Starter Hub (Active & Engaging) */}
           {activePage.elements.length === 0 && (
@@ -501,8 +585,9 @@ export const Canvas: React.FC = () => {
             </div>
           )}
         </div>
+        </div>
+        </CanvasRulers>
       </div>
-    </div>
 
     {/* Right-Click Pro Context Menu */}
     {contextMenu && (
@@ -513,6 +598,9 @@ export const Canvas: React.FC = () => {
         onClose={() => setContextMenu(null)}
       />
     )}
+
+    {/* Floating Ergonomic Canvas Controls (Zoom, Grid, Rulers, Snapping, Undo/Redo) */}
+    <CanvasFloatingControls />
   </main>
   );
 };

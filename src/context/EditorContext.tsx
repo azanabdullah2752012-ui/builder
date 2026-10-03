@@ -5,23 +5,27 @@ import type {
   ProjectState,
   EditorMode,
   ViewportMode,
+  StateVariant,
   ElementStyles,
   ElementBehavior,
   ContainerLayoutConfig,
   ElementResponsiveConfig,
   Page,
   ShapeKind,
+  CloudSyncStatus,
+  ProjectSummary,
+  ProjectRevision,
+  UserGuide,
 } from '../types/editor';
 import { SHAPE_DEFINITIONS } from '../utils/shapeDefinitions';
 import {
   INITIAL_PROJECT,
-  STORAGE_KEY,
   createElement,
   generateId,
   CANVAS_DEFAULT_WIDTH,
   CANVAS_DEFAULT_HEIGHT,
 } from '../constants/defaults';
-import { EditorContext } from './editorContextInstance';
+import { EditorContext, setLatestEditorContextValue } from './editorContextInstance';
 import type { Toast, EditorContextType } from './editorContextInstance';
 
 import { normalizeProjectState } from '../utils/projectNormalization';
@@ -29,23 +33,17 @@ import { databaseService } from '../services/databaseService';
 
 
 export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load initial state from LocalStorage if available
+  // Direct Cloud State: initializes with normalized base project, then hydrates from Supabase Cloud
   const [project, setProject] = useState<ProjectState>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && parsed.pages && parsed.pages.length > 0) {
-          return normalizeProjectState(parsed);
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to parse saved project from localStorage:', e);
-    }
     return normalizeProjectState(INITIAL_PROJECT);
   });
 
-  const [selectedElementId, setSelectedElementId] = useState<string | null>('el_primary_cta');
+  const [selectedElementIds, setSelectedElementIds] = useState<string[]>(['el_primary_cta']);
+  const selectedElementId = selectedElementIds[0] || null;
+
+  const setSelectedElementId = useCallback((id: string | null) => {
+    setSelectedElementIds(id ? [id] : []);
+  }, []);
   
   // Initial mode: If user is already authenticated, or URL specifies ?editor=true / #editor, open Editor directly!
   const [editorMode, setEditorMode] = useState<EditorMode>(() => {
@@ -76,11 +74,25 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   const [viewportMode, setViewportMode] = useState<ViewportMode>('desktop');
+  const [previewStateVariant, setPreviewStateVariant] = useState<StateVariant>('default');
   const [zoom, setZoom] = useState<number>(1);
   const [showGrid, setShowGrid] = useState<boolean>(true);
+  const [showRulers, setShowRulers] = useState<boolean>(false);
+  const [snapToObjects, setSnapToObjects] = useState<boolean>(true);
+  const [snapToGuides, setSnapToGuides] = useState<boolean>(true);
+  const [userGuides, setUserGuides] = useState<UserGuide[]>([]);
   const [isSaved, setIsSaved] = useState<boolean>(true);
   const [lastSavedText, setLastSavedText] = useState<string>('Saved locally');
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  // Cloud Persistence & Modal States
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<CloudSyncStatus>('idle');
+  const [lastCloudSavedAt, setLastCloudSavedAt] = useState<string | null>(null);
+  const [cloudProjects, setCloudProjects] = useState<ProjectSummary[]>([]);
+  const [isProjectManagerOpen, setIsProjectManagerOpen] = useState<boolean>(false);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [revisions, setRevisions] = useState<ProjectRevision[]>([]);
 
   // Toast helper
   const removeToast = useCallback((id: string) => {
@@ -94,6 +106,41 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       removeToast(id);
     }, 3800);
   }, [removeToast]);
+
+  // Rulers and Custom User Guides methods
+  const toggleRulers = useCallback(() => {
+    setShowRulers((prev) => {
+      const next = !prev;
+      showToast(next ? 'Rulers & Guides shown (Shift+R)' : 'Rulers & Guides hidden (Shift+R)', 'info');
+      return next;
+    });
+  }, [showToast]);
+
+  const addUserGuide = useCallback((orientation: 'horizontal' | 'vertical', position: number) => {
+    const newGuide: UserGuide = {
+      id: `guide_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      orientation,
+      position,
+    };
+    setUserGuides((prev) => [...prev, newGuide]);
+    showToast(`Added ${orientation} guide at ${position}px`, 'info');
+  }, [showToast]);
+
+  const updateUserGuide = useCallback((id: string, position: number) => {
+    setUserGuides((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, position } : g))
+    );
+  }, []);
+
+  const removeUserGuide = useCallback((id: string) => {
+    setUserGuides((prev) => prev.filter((g) => g.id !== id));
+    showToast('Removed guide line', 'info');
+  }, [showToast]);
+
+  const clearUserGuides = useCallback(() => {
+    setUserGuides([]);
+    showToast('Cleared all guides', 'info');
+  }, [showToast]);
 
   // Authenticated Creator Session
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string; plan?: string; role?: string } | null>(() => {
@@ -278,27 +325,49 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return page || project.pages[0];
   }, [project.pages, project.activePageId]);
 
-  // Currently selected element
+  // Currently selected elements
+  const selectedElements = useMemo(() => {
+    if (selectedElementIds.length === 0) return [];
+    const idSet = new Set(selectedElementIds);
+    return activePage.elements.filter((el) => idSet.has(el.id));
+  }, [activePage.elements, selectedElementIds]);
+
   const selectedElement = useMemo(() => {
     if (!selectedElementId) return null;
     return activePage.elements.find((el) => el.id === selectedElementId) || null;
   }, [activePage.elements, selectedElementId]);
 
-  // Auto-save to LocalStorage
+  // Auto-save: debounced persistence directly to Supabase Cloud (800ms)
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
-        setIsSaved(true);
-        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        setLastSavedText(`Saved at ${timeStr}`);
-      } catch (err) {
-        console.error('Failed to save to localStorage:', err);
-      }
-    }, 400);
+    setCloudSyncStatus('saving');
+    setIsSaved(false);
 
-    return () => clearTimeout(timeout);
-  }, [project]);
+    const cloudTimeout = setTimeout(async () => {
+      try {
+        const res = await databaseService.saveProject(project, {
+          userId: currentUser?.email,
+          isPublic: project.isPublic,
+        });
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setLastCloudSavedAt(timeStr);
+        setIsSaved(true);
+        if (res.cloud) {
+          setCloudSyncStatus('saved');
+          setLastSavedText(`Supabase Synced at ${timeStr}`);
+        } else {
+          setCloudSyncStatus('offline');
+          setLastSavedText(`Saved to Workspace (${timeStr})`);
+        }
+      } catch {
+        setCloudSyncStatus('offline');
+        setLastSavedText('Saving error');
+      }
+    }, 800);
+
+    return () => {
+      clearTimeout(cloudTimeout);
+    };
+  }, [project, currentUser?.email]);
 
   // Record state to history before making modifications
   const pushHistory = useCallback((currentProject: ProjectState) => {
@@ -314,6 +383,18 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return {
         ...prev,
         name,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, [pushHistory]);
+
+  // Update Project Settings (slug, isPublic, publishedAt, publishConfig)
+  const updateProjectSettings = useCallback((settings: Partial<ProjectState>) => {
+    setProject((prev) => {
+      pushHistory(prev);
+      return {
+        ...prev,
+        ...settings,
         updatedAt: new Date().toISOString(),
       };
     });
@@ -432,12 +513,33 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   }, [pushHistory]);
 
-  // Select Element
+  // Select Element & Multi-selection
   const selectElement = useCallback((id: string | null) => {
-    setSelectedElementId(id);
+    setSelectedElementIds(id ? [id] : []);
     if (id) {
       setRightSidebarOpen(true);
     }
+  }, []);
+
+  const selectElements = useCallback((ids: string[]) => {
+    setSelectedElementIds(ids);
+    if (ids.length > 0) {
+      setRightSidebarOpen(true);
+    }
+  }, []);
+
+  const toggleSelectElement = useCallback((id: string, multi: boolean = false) => {
+    if (multi) {
+      setSelectedElementIds((prev) => {
+        if (prev.includes(id)) {
+          return prev.filter((x) => x !== id);
+        }
+        return [...prev, id];
+      });
+    } else {
+      setSelectedElementIds([id]);
+    }
+    setRightSidebarOpen(true);
   }, []);
 
   // Add Element to Canvas or into a Section/Container
@@ -1461,6 +1563,470 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   }, [pushHistory]);
 
+  // Group Selected Elements into a Container
+  const groupSelectedElements = useCallback((): CanvasElement | null => {
+    let newGroup: CanvasElement | null = null;
+    setProject((prev) => {
+      const active = prev.pages.find((p) => p.id === prev.activePageId);
+      if (!active) return prev;
+      const elementsToGroup = active.elements.filter((el) => selectedElementIds.includes(el.id));
+      if (elementsToGroup.length < 2) {
+        showToast('Select 2 or more elements to group', 'warning');
+        return prev;
+      }
+
+      pushHistory(prev);
+
+      const minX = Math.min(...elementsToGroup.map((e) => e.x));
+      const minY = Math.min(...elementsToGroup.map((e) => e.y));
+      const maxX = Math.max(...elementsToGroup.map((e) => e.x + e.width));
+      const maxY = Math.max(...elementsToGroup.map((e) => e.y + e.height));
+      const maxZ = Math.max(...elementsToGroup.map((e) => e.zIndex || 1));
+
+      // Common parent check
+      const firstParent = elementsToGroup[0].parentId || null;
+      const commonParent = elementsToGroup.every((e) => (e.parentId || null) === firstParent) ? firstParent : null;
+
+      const groupCount = active.elements.filter((e) => e.type === 'container').length + 1;
+
+      newGroup = createElement('container', minX, minY, maxZ + 1, commonParent, {
+        name: `Group Container ${groupCount}`,
+        width: Math.max(80, maxX - minX),
+        height: Math.max(60, maxY - minY),
+        children: elementsToGroup.map((e) => e.id),
+        styles: {
+          backgroundColor: 'transparent',
+          borderColor: 'transparent',
+          borderWidth: 0,
+          borderStyle: 'none',
+          borderRadius: 0,
+          padding: 0,
+        },
+        layout: {
+          layoutType: 'flex',
+          direction: 'column',
+          gap: 0,
+          padding: { top: 0, right: 0, bottom: 0, left: 0 },
+        },
+      });
+      const groupId = newGroup.id;
+
+      const groupChildIds = new Set(elementsToGroup.map((e) => e.id));
+
+      const updatedPages = prev.pages.map((p) => {
+        if (p.id === prev.activePageId) {
+          const updatedElements = p.elements.map((el) => {
+            if (groupChildIds.has(el.id)) {
+              return {
+                ...el,
+                parentId: groupId,
+                x: el.x - minX,
+                y: el.y - minY,
+              };
+            }
+            if (commonParent && el.id === commonParent && el.children) {
+              return {
+                ...el,
+                children: [...el.children.filter((cid) => !groupChildIds.has(cid)), groupId],
+              };
+            }
+            return el;
+          });
+
+          return {
+            ...p,
+            elements: [...updatedElements, newGroup!],
+          };
+        }
+        return p;
+      });
+
+      return {
+        ...prev,
+        pages: updatedPages,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    if (newGroup) {
+      setSelectedElementIds([(newGroup as CanvasElement).id]);
+      showToast(`Grouped ${selectedElementIds.length} elements (Cmd+G)`, 'success');
+    }
+    return newGroup;
+  }, [selectedElementIds, pushHistory, showToast]);
+
+  // Ungroup Selected Containers
+  const ungroupSelectedElements = useCallback(() => {
+    let restoredChildIds: string[] = [];
+    setProject((prev) => {
+      const active = prev.pages.find((p) => p.id === prev.activePageId);
+      if (!active) return prev;
+
+      const containersToUngroup = active.elements.filter(
+        (el) => selectedElementIds.includes(el.id) && (el.type === 'container' || el.type === 'section')
+      );
+
+      if (containersToUngroup.length === 0) {
+        showToast('Select a grouped container to ungroup', 'warning');
+        return prev;
+      }
+
+      pushHistory(prev);
+
+      const containerIds = new Set(containersToUngroup.map((c) => c.id));
+      const containerMap = new Map(containersToUngroup.map((c) => [c.id, c]));
+      const allChildrenToRestore: string[] = [];
+
+      const updatedPages = prev.pages.map((p) => {
+        if (p.id === prev.activePageId) {
+          const updatedElements = p.elements
+            .filter((el) => !containerIds.has(el.id))
+            .map((el) => {
+              if (el.parentId && containerIds.has(el.parentId)) {
+                const parentContainer = containerMap.get(el.parentId)!;
+                allChildrenToRestore.push(el.id);
+                return {
+                  ...el,
+                  parentId: parentContainer.parentId || null,
+                  x: parentContainer.x + el.x,
+                  y: parentContainer.y + el.y,
+                };
+              }
+              if (el.children && el.children.some((cid) => containerIds.has(cid))) {
+                return {
+                  ...el,
+                  children: el.children.filter((cid) => !containerIds.has(cid)),
+                };
+              }
+              return el;
+            });
+
+          return {
+            ...p,
+            elements: updatedElements,
+          };
+        }
+        return p;
+      });
+
+      restoredChildIds = allChildrenToRestore;
+
+      return {
+        ...prev,
+        pages: updatedPages,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    if (restoredChildIds.length > 0) {
+      setSelectedElementIds(restoredChildIds);
+      showToast(`Ungrouped into ${restoredChildIds.length} elements (Cmd+Shift+G)`, 'info');
+    }
+  }, [selectedElementIds, pushHistory, showToast]);
+
+  // Batch Align Selected Elements
+  const alignSelectedElements = useCallback(
+    (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
+      if (selectedElementIds.length <= 1) {
+        if (selectedElementIds[0]) {
+          alignElement(selectedElementIds[0], alignment);
+        }
+        return;
+      }
+
+      setProject((prev) => {
+        const active = prev.pages.find((p) => p.id === prev.activePageId);
+        if (!active) return prev;
+
+        const targets = active.elements.filter(
+          (el) => selectedElementIds.includes(el.id) && !el.locked
+        );
+        if (targets.length < 2) return prev;
+
+        pushHistory(prev);
+
+        const minX = Math.min(...targets.map((e) => e.x));
+        const maxX = Math.max(...targets.map((e) => e.x + e.width));
+        const minY = Math.min(...targets.map((e) => e.y));
+        const maxY = Math.max(...targets.map((e) => e.y + e.height));
+        const boxWidth = maxX - minX;
+        const boxHeight = maxY - minY;
+
+        const deltas = new Map<string, { dx: number; dy: number }>();
+
+        targets.forEach((el) => {
+          let targetX = el.x;
+          let targetY = el.y;
+
+          switch (alignment) {
+            case 'left':
+              targetX = minX;
+              break;
+            case 'center':
+              targetX = Math.round(minX + (boxWidth - el.width) / 2);
+              break;
+            case 'right':
+              targetX = maxX - el.width;
+              break;
+            case 'top':
+              targetY = minY;
+              break;
+            case 'middle':
+              targetY = Math.round(minY + (boxHeight - el.height) / 2);
+              break;
+            case 'bottom':
+              targetY = maxY - el.height;
+              break;
+          }
+
+          deltas.set(el.id, { dx: targetX - el.x, dy: targetY - el.y });
+        });
+
+        // Collect descendants of any container targets
+        const descendantMoves = new Map<string, { dx: number; dy: number }>();
+        targets.forEach((t) => {
+          const delta = deltas.get(t.id);
+          if (delta && (delta.dx !== 0 || delta.dy !== 0)) {
+            const desc = new Set<string>();
+            let added = true;
+            desc.add(t.id);
+            while (added) {
+              added = false;
+              for (const el of active.elements) {
+                if (el.parentId && desc.has(el.parentId) && !desc.has(el.id)) {
+                  desc.add(el.id);
+                  added = true;
+                }
+              }
+            }
+            desc.delete(t.id);
+            desc.forEach((id) => descendantMoves.set(id, delta));
+          }
+        });
+
+        const updatedPages = prev.pages.map((p) => {
+          if (p.id === prev.activePageId) {
+            return {
+              ...p,
+              elements: p.elements.map((el) => {
+                if (deltas.has(el.id)) {
+                  const d = deltas.get(el.id)!;
+                  return { ...el, x: el.x + d.dx, y: el.y + d.dy };
+                }
+                if (descendantMoves.has(el.id)) {
+                  const d = descendantMoves.get(el.id)!;
+                  return { ...el, x: el.x + d.dx, y: el.y + d.dy };
+                }
+                return el;
+              }),
+            };
+          }
+          return p;
+        });
+
+        return {
+          ...prev,
+          pages: updatedPages,
+          updatedAt: new Date().toISOString(),
+        };
+      });
+
+      showToast(`Aligned elements (${alignment})`, 'info');
+    },
+    [selectedElementIds, alignElement, pushHistory, showToast]
+  );
+
+  // Distribute Selected Elements evenly horizontally or vertically
+  const distributeSelectedElements = useCallback(
+    (direction: 'horizontal' | 'vertical') => {
+      if (selectedElementIds.length < 3) {
+        showToast('Select 3 or more elements to distribute', 'warning');
+        return;
+      }
+
+      setProject((prev) => {
+        const active = prev.pages.find((p) => p.id === prev.activePageId);
+        if (!active) return prev;
+
+        const targets = active.elements.filter(
+          (el) => selectedElementIds.includes(el.id) && !el.locked
+        );
+        if (targets.length < 3) return prev;
+
+        pushHistory(prev);
+
+        const deltas = new Map<string, { dx: number; dy: number }>();
+
+        if (direction === 'horizontal') {
+          const sorted = [...targets].sort((a, b) => a.x - b.x);
+          const first = sorted[0];
+          const last = sorted[sorted.length - 1];
+          const span = (last.x + last.width) - first.x;
+          const totalWidths = sorted.reduce((sum, el) => sum + el.width, 0);
+          const remainingSpace = span - totalWidths;
+          const gap = remainingSpace / (sorted.length - 1);
+
+          let currentX = first.x;
+          sorted.forEach((el, idx) => {
+            if (idx === 0) {
+              currentX += el.width + gap;
+              return;
+            }
+            if (idx === sorted.length - 1) return;
+            const targetX = Math.round(currentX);
+            deltas.set(el.id, { dx: targetX - el.x, dy: 0 });
+            currentX += el.width + gap;
+          });
+        } else {
+          const sorted = [...targets].sort((a, b) => a.y - b.y);
+          const first = sorted[0];
+          const last = sorted[sorted.length - 1];
+          const span = (last.y + last.height) - first.y;
+          const totalHeights = sorted.reduce((sum, el) => sum + el.height, 0);
+          const remainingSpace = span - totalHeights;
+          const gap = remainingSpace / (sorted.length - 1);
+
+          let currentY = first.y;
+          sorted.forEach((el, idx) => {
+            if (idx === 0) {
+              currentY += el.height + gap;
+              return;
+            }
+            if (idx === sorted.length - 1) return;
+            const targetY = Math.round(currentY);
+            deltas.set(el.id, { dx: 0, dy: targetY - el.y });
+            currentY += el.height + gap;
+          });
+        }
+
+        const updatedPages = prev.pages.map((p) => {
+          if (p.id === prev.activePageId) {
+            return {
+              ...p,
+              elements: p.elements.map((el) => {
+                if (deltas.has(el.id)) {
+                  const d = deltas.get(el.id)!;
+                  return { ...el, x: el.x + d.dx, y: el.y + d.dy };
+                }
+                return el;
+              }),
+            };
+          }
+          return p;
+        });
+
+        return {
+          ...prev,
+          pages: updatedPages,
+          updatedAt: new Date().toISOString(),
+        };
+      });
+
+      showToast(`Distributed elements ${direction}ly`, 'info');
+    },
+    [selectedElementIds, pushHistory, showToast]
+  );
+
+  // Move multiple selected elements simultaneously by delta (used during multi-drag)
+  const moveSelectedElements = useCallback(
+    (dx: number, dy: number) => {
+      if (selectedElementIds.length === 0 || (dx === 0 && dy === 0)) return;
+
+      setProject((prev) => {
+        const active = prev.pages.find((p) => p.id === prev.activePageId);
+        if (!active) return prev;
+
+        const targetIds = new Set(selectedElementIds);
+        let added = true;
+        while (added) {
+          added = false;
+          for (const el of active.elements) {
+            if (el.parentId && targetIds.has(el.parentId) && !targetIds.has(el.id)) {
+              targetIds.add(el.id);
+              added = true;
+            }
+          }
+        }
+
+        const updatedPages = prev.pages.map((p) => {
+          if (p.id === prev.activePageId) {
+            return {
+              ...p,
+              elements: p.elements.map((el) => {
+                if (targetIds.has(el.id) && !el.locked) {
+                  return { ...el, x: el.x + dx, y: el.y + dy };
+                }
+                return el;
+              }),
+            };
+          }
+          return p;
+        });
+
+        return {
+          ...prev,
+          pages: updatedPages,
+          updatedAt: new Date().toISOString(),
+        };
+      });
+    },
+    [selectedElementIds]
+  );
+
+  // Batch delete all currently selected elements and their descendants
+  const batchDeleteSelected = useCallback(() => {
+    if (selectedElementIds.length === 0) return;
+
+    setProject((prev) => {
+      const active = prev.pages.find((p) => p.id === prev.activePageId);
+      if (!active) return prev;
+
+      pushHistory(prev);
+
+      const idsToDelete = new Set<string>(selectedElementIds);
+      let added = true;
+      while (added) {
+        added = false;
+        for (const el of active.elements) {
+          if (el.parentId && idsToDelete.has(el.parentId) && !idsToDelete.has(el.id)) {
+            idsToDelete.add(el.id);
+            added = true;
+          }
+        }
+      }
+
+      const updatedPages = prev.pages.map((p) => {
+        if (p.id === prev.activePageId) {
+          return {
+            ...p,
+            elements: p.elements
+              .filter((el) => !idsToDelete.has(el.id))
+              .map((el) => {
+                if (el.children) {
+                  return {
+                    ...el,
+                    children: el.children.filter((cid) => !idsToDelete.has(cid)),
+                  };
+                }
+                return el;
+              }),
+          };
+        }
+        return p;
+      });
+
+      return {
+        ...prev,
+        pages: updatedPages,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    const count = selectedElementIds.length;
+    setSelectedElementIds([]);
+    showToast(`Deleted ${count} element${count > 1 ? 's' : ''}`, 'info');
+  }, [selectedElementIds, pushHistory, showToast]);
+
   // Reset to Blank Canvas
   const resetToBlank = useCallback(() => {
     setProject((prev) => {
@@ -1503,6 +2069,193 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setEditorMode('landing');
     showToast('Signed out. Returned to product landing page.', 'info');
   }, [handleSetCurrentUser, showToast]);
+
+  // -------------------------------------------------------------
+  // Cloud Projects & Revision Persistence Handlers
+  // -------------------------------------------------------------
+
+  const saveToCloud = useCallback(async (manual: boolean = true) => {
+    setCloudSyncStatus('saving');
+    try {
+      const res = await databaseService.saveProject(project, {
+        userId: currentUser?.email,
+        isPublic: project.isPublic,
+      });
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setLastCloudSavedAt(timeStr);
+      if (res.cloud) {
+        setCloudSyncStatus('saved');
+        if (manual) showToast('☁️ Project synchronized to Supabase Cloud!', 'success');
+      } else {
+        setCloudSyncStatus('offline');
+        if (manual) showToast('Saved to Workspace', 'info');
+      }
+      return true;
+    } catch {
+      setCloudSyncStatus('offline');
+      if (manual) showToast('Saved to Workspace', 'warning');
+      return false;
+    }
+  }, [project, currentUser?.email, showToast]);
+
+  const refreshCloudProjects = useCallback(async () => {
+    try {
+      const list = await databaseService.getProjects(currentUser?.email);
+      setCloudProjects(list);
+    } catch {}
+  }, [currentUser?.email]);
+
+  const refreshRevisions = useCallback(async () => {
+    try {
+      const list = await databaseService.getRevisions(project.id);
+      setRevisions(list);
+    } catch {}
+  }, [project.id]);
+
+  useEffect(() => {
+    refreshCloudProjects();
+  }, [refreshCloudProjects]);
+
+  // Hydrate latest project directly from Supabase Cloud on boot
+  useEffect(() => {
+    let isMounted = true;
+    databaseService.getProjects(currentUser?.email).then(async (projects) => {
+      if (isMounted && projects && projects.length > 0) {
+        const latest = await databaseService.getProject(projects[0].id);
+        if (isMounted && latest && latest.pages && latest.pages.length > 0) {
+          setProject(normalizeProjectState(latest));
+          setCloudSyncStatus('saved');
+          const timeStr = new Date(latest.updatedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          setLastCloudSavedAt(timeStr);
+          setLastSavedText(`Supabase Synced at ${timeStr}`);
+        }
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser?.email]);
+
+  useEffect(() => {
+    refreshRevisions();
+  }, [refreshRevisions]);
+
+  const loadCloudProject = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const loaded = await databaseService.getProject(id);
+      if (loaded && loaded.pages && loaded.pages.length > 0) {
+        pushHistory(project);
+        setProject(normalizeProjectState(loaded));
+        setSelectedElementId(null);
+        showToast(`📂 Loaded project: "${loaded.name}"`, 'success');
+        setIsProjectManagerOpen(false);
+        return true;
+      }
+      showToast('Project could not be loaded', 'warning');
+      return false;
+    } catch (err: any) {
+      showToast(`Failed to load project: ${err.message}`, 'warning');
+      return false;
+    }
+  }, [project, pushHistory, showToast]);
+
+  const createNewProject = useCallback((name?: string, templateType: 'blank' | 'landing' = 'blank') => {
+    pushHistory(project);
+    const newId = 'proj_' + Math.random().toString(36).substring(2, 9);
+    const projName = name || (templateType === 'blank' ? 'Blank Project' : 'New Studio Project');
+
+    let base: ProjectState;
+    if (templateType === 'blank') {
+      base = {
+        version: 1,
+        id: newId,
+        name: projName,
+        activePageId: 'page_home',
+        pages: [{
+          id: 'page_home',
+          name: 'Home',
+          slug: '/',
+          canvasWidth: CANVAS_DEFAULT_WIDTH,
+          canvasHeight: CANVAS_DEFAULT_HEIGHT,
+          backgroundColor: '#ffffff',
+          elements: [],
+        }],
+        updatedAt: new Date().toISOString(),
+      };
+    } else {
+      base = {
+        ...normalizeProjectState(INITIAL_PROJECT),
+        id: newId,
+        name: projName,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    setProject(base);
+    setSelectedElementId(null);
+    databaseService.saveProject(base, { userId: currentUser?.email });
+    refreshCloudProjects();
+    setIsProjectManagerOpen(false);
+    showToast(`✨ Created new project: "${projName}"`, 'success');
+  }, [project, pushHistory, currentUser?.email, refreshCloudProjects, showToast]);
+
+  const duplicateCurrentProject = useCallback(async (): Promise<string | null> => {
+    pushHistory(project);
+    const newId = 'proj_' + Math.random().toString(36).substring(2, 9);
+    const copyName = `${project.name} (Copy)`;
+    const copy: ProjectState = {
+      ...project,
+      id: newId,
+      name: copyName,
+      updatedAt: new Date().toISOString(),
+    };
+
+    setProject(copy);
+    await databaseService.saveProject(copy, { userId: currentUser?.email });
+    await refreshCloudProjects();
+    showToast(`📋 Duplicated project as "${copyName}"`, 'success');
+    return newId;
+  }, [project, pushHistory, currentUser?.email, refreshCloudProjects, showToast]);
+
+  const deleteCloudProject = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      await databaseService.deleteProject(id);
+      await refreshCloudProjects();
+      showToast('Project deleted successfully', 'info');
+      if (id === project.id) {
+        resetToBlank();
+      }
+      return true;
+    } catch {
+      showToast('Failed to delete project', 'warning');
+      return false;
+    }
+  }, [project.id, refreshCloudProjects, resetToBlank, showToast]);
+
+  const createSnapshot = useCallback(async (name?: string): Promise<boolean> => {
+    try {
+      const snapName = name || `Snapshot ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      await databaseService.createRevision(project.id, snapName, project);
+      await refreshRevisions();
+      showToast(`📸 Created snapshot: "${snapName}"`, 'success');
+      return true;
+    } catch {
+      showToast('Failed to create snapshot', 'warning');
+      return false;
+    }
+  }, [project, refreshRevisions, showToast]);
+
+  const restoreRevision = useCallback((revision: ProjectRevision) => {
+    if (!revision.data) {
+      showToast('Revision snapshot contains no data', 'warning');
+      return;
+    }
+    pushHistory(project);
+    setProject(normalizeProjectState(revision.data));
+    setSelectedElementId(null);
+    showToast(`⏪ Restored snapshot: "${revision.name}"`, 'success');
+    setIsVersionHistoryOpen(false);
+  }, [project, pushHistory, showToast]);
 
   // Undo / Redo
   const undo = useCallback(() => {
@@ -1607,16 +2360,25 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return;
       }
 
-      // Select All / Cycle: Cmd + A
+      // Group: Cmd + G / Ungroup: Cmd + Shift + G
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          ungroupSelectedElements();
+        } else {
+          groupSelectedElements();
+        }
+        return;
+      }
+
+      // Select All: Cmd + A
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         const active = project.pages.find((p) => p.id === project.activePageId);
         const rootElements = active?.elements.filter((el) => !el.parentId) || [];
         if (rootElements.length > 0) {
-          const currentIndex = rootElements.findIndex((el) => el.id === selectedElementId);
-          const nextIndex = (currentIndex + 1) % rootElements.length;
-          setSelectedElementId(rootElements[nextIndex].id);
-          showToast(`Selected "${rootElements[nextIndex].name}" (Cmd+A)`, 'info');
+          setSelectedElementIds(rootElements.map((el) => el.id));
+          showToast(`Selected all ${rootElements.length} elements (Cmd+A)`, 'info');
         }
         return;
       }
@@ -1657,33 +2419,58 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return;
       }
 
+      // Rulers & Guides toggle: Shift + R
+      if (e.shiftKey && (e.key === 'R' || e.key === 'r') && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        toggleRulers();
+        return;
+      }
+
       if (e.key === 'Escape') {
-        setSelectedElementId(null);
+        setSelectedElementIds([]);
         return;
       }
 
       if (e.key === 'Backspace' || e.key === 'Delete') {
-        if (selectedElementId && selectedElement && !selectedElement.locked) {
+        if (selectedElementIds.length > 1) {
+          e.preventDefault();
+          batchDeleteSelected();
+        } else if (selectedElementId && selectedElement && !selectedElement.locked) {
           e.preventDefault();
           deleteElement(selectedElementId);
         }
         return;
       }
 
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) && selectedElement && !selectedElement.locked) {
-        e.preventDefault();
-        const step = e.shiftKey ? 10 : 1;
-        let deltaX = 0;
-        let deltaY = 0;
-        if (e.key === 'ArrowUp') deltaY = -step;
-        if (e.key === 'ArrowDown') deltaY = step;
-        if (e.key === 'ArrowLeft') deltaX = -step;
-        if (e.key === 'ArrowRight') deltaX = step;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        if (selectedElementIds.length > 1) {
+          e.preventDefault();
+          const step = e.shiftKey ? 10 : 1;
+          let deltaX = 0;
+          let deltaY = 0;
+          if (e.key === 'ArrowUp') deltaY = -step;
+          if (e.key === 'ArrowDown') deltaY = step;
+          if (e.key === 'ArrowLeft') deltaX = -step;
+          if (e.key === 'ArrowRight') deltaX = step;
+          moveSelectedElements(deltaX, deltaY);
+          return;
+        }
 
-        updateElement(selectedElement.id, {
-          x: Math.max(0, selectedElement.x + deltaX),
-          y: Math.max(0, selectedElement.y + deltaY),
-        }, false);
+        if (selectedElement && !selectedElement.locked) {
+          e.preventDefault();
+          const step = e.shiftKey ? 10 : 1;
+          let deltaX = 0;
+          let deltaY = 0;
+          if (e.key === 'ArrowUp') deltaY = -step;
+          if (e.key === 'ArrowDown') deltaY = step;
+          if (e.key === 'ArrowLeft') deltaX = -step;
+          if (e.key === 'ArrowRight') deltaX = step;
+
+          updateElement(selectedElement.id, {
+            x: Math.max(0, selectedElement.x + deltaX),
+            y: Math.max(0, selectedElement.y + deltaY),
+          }, false);
+        }
       }
 
       // Quick Page Navigation Shortcuts: Alt + Left/Right or Alt + 1..9
@@ -1736,6 +2523,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     project.activePageId,
     setActivePage,
     showToast,
+    toggleRulers,
   ]);
 
   // Universal Clipboard Paste Listener (Images, Text, and External Data)
@@ -1853,8 +2641,22 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     selectedElement,
     editorMode,
     viewportMode,
+    previewStateVariant,
+    setPreviewStateVariant,
     zoom,
     showGrid,
+    showRulers,
+    setShowRulers,
+    toggleRulers,
+    snapToObjects,
+    setSnapToObjects,
+    snapToGuides,
+    setSnapToGuides,
+    userGuides,
+    addUserGuide,
+    updateUserGuide,
+    removeUserGuide,
+    clearUserGuides,
     isSaved,
     lastSavedText,
     canUndo: historyPast.length > 0,
@@ -1885,6 +2687,16 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     zoomToFit,
     setShowGrid,
     selectElement,
+    selectedElementIds,
+    selectedElements,
+    selectElements,
+    toggleSelectElement,
+    groupSelectedElements,
+    ungroupSelectedElements,
+    alignSelectedElements,
+    distributeSelectedElements,
+    moveSelectedElements,
+    batchDeleteSelected,
 
     addElement,
     insertCustomImage,
@@ -1913,6 +2725,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setShowShortcutsModal,
 
     setProjectName,
+    updateProjectSettings,
     setActivePage,
     addPage,
     duplicatePage,
@@ -1921,11 +2734,35 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     resetToBlank,
     resetToDefaultDemo,
 
+    // Cloud Persistence & Multi-Project Management
+    cloudSyncStatus,
+    lastCloudSavedAt,
+    cloudProjects,
+    isProjectManagerOpen,
+    setIsProjectManagerOpen,
+    isVersionHistoryOpen,
+    setIsVersionHistoryOpen,
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+    revisions,
+    saveToCloud,
+    loadCloudProject,
+    createNewProject,
+    duplicateCurrentProject,
+    deleteCloudProject,
+    createSnapshot,
+    restoreRevision,
+    refreshCloudProjects,
+    refreshRevisions,
+
     undo,
     redo,
     showToast,
     removeToast,
   };
+
+  // Sync latest context value to resilient store for HMR stability
+  setLatestEditorContextValue(value);
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
 };

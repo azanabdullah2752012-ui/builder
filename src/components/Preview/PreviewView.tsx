@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useEditor } from '../../context/useEditor';
 import type { CanvasElement } from '../../types/editor';
 import { computeResponsiveLayout } from '../../utils/responsiveLayout';
@@ -15,6 +15,11 @@ import {
 import { SHAPE_DEFINITIONS, getShapeSvgNode } from '../../utils/shapeDefinitions';
 import { getComputedButtonStyles, renderButtonIcon } from '../../utils/buttonStyles';
 import { executeElementAction } from '../../utils/actionExecutor';
+import { AccordionWidget, CarouselWidget, VideoWidget, CounterWidget } from '../Widgets/InteractiveWidgets';
+import { ProductCardWidget } from '../Widgets/ProductCardWidget';
+import { CartDrawer } from '../Widgets/CartDrawer';
+import { LottieWidget } from '../Widgets/LottieWidget';
+import { ReadingProgressBar } from '../Widgets/ReadingProgressBar';
 
 export const PreviewView: React.FC = () => {
   const {
@@ -29,9 +34,37 @@ export const PreviewView: React.FC = () => {
   } = useEditor();
 
   const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
+  const [pressedElementId, setPressedElementId] = useState<string | null>(null);
+  const [focusedElementId, setFocusedElementId] = useState<string | null>(null);
   const [isPageDropdownOpen, setIsPageDropdownOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<{ title: string; body: string } | null>(null);
   const [hiddenElementIds, setHiddenElementIds] = useState<Set<string>>(new Set());
+  const [scrolledIntoViewIds, setScrolledIntoViewIds] = useState<Set<string>>(new Set());
+
+  // Scroll IntersectionObserver for motion animations
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('data-element-id');
+            if (id) {
+              setScrolledIntoViewIds((prev) => new Set(prev).add(id));
+              observer.unobserve(entry.target);
+            }
+          }
+        });
+      },
+      { rootMargin: '0px 0px -10% 0px', threshold: 0.1 }
+    );
+
+    const targets = document.querySelectorAll('[data-preview-motion-scroll="true"]');
+    targets.forEach((target) => observer.observe(target));
+
+    return () => observer.disconnect();
+  });
 
   // Compute responsive layout for the preview viewport
   const responsiveLayout = useMemo(() => {
@@ -68,7 +101,11 @@ export const PreviewView: React.FC = () => {
     const s = element.styles || {};
     const beh = element.behavior || { actionType: 'none' };
     const h = beh.hoverStyles;
+    const act = beh.activeStyles;
+    const foc = beh.focusStyles;
     const isHovered = hoveredElementId === element.id;
+    const isPressed = pressedElementId === element.id;
+    const isFocused = focusedElementId === element.id;
 
     const l = element.layout;
     const bpSetting = element.responsive?.[viewportMode];
@@ -87,57 +124,114 @@ export const PreviewView: React.FC = () => {
 
     // Apply base styles and active hover styles if hovered
     const computedStyles: React.CSSProperties = {
-      position: 'absolute',
+      position: s.isSticky ? 'sticky' : 'absolute',
       left: `${element.x}px`,
-      top: `${element.y}px`,
+      top: s.isSticky ? `${s.stickyTop ?? 0}px` : `${element.y}px`,
       width: `${element.width}px`,
       height: `${element.height}px`,
-      zIndex: element.zIndex || (element.type === 'section' ? 0 : 1),
+      zIndex: s.isSticky ? 40 : (element.zIndex || (element.type === 'section' ? 0 : 1)),
       background:
-        (isHovered && h?.backgroundColor) ||
-        s.gradient ||
-        btnStyles?.background ||
-        s.backgroundColor ||
-        btnStyles?.backgroundColor ||
-        'transparent',
-      color: (isHovered && h?.color) || s.color || btnStyles?.color || 'inherit',
+        element.type === 'shape'
+          ? 'transparent'
+          : (isPressed && act?.backgroundColor) ||
+            (isFocused && foc?.backgroundColor) ||
+            (isHovered && h?.backgroundColor) ||
+            s.gradient ||
+            btnStyles?.background ||
+            s.backgroundColor ||
+            btnStyles?.backgroundColor ||
+            'transparent',
+      color:
+        (isPressed && act?.color) ||
+        (isFocused && foc?.color) ||
+        (isHovered && h?.color) ||
+        s.color ||
+        btnStyles?.color ||
+        'inherit',
       fontSize: s.fontSize ? `${s.fontSize}px` : btnStyles?.fontSize || undefined,
       fontWeight: s.fontWeight || btnStyles?.fontWeight || undefined,
       fontFamily: s.fontFamily || undefined,
       textAlign: s.textAlign || 'left',
       lineHeight: s.lineHeight || undefined,
-      borderRadius: s.borderRadius !== undefined ? `${s.borderRadius}px` : btnStyles?.borderRadius || undefined,
-      borderWidth: s.borderWidth !== undefined ? `${s.borderWidth}px` : btnStyles?.borderWidth || undefined,
-      borderStyle: s.borderStyle || btnStyles?.borderStyle || 'none',
+      letterSpacing: s.letterSpacing ? `${s.letterSpacing}px` : undefined,
+      textTransform: s.textTransform || undefined,
+      textDecoration: s.textDecoration || (element.role === 'link' ? 'none' : undefined),
+      fontStyle: s.fontStyle || undefined,
+      borderRadius: element.type === 'shape' ? undefined : s.borderRadius !== undefined ? `${s.borderRadius}px` : btnStyles?.borderRadius || undefined,
+      borderWidth: element.type === 'shape' ? 0 : s.borderWidth !== undefined ? `${s.borderWidth}px` : btnStyles?.borderWidth || undefined,
+      borderStyle: element.type === 'shape' ? 'none' : s.borderStyle || btnStyles?.borderStyle || 'none',
       borderColor:
-        (isHovered && h?.borderColor) ||
-        (isHovered && s.hoverEffect === 'glow' ? '#818cf8' : s.borderColor || btnStyles?.borderColor || 'transparent'),
-      backdropFilter: (btnStyles as any)?.backdropFilter,
-      WebkitBackdropFilter: (btnStyles as any)?.WebkitBackdropFilter,
+        element.type === 'shape'
+          ? 'transparent'
+          : (isPressed && act?.borderColor) ||
+            (isFocused && (foc?.borderColor || foc?.outlineColor)) ||
+            (isHovered && h?.borderColor) ||
+            (isHovered && s.hoverEffect === 'glow' ? '#818cf8' : s.borderColor || btnStyles?.borderColor || 'transparent'),
+      outline: isFocused && foc?.outlineColor ? `${foc.outlineWidth || 2}px solid ${foc.outlineColor}` : undefined,
+      outlineOffset: isFocused ? '2px' : undefined,
+      backdropFilter: s.backdropFilter || (btnStyles as any)?.backdropFilter,
+      WebkitBackdropFilter: s.backdropFilter || (btnStyles as any)?.WebkitBackdropFilter,
+      mixBlendMode: s.mixBlendMode || undefined,
+      overflow: s.overflow || undefined,
       boxShadow:
-        (isHovered && h?.boxShadow) ||
-        (isHovered && s.hoverShadow) ||
-        (isHovered && s.hoverEffect === 'lift' ? '0 16px 32px -4px rgba(0,0,0,0.5), 0 8px 16px -4px rgba(0,0,0,0.3)' : undefined) ||
-        (isHovered && s.hoverEffect === 'glow' ? '0 0 25px rgba(99, 102, 241, 0.65)' : undefined) ||
-        s.boxShadow ||
-        undefined,
-      opacity: isHovered && h?.opacity !== undefined ? h.opacity : s.opacity !== undefined ? s.opacity : 1,
+        element.type === 'shape'
+          ? undefined
+          : (isPressed && act?.boxShadow) ||
+            (isFocused && foc?.boxShadow) ||
+            (isHovered && h?.boxShadow) ||
+            (isHovered && s.hoverShadow) ||
+            (isHovered && s.hoverEffect === 'lift' ? '0 16px 32px -4px rgba(0,0,0,0.5), 0 8px 16px -4px rgba(0,0,0,0.3)' : undefined) ||
+            (isHovered && s.hoverEffect === 'glow' ? '0 0 25px rgba(99, 102, 241, 0.65)' : undefined) ||
+            s.boxShadow ||
+            undefined,
+      opacity: (() => {
+        const animName = s.animationName;
+        const hasAnim = animName && animName !== 'none';
+        const trigger = s.animationTrigger || 'entrance';
+        if (hasAnim && trigger === 'scroll' && !scrolledIntoViewIds.has(element.id)) {
+          return 0;
+        }
+        return isHovered && h?.opacity !== undefined ? h.opacity : s.opacity !== undefined ? s.opacity : 1;
+      })(),
       transform: (() => {
-        if (!isHovered) return undefined;
-        const scale = h?.scale || s.hoverScale || (s.hoverEffect === 'scale' ? 1.04 : undefined);
-        const translateY = s.hoverTranslateY !== undefined ? s.hoverTranslateY : (s.hoverEffect === 'lift' ? -4 : undefined);
         const parts: string[] = [];
-        if (translateY !== undefined && translateY !== 0) parts.push(`translateY(${translateY}px)`);
-        if (scale !== undefined && scale !== 1) parts.push(`scale(${scale})`);
+        if (s.rotation !== undefined && s.rotation !== 0) parts.push(`rotate(${s.rotation}deg)`);
+        if (s.scale !== undefined && s.scale !== 1 && (!isHovered || !h?.scale) && (!isPressed || !act?.scale)) parts.push(`scale(${s.scale})`);
+        if (s.skewX !== undefined && s.skewX !== 0) parts.push(`skewX(${s.skewX}deg)`);
+        if (s.skewY !== undefined && s.skewY !== 0) parts.push(`skewY(${s.skewY}deg)`);
+        if (isPressed) {
+          const scale = act?.scale !== undefined ? act.scale : 0.97;
+          const translateY = act?.translateY !== undefined ? act.translateY : 2;
+          if (translateY !== 0) parts.push(`translateY(${translateY}px)`);
+          if (scale !== 1) parts.push(`scale(${scale})`);
+        } else if (isHovered) {
+          const scale = h?.scale || s.hoverScale || (s.hoverEffect === 'scale' ? 1.04 : undefined);
+          const translateY = h?.translateY !== undefined ? h.translateY : (s.hoverTranslateY !== undefined ? s.hoverTranslateY : (s.hoverEffect === 'lift' ? -4 : undefined));
+          if (translateY !== undefined && translateY !== 0) parts.push(`translateY(${translateY}px)`);
+          if (scale !== undefined && scale !== 1) parts.push(`scale(${scale})`);
+        }
         return parts.length > 0 ? parts.join(' ') : undefined;
       })(),
-      filter: isHovered && s.hoverEffect === 'brighten' ? 'brightness(1.15)' : undefined,
+      filter: [s.filter, isHovered && s.hoverEffect === 'brighten' ? 'brightness(1.15)' : ''].filter(Boolean).join(' ') || undefined,
       cursor:
-        element.role === 'button' ||
+        s.cursor ||
+        (element.role === 'button' ||
         element.role === 'link' ||
         beh.actionType !== 'none'
           ? 'pointer'
-          : 'default',
+          : 'default'),
+      animation: (() => {
+        const animName = s.animationName;
+        if (!animName || animName === 'none') return undefined;
+        const trigger = s.animationTrigger || 'entrance';
+        if (trigger === 'scroll' && !scrolledIntoViewIds.has(element.id)) return undefined;
+        if (trigger === 'hover' && !isHovered) return undefined;
+        const duration = s.animationDuration || 0.7;
+        const timing = s.animationTimingFunction || 'cubic-bezier(0.16, 1, 0.3, 1)';
+        const delay = s.animationDelay || 0;
+        const iteration = s.animationIterationCount || '1';
+        return `${animName} ${duration}s ${timing} ${delay}s ${iteration} both`;
+      })(),
       transition: s.transitionDuration
         ? `all ${s.transitionDuration}ms ${s.transitionTimingFunction || 'cubic-bezier(0.4, 0, 0.2, 1)'}`
         : 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -174,18 +268,24 @@ export const PreviewView: React.FC = () => {
         ? `${l.padding.top}px ${l.padding.right}px ${l.padding.bottom}px ${l.padding.left}px`
         : undefined,
       gap: l?.gap !== undefined ? `${l.gap}px` : undefined,
-      overflow: 'hidden',
-      textDecoration: element.role === 'link' ? 'none' : undefined,
     };
 
     const commonProps = {
       key: element.id,
       style: computedStyles,
       onMouseEnter: () => setHoveredElementId(element.id),
-      onMouseLeave: () => setHoveredElementId(null),
+      onMouseLeave: () => {
+        setHoveredElementId(null);
+        setPressedElementId(null);
+      },
+      onMouseDown: () => setPressedElementId(element.id),
+      onMouseUp: () => setPressedElementId(null),
+      onFocus: () => setFocusedElementId(element.id),
+      onBlur: () => setFocusedElementId(null),
       onClick: (e: React.MouseEvent) => handleElementClick(element, e),
       id: element.id,
       'data-element-id': element.id,
+      'data-preview-motion-scroll': s.animationName && s.animationName !== 'none' && s.animationTrigger === 'scroll' ? 'true' : undefined,
       'data-role': element.role,
     };
 
@@ -200,7 +300,22 @@ export const PreviewView: React.FC = () => {
     if (element.type === 'shape') {
       const shapeKind = s.shapeKind || 'circle';
       const def = SHAPE_DEFINITIONS[shapeKind] || SHAPE_DEFINITIONS.circle;
-      const fillColor = s.gradient || s.backgroundColor || def.defaultColor;
+      const gradId = `prev-grad-${element.id}`;
+
+      let gradColors: [string, string] | null = null;
+      if (s.gradient) {
+        const hexMatches = s.gradient.match(/#(?:[0-9a-fA-F]{3}){1,2}/g);
+        if (hexMatches && hexMatches.length >= 2) {
+          gradColors = [hexMatches[0], hexMatches[1]];
+        } else {
+          const rgbMatches = s.gradient.match(/rgba?\([^)]+\)/g);
+          if (rgbMatches && rgbMatches.length >= 2) {
+            gradColors = [rgbMatches[0], rgbMatches[1]];
+          }
+        }
+      }
+
+      const fillColor = gradColors ? `url(#${gradId})` : (s.backgroundColor || def.defaultColor);
       const strokeColor = s.borderColor || 'none';
       const strokeW = s.borderWidth || 0;
       const svgNode = getShapeSvgNode(shapeKind, fillColor, strokeColor, strokeW);
@@ -216,6 +331,14 @@ export const PreviewView: React.FC = () => {
               transform: s.rotation ? `rotate(${s.rotation}deg)` : undefined,
             }}
           >
+            {gradColors && (
+              <defs>
+                <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={gradColors[0]} />
+                  <stop offset="100%" stopColor={gradColors[1]} />
+                </linearGradient>
+              </defs>
+            )}
             {svgNode.tag === 'circle' && <circle {...svgNode.props} />}
             {svgNode.tag === 'rect' && <rect {...svgNode.props} />}
             {svgNode.tag === 'polygon' && <polygon {...svgNode.props} />}
@@ -237,6 +360,133 @@ export const PreviewView: React.FC = () => {
             {iconPos === 'right' && iconNode}
           </div>
         </button>
+      );
+    }
+
+    if (element.type === 'input' || element.role === 'input') {
+      const inputType =
+        element.formConfig?.inputType ||
+        (element.name.toLowerCase().includes('email')
+          ? 'email'
+          : element.name.toLowerCase().includes('password')
+          ? 'password'
+          : 'text');
+      const placeholder =
+        element.formConfig?.placeholder || element.content || `Enter ${element.name || 'text'}...`;
+      return (
+        <input
+          {...commonProps}
+          id={`input-${element.id}`}
+          data-field-id={element.id}
+          type={inputType}
+          placeholder={placeholder}
+          defaultValue=""
+          required={element.formConfig?.required}
+          className="outline-none px-3 cursor-text"
+          onClick={(e) => e.stopPropagation()}
+        />
+      );
+    }
+
+    if (element.type === 'textarea') {
+      const placeholder =
+        element.formConfig?.placeholder || element.content || `Enter ${element.name || 'message'}...`;
+      return (
+        <textarea
+          {...commonProps}
+          id={`input-${element.id}`}
+          data-field-id={element.id}
+          placeholder={placeholder}
+          defaultValue=""
+          required={element.formConfig?.required}
+          rows={3}
+          className="outline-none p-3 resize-none cursor-text"
+          onClick={(e) => e.stopPropagation()}
+        />
+      );
+    }
+
+    if (element.type === 'select') {
+      const options = element.formConfig?.options || ['Option 1', 'Option 2', 'Option 3'];
+      return (
+        <select
+          {...commonProps}
+          id={`input-${element.id}`}
+          data-field-id={element.id}
+          required={element.formConfig?.required}
+          className="outline-none px-3 cursor-pointer"
+          style={{ backgroundColor: s.backgroundColor || '#131620' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {options.map((opt, i) => (
+            <option key={i} value={opt} className="bg-zinc-900 text-white">
+              {opt}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    if (element.type === 'checkbox') {
+      return (
+        <label {...commonProps} className="flex items-center gap-2.5 px-2 select-none cursor-pointer" onClick={(e) => e.stopPropagation()}>
+          <input
+            id={`input-${element.id}`}
+            data-field-id={element.id}
+            type="checkbox"
+            defaultChecked={element.formConfig?.checked}
+            className="w-4 h-4 rounded text-indigo-600 bg-zinc-800 border-zinc-700 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+          />
+          <span className="truncate">{element.content || 'I agree'}</span>
+        </label>
+      );
+    }
+
+    if (element.type === 'accordion') {
+      return (
+        <div {...commonProps}>
+          <AccordionWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'carousel') {
+      return (
+        <div {...commonProps}>
+          <CarouselWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'video') {
+      return (
+        <div {...commonProps}>
+          <VideoWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'counter') {
+      return (
+        <div {...commonProps}>
+          <CounterWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'product-card') {
+      return (
+        <div {...commonProps}>
+          <ProductCardWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'lottie') {
+      return (
+        <div {...commonProps}>
+          <LottieWidget element={element} isInteractive={true} />
+        </div>
       );
     }
 
@@ -354,17 +604,6 @@ export const PreviewView: React.FC = () => {
           </div>
         );
 
-      case 'input':
-        return (
-          <input
-            {...commonProps}
-            type="text"
-            placeholder={element.content || 'Enter value...'}
-            className="outline-none px-3"
-            onChange={() => {}}
-          />
-        );
-
       case 'navigation':
         return (
           <nav {...commonProps} role="navigation">
@@ -421,6 +660,11 @@ export const PreviewView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
+      {/* Scroll-Linked Reading Progress Bar */}
+      {activePage.showScrollProgress && (
+        <ReadingProgressBar color={activePage.scrollProgressColor} />
+      )}
+
       {/* Floating Preview Top Bar */}
       <header className="h-14 bg-slate-950 border-b border-slate-800 text-slate-200 px-6 flex items-center justify-between sticky top-0 z-50 shadow-md">
         <div className="flex items-center gap-4">
@@ -588,6 +832,9 @@ export const PreviewView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Interactive E-Commerce Cart Drawer */}
+      <CartDrawer />
     </div>
   );
 };

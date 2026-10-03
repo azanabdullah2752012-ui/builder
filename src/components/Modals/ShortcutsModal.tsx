@@ -254,6 +254,40 @@ export const ShortcutsModal: React.FC = () => {
               />
             </div>
           </div>
+
+          {/* Category 5: Canvas Rulers, Guides & Figma Inspection */}
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2 px-1">
+              Canvas, Rulers & Alignment
+            </h3>
+            <div className="bg-[#141416] border border-[#27272a] rounded-xl p-1.5 divide-y divide-zinc-800/40">
+              <ShortcutRow
+                label="Toggle Rulers & Guides"
+                description="Show or hide pixel rulers and user guideline lines"
+                keys={[shift, 'R']}
+              />
+              <ShortcutRow
+                label="Figma Distance Inspector"
+                description="Hold Alt/Option while hovering any element or canvas"
+                keys={[alt, 'Hover']}
+              />
+              <ShortcutRow
+                label="Create Custom Guide Line"
+                description="Click and drag down from top ruler or right from left ruler"
+                keys={['Drag from Ruler']}
+              />
+              <ShortcutRow
+                label="Group Elements into Frame"
+                description="Group multiple selected items into container"
+                keys={[cmd, 'G']}
+              />
+              <ShortcutRow
+                label="Ungroup Container"
+                description="Dissolve container and restore items to canvas"
+                keys={[cmd, shift, 'G']}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Footer */}

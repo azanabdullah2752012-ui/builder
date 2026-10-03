@@ -7,6 +7,13 @@ import {
   getAllSubmissions,
   createSubmission,
   getDatabaseStats,
+  getAllProjects,
+  getProjectById,
+  saveProject,
+  deleteProject,
+  createProjectRevision,
+  getProjectRevisions,
+  getRevisionById,
 } from './server/database.ts';
 
 function databaseApiPlugin(): Plugin {
@@ -89,6 +96,73 @@ function databaseApiPlugin(): Plugin {
             const id = pathname.split('/').pop();
             if (id) {
               deleteUser(id);
+              res.end(JSON.stringify({ success: true }));
+              return;
+            }
+          }
+
+          // Projects API
+          if (pathname === '/api/projects' && req.method === 'GET') {
+            const userId = url.searchParams.get('userId') || undefined;
+            res.end(JSON.stringify({ projects: getAllProjects(userId) }));
+            return;
+          }
+
+          if (pathname === '/api/projects' && req.method === 'POST') {
+            const body = await readBody();
+            if (!body.id || !body.name) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ error: 'Project id and name are required' }));
+              return;
+            }
+            const result = saveProject({
+              id: body.id,
+              user_id: body.user_id,
+              name: body.name,
+              slug: body.slug,
+              data_json: typeof body.data === 'string' ? body.data : JSON.stringify(body.data || {}),
+              thumbnail_url: body.thumbnail_url,
+              is_public: body.is_public,
+            });
+            res.end(JSON.stringify(result));
+            return;
+          }
+
+          if (pathname.startsWith('/api/projects/') && !pathname.includes('/revisions')) {
+            const id = pathname.replace('/api/projects/', '');
+            if (req.method === 'GET') {
+              const proj = getProjectById(id);
+              if (!proj) {
+                res.statusCode = 404;
+                res.end(JSON.stringify({ error: 'Project not found' }));
+                return;
+              }
+              res.end(JSON.stringify({ project: proj }));
+              return;
+            }
+            if (req.method === 'DELETE') {
+              deleteProject(id);
+              res.end(JSON.stringify({ success: true }));
+              return;
+            }
+          }
+
+          // Project Revisions API
+          if (pathname.includes('/revisions')) {
+            const parts = pathname.split('/');
+            const projectId = parts[3]; // /api/projects/:id/revisions
+            if (req.method === 'GET' && parts.length === 5) {
+              const rev = getRevisionById(parts[4]);
+              res.end(JSON.stringify({ revision: rev }));
+              return;
+            }
+            if (req.method === 'GET') {
+              res.end(JSON.stringify({ revisions: getProjectRevisions(projectId) }));
+              return;
+            }
+            if (req.method === 'POST') {
+              const body = await readBody();
+              createProjectRevision(projectId, body.name, body.data ? JSON.stringify(body.data) : undefined);
               res.end(JSON.stringify({ success: true }));
               return;
             }

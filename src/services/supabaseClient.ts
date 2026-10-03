@@ -1,11 +1,15 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Configuration constants provided for project
+const env: Record<string, any> =
+  typeof import.meta !== 'undefined' && import.meta.env
+    ? import.meta.env
+    : (globalThis as any)?.process?.env || {};
+
 export const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || 'https://jyliqmshfkszdxlndvdb.supabase.co';
+  env.VITE_SUPABASE_URL || 'https://jyliqmshfkszdxlndvdb.supabase.co';
 
 export const SUPABASE_ANON_KEY =
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_g4_LPJtO6ocfBKPj34JM6A_edgJKr2Q';
+  env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_g4_LPJtO6ocfBKPj34JM6A_edgJKr2Q';
 
 let client: SupabaseClient | null = null;
 
@@ -50,6 +54,8 @@ export interface SupabaseAuthResult {
 export interface SupabaseTablesStatus {
   profilesExists: boolean;
   submissionsExists: boolean;
+  projectsExists: boolean;
+  projectRevisionsExists: boolean;
   checkedAt: string;
 }
 
@@ -241,14 +247,18 @@ export async function checkSupabaseTables(): Promise<SupabaseTablesStatus> {
     }
   };
 
-  const [profilesExists, submissionsExists] = await Promise.all([
+  const [profilesExists, submissionsExists, projectsExists, projectRevisionsExists] = await Promise.all([
     checkTable('profiles'),
     checkTable('submissions'),
+    checkTable('projects'),
+    checkTable('project_revisions'),
   ]);
 
   return {
     profilesExists,
     submissionsExists,
+    projectsExists,
+    projectRevisionsExists,
     checkedAt: new Date().toISOString(),
   };
 }

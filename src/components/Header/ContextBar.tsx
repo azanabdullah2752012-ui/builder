@@ -19,6 +19,8 @@ import {
   PanelRight,
   Sparkles,
   Keyboard,
+  Ruler,
+  Magnet,
 } from 'lucide-react';
 
 const SWATCHES = ['#ffffff', '#0f172a', '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -45,6 +47,10 @@ export const ContextBar: React.FC = () => {
     zoomToFit,
     showGrid,
     setShowGrid,
+    showRulers,
+    toggleRulers,
+    snapToObjects,
+    setSnapToObjects,
     leftSidebarOpen,
     toggleLeftSidebar,
     rightSidebarOpen,
@@ -386,9 +392,31 @@ export const ContextBar: React.FC = () => {
           className={`p-1 rounded transition-colors ${
             showGrid ? 'text-blue-400 bg-blue-500/10' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
           }`}
-          title="Toggle Grid"
+          title="Toggle Grid (G)"
         >
           <Grid className="w-3.5 h-3.5" />
+        </button>
+
+        {/* Toggle Rulers & Custom Guides */}
+        <button
+          onClick={toggleRulers}
+          className={`p-1 rounded transition-colors ${
+            showRulers ? 'text-cyan-400 bg-cyan-500/10' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+          }`}
+          title="Toggle Rulers & User Guides (Shift+R)"
+        >
+          <Ruler className="w-3.5 h-3.5" />
+        </button>
+
+        {/* Toggle Smart Magnetic Snapping */}
+        <button
+          onClick={() => setSnapToObjects((s) => !s)}
+          className={`p-1 rounded transition-colors ${
+            snapToObjects ? 'text-pink-400 bg-pink-500/10' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+          }`}
+          title="Toggle Smart Snapping to Objects & Center"
+        >
+          <Magnet className="w-3.5 h-3.5" />
         </button>
 
         {/* Load Demo */}

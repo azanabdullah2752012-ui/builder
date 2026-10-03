@@ -76,13 +76,16 @@ const expectedActions = [
   'discount-reveal',
   'submit-form',
   'accordion-toggle',
+  'open-cart',
+  'add-to-cart',
+  'checkout-stripe',
 ];
-assert.strictEqual(ACTION_DEFINITIONS.length, 28, `Expected 28 action definitions, got ${ACTION_DEFINITIONS.length}`);
+assert.strictEqual(ACTION_DEFINITIONS.length, 31, `Expected 31 action definitions, got ${ACTION_DEFINITIONS.length}`);
 for (const act of expectedActions) {
   const found = ACTION_DEFINITIONS.find((a) => a.value === act);
   assert(found, `Action ${act} must be defined in ACTION_DEFINITIONS`);
 }
-console.log('✅ Passed: All 28 Action Types registered with metadata, icons, and categories.\n');
+console.log('✅ Passed: All 31 Action Types registered with metadata, icons, and categories.\n');
 
 // Test 5: Verify Unified Action Execution
 console.log('Test 5: Verify executeElementAction dispatcher');

@@ -10,6 +10,7 @@ import type {
   ContainerLayoutConfig,
   ElementResponsiveConfig,
   Page,
+  StateVariant,
 } from '../types/editor';
 
 export interface Toast {
@@ -23,10 +24,34 @@ export interface EditorContextType {
   activePage: Page;
   selectedElementId: string | null;
   selectedElement: CanvasElement | null;
+  selectedElementIds: string[];
+  selectedElements: CanvasElement[];
+  selectElements: (ids: string[]) => void;
+  toggleSelectElement: (id: string, multi?: boolean) => void;
+  groupSelectedElements: () => CanvasElement | null;
+  ungroupSelectedElements: () => void;
+  alignSelectedElements: (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => void;
+  distributeSelectedElements: (direction: 'horizontal' | 'vertical') => void;
+  moveSelectedElements: (dx: number, dy: number) => void;
+  batchDeleteSelected: () => void;
   editorMode: EditorMode;
   viewportMode: ViewportMode;
+  previewStateVariant: StateVariant;
+  setPreviewStateVariant: (variant: StateVariant) => void;
   zoom: number;
   showGrid: boolean;
+  showRulers: boolean;
+  setShowRulers: (show: boolean | ((prev: boolean) => boolean)) => void;
+  toggleRulers: () => void;
+  snapToObjects: boolean;
+  setSnapToObjects: (snap: boolean | ((prev: boolean) => boolean)) => void;
+  snapToGuides: boolean;
+  setSnapToGuides: (snap: boolean | ((prev: boolean) => boolean)) => void;
+  userGuides: import('../types/editor').UserGuide[];
+  addUserGuide: (orientation: 'horizontal' | 'vertical', position: number) => void;
+  updateUserGuide: (id: string, position: number) => void;
+  removeUserGuide: (id: string) => void;
+  clearUserGuides: () => void;
   isSaved: boolean;
   lastSavedText: string;
   canUndo: boolean;
@@ -99,6 +124,7 @@ export interface EditorContextType {
 
   // Project & Pages
   setProjectName: (name: string) => void;
+  updateProjectSettings: (settings: Partial<ProjectState>) => void;
   setActivePage: (pageId: string) => void;
   addPage: (name: string) => void;
   duplicatePage: (pageId: string) => void;
@@ -106,6 +132,27 @@ export interface EditorContextType {
   updatePageSettings: (pageId: string, settings: Partial<Page>) => void;
   resetToBlank: () => void;
   resetToDefaultDemo: () => void;
+
+  // Cloud Persistence & Multi-Project Management
+  cloudSyncStatus: import('../types/editor').CloudSyncStatus;
+  lastCloudSavedAt: string | null;
+  cloudProjects: import('../types/editor').ProjectSummary[];
+  isProjectManagerOpen: boolean;
+  setIsProjectManagerOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  isVersionHistoryOpen: boolean;
+  setIsVersionHistoryOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  revisions: import('../types/editor').ProjectRevision[];
+  saveToCloud: (manual?: boolean) => Promise<boolean>;
+  loadCloudProject: (id: string) => Promise<boolean>;
+  createNewProject: (name?: string, templateType?: 'blank' | 'landing') => void;
+  duplicateCurrentProject: () => Promise<string | null>;
+  deleteCloudProject: (id: string) => Promise<boolean>;
+  createSnapshot: (name?: string) => Promise<boolean>;
+  restoreRevision: (revision: import('../types/editor').ProjectRevision) => void;
+  refreshCloudProjects: () => Promise<void>;
+  refreshRevisions: () => Promise<void>;
 
   // History
   undo: () => void;
@@ -116,4 +163,34 @@ export interface EditorContextType {
   removeToast: (id: string) => void;
 }
 
-export const EditorContext = createContext<EditorContextType | null>(null);
+// Ensure EditorContext is a resilient singleton across Vite HMR module re-evaluations
+const GLOBAL_EDITOR_CONTEXT_KEY = Symbol.for('craft.studio.editorContext');
+const GLOBAL_EDITOR_LATEST_VALUE_KEY = Symbol.for('craft.studio.latestContextValue');
+
+interface GlobalEditorStore {
+  [GLOBAL_EDITOR_CONTEXT_KEY]?: React.Context<EditorContextType | null>;
+  [GLOBAL_EDITOR_LATEST_VALUE_KEY]?: EditorContextType | null;
+}
+
+const getGlobalEditorStore = (): GlobalEditorStore => {
+  if (typeof globalThis !== 'undefined') return globalThis as unknown as GlobalEditorStore;
+  if (typeof window !== 'undefined') return window as unknown as GlobalEditorStore;
+  return {} as GlobalEditorStore;
+};
+
+const globalEditorStore = getGlobalEditorStore();
+
+if (!globalEditorStore[GLOBAL_EDITOR_CONTEXT_KEY]) {
+  globalEditorStore[GLOBAL_EDITOR_CONTEXT_KEY] = createContext<EditorContextType | null>(null);
+}
+
+export const EditorContext = globalEditorStore[GLOBAL_EDITOR_CONTEXT_KEY]!;
+
+export const setLatestEditorContextValue = (val: EditorContextType | null): void => {
+  globalEditorStore[GLOBAL_EDITOR_LATEST_VALUE_KEY] = val;
+};
+
+export const getLatestEditorContextValue = (): EditorContextType | null => {
+  return globalEditorStore[GLOBAL_EDITOR_LATEST_VALUE_KEY] || null;
+};
+

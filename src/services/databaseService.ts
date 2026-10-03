@@ -14,6 +14,8 @@ import {
   SUPABASE_ANON_KEY,
   type SupabaseTablesStatus,
 } from './supabaseClient';
+import type { ProjectState, ProjectSummary, ProjectRevision, ProjectPublishConfig } from '../types/editor';
+import { normalizeProjectState } from '../utils/projectNormalization';
 
 export interface DatabaseUser {
   id: number;
@@ -67,6 +69,29 @@ function saveLocalUsers(users: DatabaseUser[]) {
   try {
     localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
   } catch {}
+}
+
+const LOCAL_SUBMISSIONS_KEY = 'studio_db_fallback_submissions';
+const inMemorySubmissions: DatabaseSubmission[] = [];
+
+function getLocalSubmissions(): DatabaseSubmission[] {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem(LOCAL_SUBMISSIONS_KEY);
+      if (raw) return JSON.parse(raw);
+    }
+  } catch {}
+  return [...inMemorySubmissions];
+}
+
+function saveLocalSubmissions(subs: DatabaseSubmission[]) {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(LOCAL_SUBMISSIONS_KEY, JSON.stringify(subs));
+    }
+  } catch {}
+  inMemorySubmissions.length = 0;
+  inMemorySubmissions.push(...subs);
 }
 
 export const databaseService = {
@@ -292,7 +317,7 @@ export const databaseService = {
       try {
         const { data: subs, error } = await sb.from('submissions').select('*').order('created_at', { ascending: false });
         if (!error && subs && subs.length > 0) {
-          return subs.map((s) => ({
+          const mapped: DatabaseSubmission[] = subs.map((s) => ({
             id: Number(s.id),
             page_slug: s.page_slug,
             form_type: s.form_type,
@@ -301,6 +326,8 @@ export const databaseService = {
             data_json: typeof s.data === 'string' ? s.data : JSON.stringify(s.data || {}),
             created_at: s.created_at ? s.created_at.substring(0, 19).replace('T', ' ') : '',
           }));
+          saveLocalSubmissions(mapped);
+          return mapped;
         }
       } catch {}
     }
@@ -309,10 +336,12 @@ export const databaseService = {
       const res = await fetch('/api/database/submissions');
       if (res.ok) {
         const data = await res.json();
-        return data.submissions || [];
+        const mapped = data.submissions || [];
+        saveLocalSubmissions(mapped);
+        return mapped;
       }
     } catch {}
-    return [];
+    return getLocalSubmissions();
   },
 
   async submitLead(submission: {
@@ -322,7 +351,21 @@ export const databaseService = {
     email: string;
     data?: Record<string, any>;
   }): Promise<{ success: boolean; message?: string }> {
-    // Write directly to Supabase public.submissions table
+    // 1. Save to local fallback cache immediately
+    const localNewSubmission: DatabaseSubmission = {
+      id: Date.now(),
+      page_slug: submission.page_slug,
+      form_type: submission.form_type,
+      name: submission.name,
+      email: submission.email,
+      data_json: typeof submission.data === 'string' ? submission.data : JSON.stringify(submission.data || {}),
+      created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
+    };
+    const currentSubs = getLocalSubmissions();
+    currentSubs.unshift(localNewSubmission);
+    saveLocalSubmissions(currentSubs);
+
+    // 2. Write directly to Supabase public.submissions table
     const sb = getSupabase();
     if (sb) {
       try {
@@ -338,6 +381,7 @@ export const databaseService = {
       }
     }
 
+    // 3. Write to local backend server if reachable
     try {
       const res = await fetch('/api/database/submissions', {
         method: 'POST',
@@ -364,5 +408,322 @@ export const databaseService = {
     const users = getLocalUsers().filter((u) => u.id !== id);
     saveLocalUsers(users);
     return true;
+  },
+
+  // -------------------------------------------------------------
+  // Cloud Projects & Revision Persistence
+  // -------------------------------------------------------------
+
+  async saveProject(
+    project: ProjectState,
+    options?: { userId?: string; isPublic?: boolean }
+  ): Promise<{ success: boolean; cloud: boolean; error?: string }> {
+    let cloudSynced = false;
+    let cloudError: string | undefined = undefined;
+
+    // 1. Try Direct Supabase Cloud Save
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        const payload: Record<string, any> = {
+          id: project.id,
+          name: project.name,
+          slug: project.slug || project.id,
+          data: project,
+          is_public: options?.isPublic ?? project.isPublic ?? false,
+          updated_at: new Date().toISOString(),
+        };
+        if (options?.userId) {
+          payload.user_id = options.userId;
+        }
+
+        const { error } = await sb.from('projects').upsert(payload, { onConflict: 'id' });
+        if (!error) {
+          cloudSynced = true;
+        } else {
+          // If table not found or RLS issue, log gently
+          cloudError = error.message;
+        }
+      } catch (err: any) {
+        cloudError = err.message;
+      }
+    }
+
+    // 2. Sync to local backend /api/projects
+    try {
+      await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: project.id,
+          user_id: options?.userId,
+          name: project.name,
+          slug: project.slug,
+          data: project,
+          is_public: options?.isPublic ?? project.isPublic,
+        }),
+      });
+    } catch {}
+
+    return {
+      success: true,
+      cloud: cloudSynced,
+      error: cloudError,
+    };
+  },
+
+  async getProjects(userId?: string): Promise<ProjectSummary[]> {
+    // 1. Direct Supabase Query
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        let query = sb.from('projects').select('id, user_id, name, slug, thumbnail_url, is_public, updated_at, data').order('updated_at', { ascending: false });
+        if (userId) {
+          query = query.or(`user_id.eq.${userId},user_id.is.null,is_public.eq.true`);
+        }
+        const { data, error } = await query;
+        if (!error && data && data.length > 0) {
+          return data.map((item: any) => {
+            const parsedData = typeof item.data === 'string' ? JSON.parse(item.data || '{}') : item.data || {};
+            const totalElements = (parsedData.pages || []).reduce(
+              (acc: number, p: any) => acc + (p.elements?.length || 0),
+              0
+            );
+            return {
+              id: item.id,
+              name: item.name,
+              slug: item.slug,
+              thumbnail_url: item.thumbnail_url,
+              updatedAt: item.updated_at,
+              pageCount: parsedData.pages?.length || 1,
+              elementCount: totalElements,
+              isPublic: !!item.is_public,
+              userId: item.user_id,
+            };
+          });
+        }
+      } catch {}
+    }
+
+    // 2. Local dev backend fallback
+    try {
+      const url = userId ? `/api/projects?userId=${encodeURIComponent(userId)}` : '/api/projects';
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.projects && json.projects.length > 0) {
+          return json.projects.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            slug: p.slug,
+            thumbnail_url: p.thumbnail_url,
+            updatedAt: p.updated_at,
+            pageCount: 1,
+            elementCount: 0,
+            isPublic: !!p.is_public,
+            userId: p.user_id,
+          }));
+        }
+      }
+    } catch {}
+
+    return [];
+  },
+
+  async getProject(idOrSlug: string): Promise<ProjectState | null> {
+    // 1. Direct Supabase Query (check id first, then slug)
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        let { data, error } = await sb.from('projects').select('*').eq('id', idOrSlug).maybeSingle();
+        if (!data || error) {
+          const slugRes = await sb.from('projects').select('*').eq('slug', idOrSlug).maybeSingle();
+          if (!slugRes.error && slugRes.data) {
+            data = slugRes.data;
+          }
+        }
+        if (data && data.data) {
+          const raw = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+          return normalizeProjectState(raw);
+        }
+      } catch {}
+    }
+
+    // 2. Local dev backend fallback
+    try {
+      const res = await fetch(`/api/projects/${idOrSlug}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.project && json.project.data_json) {
+          const raw = JSON.parse(json.project.data_json);
+          return normalizeProjectState(raw);
+        }
+      }
+    } catch {}
+
+    return null;
+  },
+
+  async isSlugAvailable(slug: string, currentProjectId: string): Promise<{ available: boolean; error?: string }> {
+    const clean = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '-');
+    if (clean.length < 3) {
+      return { available: false, error: 'Slug must be at least 3 characters long' };
+    }
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('projects').select('id').eq('slug', clean);
+        if (!error && data) {
+          const conflict = data.find((p) => p.id !== currentProjectId);
+          if (conflict) {
+            return { available: false, error: 'This URL slug is already taken' };
+          }
+        }
+      } catch {}
+    }
+    return { available: true };
+  },
+
+  async publishProject(
+    project: ProjectState,
+    config?: Partial<ProjectPublishConfig>
+  ): Promise<{ success: boolean; url: string; publishedAt: string; error?: string }> {
+    const publishedAt = new Date().toISOString();
+    const slug = (config?.customDomain || project.slug || project.name.toLowerCase().replace(/[^a-z0-9]/g, '-') || project.id).replace(/^-+|-+$/g, '');
+    const updatedProject: ProjectState = {
+      ...project,
+      slug,
+      isPublic: true,
+      publishedAt,
+      publishConfig: {
+        ...project.publishConfig,
+        ...config,
+        publishedAt,
+        seoTitle: config?.seoTitle || project.publishConfig?.seoTitle || project.name,
+        seoDescription: config?.seoDescription || project.publishConfig?.seoDescription || `Crafted with Craft Studio - ${project.name}`,
+      },
+    };
+
+    // Save project with isPublic = true
+    const saveRes = await this.saveProject(updatedProject, { isPublic: true });
+    if (!saveRes.success && saveRes.error) {
+      return { success: false, url: '', publishedAt: '', error: saveRes.error };
+    }
+
+    // Create a publication snapshot in version history
+    await this.createRevision(
+      project.id,
+      `🚀 Published Live (${new Date().toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })})`,
+      updatedProject
+    );
+
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://craftstudio.dev';
+    const liveUrl = `${baseUrl}/?p=${slug}`;
+
+    return {
+      success: true,
+      url: liveUrl,
+      publishedAt,
+    };
+  },
+
+  async unpublishProject(project: ProjectState): Promise<{ success: boolean; error?: string }> {
+    const updatedProject: ProjectState = {
+      ...project,
+      isPublic: false,
+    };
+    const res = await this.saveProject(updatedProject, { isPublic: false });
+    return { success: res.success, error: res.error };
+  },
+
+  async deleteProject(id: string): Promise<boolean> {
+    // 1. Direct Supabase Delete
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        await sb.from('projects').delete().eq('id', id);
+      } catch {}
+    }
+
+    // 2. Local dev backend fallback
+    try {
+      await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+    } catch {}
+
+    return true;
+  },
+
+  async createRevision(
+    projectId: string,
+    name?: string,
+    data?: ProjectState
+  ): Promise<boolean> {
+    const revName = name || `Checkpoint ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+    // 1. Direct Supabase Insert
+    const sb = getSupabase();
+    if (sb && data) {
+      try {
+        await sb.from('project_revisions').insert({
+          project_id: projectId,
+          name: revName,
+          data: data,
+        });
+      } catch {}
+    }
+
+    // 2. Local dev backend fallback
+    try {
+      await fetch(`/api/projects/${projectId}/revisions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: revName, data }),
+      });
+    } catch {}
+
+    return true;
+  },
+
+  async getRevisions(projectId: string): Promise<ProjectRevision[]> {
+    // 1. Direct Supabase Query
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        const { data, error } = await sb
+          .from('project_revisions')
+          .select('id, project_id, name, created_at, data')
+          .eq('project_id', projectId)
+          .order('created_at', { ascending: false })
+          .limit(30);
+
+        if (!error && data && data.length > 0) {
+          return data.map((d: any) => ({
+            id: d.id,
+            projectId: d.project_id,
+            name: d.name,
+            createdAt: d.created_at,
+            data: typeof d.data === 'string' ? JSON.parse(d.data) : d.data,
+          }));
+        }
+      } catch {}
+    }
+
+    // 2. Local dev backend fallback
+    try {
+      const res = await fetch(`/api/projects/${projectId}/revisions`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.revisions && json.revisions.length > 0) {
+          return json.revisions.map((r: any) => ({
+            id: r.id,
+            projectId: r.project_id,
+            name: r.name,
+            createdAt: r.created_at,
+          }));
+        }
+      }
+    } catch {}
+
+    return [];
   },
 };

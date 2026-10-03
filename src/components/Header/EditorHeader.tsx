@@ -1,421 +1,460 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEditor } from '../../context/useEditor';
 import {
-  Eye,
-  Code2,
-  Menu,
-  BookOpen,
-  Plus,
-  Trash2,
-  ChevronDown,
-  Monitor,
-  Tablet,
-  Smartphone,
-  Sliders,
-  FileText,
-  Copy,
-  ShieldCheck,
-  LogOut,
-  User,
-  Sparkles,
-  Zap,
+  Eye, Code2, Menu, Plus, Trash2, ChevronDown,
+  Monitor, Tablet, Smartphone, Sliders, FileText, Copy,
+  LogOut, User, Sparkles, Zap, Cloud, Loader2,
+  FolderOpen, History, LogIn, MoreHorizontal, Keyboard, Globe,
+  Inbox, SearchCheck, BarChart2,
 } from 'lucide-react';
 import { ExportModal } from '../Modals/ExportModal';
-import { DatabaseModal } from '../Modals/DatabaseModal';
+import { PublishModal } from '../Modals/PublishModal';
+import { LeadsModal } from '../Modals/LeadsModal';
+import { SeoAuditModal } from '../Modals/SeoAuditModal';
+import { AnalyticsModal } from '../Modals/AnalyticsModal';
 import { ProfileModal } from '../Modals/ProfileModal';
 import { OnboardingModal } from '../Modals/OnboardingModal';
+import { AuthModal } from '../Modals/AuthModal';
+import { ProjectManagerModal } from '../Modals/ProjectManagerModal';
+import { VersionHistoryModal } from '../Modals/VersionHistoryModal';
+
+const S = {
+  header: {
+    height: 44,
+    background: '#0f0f0f',
+    borderBottom: '1px solid #1e1e1e',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0 12px',
+    flexShrink: 0,
+    userSelect: 'none' as const,
+    zIndex: 30,
+    fontSize: 12,
+  } as React.CSSProperties,
+  brand: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    fontSize: 13,
+    fontWeight: 600,
+    color: '#e8e8e8',
+    letterSpacing: '-0.02em',
+  } as React.CSSProperties,
+  brandStar: { color: '#6366f1', fontSize: 14 },
+  sep: { width: 1, height: 14, background: '#2a2a2a', margin: '0 8px' } as React.CSSProperties,
+  iconBtn: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 28, height: 28, borderRadius: 6, border: 'none',
+    background: 'transparent', color: '#666', cursor: 'pointer',
+    transition: 'background 0.12s, color 0.12s', fontSize: 12,
+  } as React.CSSProperties,
+  textBtn: {
+    display: 'flex', alignItems: 'center', gap: 5, height: 28,
+    padding: '0 10px', borderRadius: 6, border: '1px solid #222',
+    background: 'transparent', color: '#999', cursor: 'pointer',
+    transition: 'background 0.12s, color 0.12s, border-color 0.12s',
+    fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap' as const,
+  } as React.CSSProperties,
+  pagePill: {
+    display: 'flex', alignItems: 'center', gap: 5, height: 26,
+    padding: '0 8px', borderRadius: 6,
+    background: '#1a1a1a', border: '1px solid #2a2a2a',
+    color: '#e8e8e8', cursor: 'pointer', fontSize: 11, fontWeight: 500,
+  } as React.CSSProperties,
+  dropdown: {
+    position: 'absolute' as const, top: 'calc(100% + 6px)', left: 0,
+    width: 220, background: '#141414', border: '1px solid #262626',
+    borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    padding: '4px', zIndex: 100,
+    animation: 'craftFadeIn 0.1s ease-out',
+  } as React.CSSProperties,
+  dropdownR: {
+    position: 'absolute' as const, top: 'calc(100% + 6px)', right: 0,
+    width: 220, background: '#141414', border: '1px solid #262626',
+    borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    padding: '4px', zIndex: 100,
+    animation: 'craftFadeIn 0.1s ease-out',
+  } as React.CSSProperties,
+  dropRow: {
+    display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px',
+    borderRadius: 7, cursor: 'pointer', fontSize: 12, color: '#bbb',
+    transition: 'background 0.1s, color 0.1s',
+  } as React.CSSProperties,
+  segGroup: {
+    display: 'flex', alignItems: 'center', gap: 2, padding: '3px',
+    background: '#141414', border: '1px solid #222', borderRadius: 8,
+  } as React.CSSProperties,
+};
+
+function DropRow({ icon, label, danger, onClick }: { icon: React.ReactNode; label: string; danger?: boolean; onClick: () => void }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{ ...S.dropRow, background: hov ? (danger ? 'rgba(239,68,68,0.08)' : '#1e1e1e') : 'transparent', color: hov ? (danger ? '#f87171' : '#e8e8e8') : (danger ? '#f87171' : '#bbb') }}
+    >
+      {icon}{label}
+    </div>
+  );
+}
+
+function IconBtn({ icon, title, active, onClick }: { icon: React.ReactNode; title?: string; active?: boolean; onClick?: () => void }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{ ...S.iconBtn, background: active ? '#1e1e1e' : hov ? '#1a1a1a' : 'transparent', color: active || hov ? '#e8e8e8' : '#666' }}
+    >
+      {icon}
+    </button>
+  );
+}
+
+function TextBtn({ icon, label, title, active, accent, onClick }: { icon?: React.ReactNode; label: string; title?: string; active?: boolean; accent?: boolean; onClick?: () => void }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        ...S.textBtn,
+        background: accent ? (hov ? '#5b5bd6' : '#6366f1') : active ? '#1e1e1e' : hov ? '#1a1a1a' : 'transparent',
+        color: accent ? '#fff' : active || hov ? '#e8e8e8' : '#888',
+        borderColor: accent ? 'transparent' : active ? '#333' : hov ? '#2a2a2a' : '#222',
+      }}
+    >
+      {icon}{label}
+    </button>
+  );
+}
 
 export const EditorHeader: React.FC = () => {
   const {
-    project,
-    activePage,
-    setProjectName,
-    setActivePage,
-    addPage,
-    duplicatePage,
-    deletePage,
-    editorMode,
-    setEditorMode,
-    viewportMode,
-    setViewportMode,
-    toggleLeftSidebar,
-    rightSidebarOpen,
-    toggleRightSidebar,
-    editorComplexity,
-    setEditorComplexity,
-    showOnboarding,
-    setShowOnboarding,
-    currentUser,
-    logout,
+    project, activePage, setProjectName, setActivePage, addPage, duplicatePage, deletePage,
+    editorMode, setEditorMode, viewportMode, setViewportMode,
+    toggleLeftSidebar, rightSidebarOpen, toggleRightSidebar,
+    editorComplexity, setEditorComplexity, showOnboarding, setShowOnboarding,
+    currentUser, logout, cloudSyncStatus, lastCloudSavedAt, saveToCloud,
+    isProjectManagerOpen, setIsProjectManagerOpen,
+    isVersionHistoryOpen, setIsVersionHistoryOpen,
+    isAuthModalOpen, setIsAuthModalOpen, setShowShortcutsModal,
   } = useEditor();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(project.name);
-  const [isPageDropdownOpen, setIsPageDropdownOpen] = useState(false);
+  const [isPageDropOpen, setIsPageDropOpen] = useState(false);
   const [newPageName, setNewPageName] = useState('');
   const [isExportOpen, setIsExportOpen] = useState(false);
-  const [isDatabaseOpen, setIsDatabaseOpen] = useState(false);
+  const [isPublishOpen, setIsPublishOpen] = useState(false);
+  const [isLeadsOpen, setIsLeadsOpen] = useState(false);
+  const [isSeoOpen, setIsSeoOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isMoreOpen && !isPageDropOpen && !isUserMenuOpen) return;
+    const close = () => { setIsMoreOpen(false); setIsPageDropOpen(false); setIsUserMenuOpen(false); };
+    const t = setTimeout(() => window.addEventListener('click', close), 10);
+    return () => { clearTimeout(t); window.removeEventListener('click', close); };
+  }, [isMoreOpen, isPageDropOpen, isUserMenuOpen]);
 
   const handleTitleSubmit = () => {
     setIsEditingTitle(false);
-    if (titleValue.trim()) {
-      setProjectName(titleValue.trim());
-    } else {
-      setTitleValue(project.name);
-    }
+    if (titleValue.trim()) setProjectName(titleValue.trim());
+    else setTitleValue(project.name);
   };
 
   const handleAddPage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPageName.trim()) {
-      addPage(newPageName.trim());
-      setNewPageName('');
-      setIsPageDropdownOpen(false);
-    }
+    if (newPageName.trim()) { addPage(newPageName.trim()); setNewPageName(''); setIsPageDropOpen(false); }
   };
+
+  const vp = [
+    { id: 'desktop', icon: <Monitor size={13} />, label: 'Desktop' },
+    { id: 'tablet',  icon: <Tablet size={13} />,  label: 'Tablet' },
+    { id: 'mobile',  icon: <Smartphone size={13} />, label: 'Mobile' },
+  ] as const;
+
+  const isPublished = Boolean(project.publishedAt || project.isPublic);
 
   return (
     <>
-      <header className="h-12 bg-[#121214] border-b border-[#222226] text-zinc-200 px-3.5 flex items-center justify-between select-none z-30 shrink-0 text-xs">
-        {/* Left Section: Menu Toggle + Notebook Icon + Untitled Project with subtle chevron */}
-        <div className="flex items-center gap-3">
-          {/* Hamburger Menu Toggle matching reference Image 1 */}
-          <button
-            onClick={toggleLeftSidebar}
-            className="p-1 rounded text-zinc-400 hover:text-white transition-colors"
-            title="Toggle Menu"
-          >
-            <Menu className="w-4 h-4" />
-          </button>
+      <style>{`
+        @keyframes craftFadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+        .craft-drop-row:hover { background:#1e1e1e; color:#e8e8e8; }
+      `}</style>
 
-          {/* Project & Page Breadcrumb */}
-          <div className="relative">
-            <div className="flex items-center gap-1.5 cursor-pointer">
-              <BookOpen className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-              {isEditingTitle ? (
-                <input
-                  type="text"
-                  value={titleValue}
-                  onChange={(e) => setTitleValue(e.target.value)}
-                  onBlur={handleTitleSubmit}
-                  onKeyDown={(e) => e.key === 'Enter' && handleTitleSubmit()}
-                  autoFocus
-                  className="px-1.5 py-0.5 text-xs font-normal bg-[#18181b] border border-[#3f3f46] rounded text-white outline-none w-28"
-                />
-              ) : (
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTitleValue(project.name);
-                    setIsEditingTitle(true);
-                  }}
-                  className="font-normal text-zinc-400 hover:text-zinc-200 text-xs tracking-tight transition-colors"
-                  title="Click to rename project"
-                >
-                  {project.name}
-                </span>
-              )}
+      <header style={S.header}>
+        {/* ── Left ─────────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <IconBtn icon={<Menu size={15} />} title="Toggle panel" onClick={toggleLeftSidebar} />
 
-              <span className="text-zinc-600 font-mono text-xs">/</span>
+          <div style={{ ...S.sep, margin: '0 4px 0 6px' }} />
 
-              {/* Active Page Pill with Dropdown Trigger */}
-              <button
-                type="button"
-                onClick={() => setIsPageDropdownOpen(!isPageDropdownOpen)}
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#18181b] border border-[#27272a] hover:border-[#38383e] text-zinc-200 font-medium transition-colors"
-                title="Switch or Manage Pages"
+          {/* Brand */}
+          <div style={S.brand}>
+            <span style={S.brandStar}>✦</span>
+            <span>Craft</span>
+          </div>
+
+          <div style={S.sep} />
+
+          {/* Project + Page breadcrumb */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button
+              onClick={() => setIsProjectManagerOpen(true)}
+              title="Projects"
+              style={{ ...S.iconBtn, width: 24 }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#1a1a1a'; (e.currentTarget as HTMLElement).style.color = '#e8e8e8'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#666'; }}
+            >
+              <FolderOpen size={13} />
+            </button>
+
+            {isEditingTitle ? (
+              <input
+                autoFocus
+                value={titleValue}
+                onChange={e => setTitleValue(e.target.value)}
+                onBlur={handleTitleSubmit}
+                onKeyDown={e => e.key === 'Enter' && handleTitleSubmit()}
+                style={{ background: '#1a1a1a', border: '1px solid #6366f1', borderRadius: 5, padding: '2px 8px', fontSize: 11, color: '#e8e8e8', outline: 'none', width: 110 }}
+              />
+            ) : (
+              <span
+                onClick={() => { setTitleValue(project.name); setIsEditingTitle(true); }}
+                style={{ fontSize: 12, color: '#999', cursor: 'text', fontWeight: 400 }}
               >
-                <FileText className="w-3 h-3 text-indigo-400 shrink-0" />
-                <span className="truncate max-w-[120px]">{activePage.name}</span>
-                <ChevronDown className="w-3 h-3 text-zinc-400" />
-              </button>
-            </div>
+                {project.name}
+              </span>
+            )}
 
-            {/* Page Switcher Dropdown */}
-            {isPageDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-56 bg-[#141417] border border-[#2a2a30] rounded-xl shadow-2xl p-1.5 z-50 animate-fade-in">
-                <div className="text-[10px] font-medium text-zinc-500 px-2 py-1 uppercase tracking-wider flex items-center justify-between">
-                  <span>Project Pages</span>
-                  <span className="font-mono text-[9px] text-zinc-400">{project.pages.length}</span>
+            <span style={{ color: '#333', fontSize: 12, margin: '0 1px' }}>/</span>
+
+            <button
+              onClick={() => setIsPageDropOpen(!isPageDropOpen)}
+              style={S.pagePill}
+            >
+              <FileText size={11} style={{ color: '#6366f1' }} />
+              <span style={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{activePage.name}</span>
+              <ChevronDown size={11} style={{ color: '#555', transform: isPageDropOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+            </button>
+
+            {/* Page dropdown */}
+            {isPageDropOpen && (
+              <div style={S.dropdown}>
+                <div style={{ padding: '4px 10px 6px', fontSize: 10, fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Pages</span><span style={{ color: '#444' }}>{project.pages.length}</span>
                 </div>
-                <div className="space-y-0.5 my-1 max-h-56 overflow-y-auto">
-                  {project.pages.map((p) => (
-                    <div
-                      key={p.id}
-                      className={`flex items-center justify-between px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                        p.id === activePage.id
-                          ? 'bg-[#222226] text-white font-medium border border-indigo-500/30'
-                          : 'text-zinc-400 hover:bg-[#1c1c20] hover:text-zinc-200'
-                      }`}
-                      onClick={() => {
-                        setActivePage(p.id);
-                        setIsPageDropdownOpen(false);
-                      }}
-                    >
-                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                        <FileText className="w-3 h-3 text-zinc-500 shrink-0" />
-                        <span className="truncate text-xs">{p.name}</span>
-                        <span className="text-[9px] font-mono text-zinc-500">({p.slug})</span>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={() => duplicatePage(p.id)}
-                          className="p-1 hover:text-white text-zinc-500 rounded hover:bg-[#27272a]"
-                          title="Duplicate Page"
-                        >
-                          <Copy className="w-3 h-3" />
+                <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+                  {project.pages.map(p => {
+                    const active = p.id === activePage.id;
+                    return (
+                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', borderRadius: 7, background: active ? 'rgba(99,102,241,0.1)' : 'transparent', cursor: 'pointer' }}>
+                        <button onClick={() => { setActivePage(p.id); setIsPageDropOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1, background: 'none', border: 'none', color: active ? '#818cf8' : '#bbb', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                          <FileText size={12} style={{ color: active ? '#6366f1' : '#444' }} />{p.name}
                         </button>
-                        {project.pages.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => deletePage(p.id)}
-                            className="p-1 hover:text-red-400 text-zinc-500 rounded hover:bg-[#27272a]"
-                            title="Delete Page"
-                          >
-                            <Trash2 className="w-3 h-3" />
+                        <div style={{ display: 'flex', gap: 2 }}>
+                          <button onClick={e => { e.stopPropagation(); duplicatePage(p.id); }} style={{ ...S.iconBtn, width: 22, height: 22 }} title="Duplicate">
+                            <Copy size={11} />
                           </button>
-                        )}
+                          {project.pages.length > 1 && (
+                            <button onClick={e => { e.stopPropagation(); deletePage(p.id); }} style={{ ...S.iconBtn, width: 22, height: 22 }} title="Delete">
+                              <Trash2 size={11} />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-
-                <form onSubmit={handleAddPage} className="pt-1.5 border-t border-[#222226] mt-1 flex gap-1">
+                <form onSubmit={handleAddPage} style={{ display: 'flex', gap: 6, padding: '6px 4px 4px', borderTop: '1px solid #1e1e1e', marginTop: 4 }}>
                   <input
-                    type="text"
                     placeholder="New page..."
                     value={newPageName}
-                    onChange={(e) => setNewPageName(e.target.value)}
-                    className="flex-1 px-2 py-0.5 text-xs bg-[#0c0c0e] border border-[#2a2a30] rounded text-zinc-200 placeholder-zinc-500 outline-none"
+                    onChange={e => setNewPageName(e.target.value)}
+                    style={{ flex: 1, background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 6, padding: '4px 8px', fontSize: 11, color: '#e8e8e8', outline: 'none' }}
                   />
-                  <button
-                    type="submit"
-                    className="px-2 py-0.5 bg-[#222226] hover:bg-[#2c2c31] text-white rounded font-medium"
-                  >
-                    <Plus className="w-3 h-3" />
+                  <button type="submit" style={{ width: 26, height: 26, borderRadius: 6, background: '#6366f1', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Plus size={13} />
                   </button>
                 </form>
               </div>
             )}
           </div>
-        </div>
 
-        {/* Center Section: Viewport Switcher + Simple/Pro Mode Toggle */}
-        <div className="flex items-center gap-2">
-          {/* Simple vs Pro Mode Pill Toggle */}
-          <div className="flex items-center bg-[#101420] p-0.5 rounded-lg border border-[#232c3f] shadow-inner">
-            <button
-              type="button"
-              onClick={() => setEditorComplexity('simple')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                editorComplexity === 'simple'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200'
-              }`}
-              title="Simple Mode: Clean, focused canvas with essential controls (recommended for beginners)"
-            >
-              <Sparkles className="w-3 h-3 text-emerald-200" />
-              <span>Simple</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditorComplexity('pro')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                editorComplexity === 'pro'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200'
-              }`}
-              title="Pro Mode: Advanced CSS, responsive flexbox, page navigation ribbon, and full inspector"
-            >
-              <Zap className="w-3 h-3 text-amber-300" />
-              <span>Pro</span>
-            </button>
-          </div>
-
-          {/* Sleek Dark Segmented Viewport Switcher */}
-          <div className="flex items-center bg-[#101420] p-1 rounded-lg border border-[#232c3f] gap-1 shadow-inner">
-            <button
-              onClick={() => setViewportMode('desktop')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] transition-all ${
-                viewportMode === 'desktop'
-                  ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-              }`}
-              title="Desktop (1200px)"
-            >
-              <Monitor className="w-3.5 h-3.5" />
-              <span>Desktop</span>
-            </button>
-            <button
-              onClick={() => setViewportMode('tablet')}
-              className={`flex items-center px-2.5 py-1 rounded-md text-[11px] transition-all ${
-                viewportMode === 'tablet'
-                  ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-              }`}
-              title="Tablet (768px)"
-            >
-              <Tablet className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setViewportMode('mobile')}
-              className={`flex items-center px-2.5 py-1 rounded-md text-[11px] transition-all ${
-                viewportMode === 'mobile'
-                  ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-              }`}
-              title="Phone (390px)"
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-            </button>
+          {/* Cloud sync */}
+          <div style={{ marginLeft: 6 }}>
+            {cloudSyncStatus === 'saving' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', fontSize: 11, color: '#818cf8' }}>
+                <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} />
+                <span>Saving</span>
+              </div>
+            ) : cloudSyncStatus === 'saved' ? (
+              <button onClick={() => saveToCloud(true)} title={`Saved${lastCloudSavedAt ? ` at ${lastCloudSavedAt}` : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6, background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', fontSize: 11, color: '#34d399', cursor: 'pointer' }}>
+                <Cloud size={11} /><span>Saved</span>
+              </button>
+            ) : (
+              <button onClick={() => saveToCloud(true)} title="Save to cloud" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6, background: 'transparent', border: '1px solid #1e1e1e', fontSize: 11, color: '#555', cursor: 'pointer' }}>
+                <Cloud size={11} /><span>Save</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Right Section: Guide, Preview, Export Code, Inspector & User Profile */}
-        <div className="flex items-center gap-2">
-          {/* Quick 3-Step Guide Tour Button */}
+        {/* ── Center: Viewport switcher ─────────────────── */}
+        <div style={S.segGroup}>
+          {vp.map(v => {
+            const on = viewportMode === v.id;
+            return (
+              <button
+                key={v.id}
+                onClick={() => setViewportMode(v.id)}
+                title={v.label}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5, height: 26, padding: '0 10px',
+                  borderRadius: 6, border: on ? '1px solid #2a2a2a' : '1px solid transparent',
+                  background: on ? '#1e1e1e' : 'transparent',
+                  color: on ? '#e8e8e8' : '#555', cursor: 'pointer',
+                  fontSize: 11, fontWeight: on ? 500 : 400, transition: 'all 0.12s',
+                }}
+              >
+                {v.icon}
+                <span>{v.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Right: Actions ───────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <TextBtn icon={<Eye size={13} />} label="Preview" onClick={() => setEditorMode(editorMode === 'preview' ? 'design' : 'preview')} active={editorMode === 'preview'} />
+          <TextBtn icon={<Code2 size={13} />} label="Export" onClick={() => setIsExportOpen(true)} />
           <button
-            type="button"
-            onClick={() => setShowOnboarding(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#262f44] bg-[#151926] text-zinc-300 hover:text-white hover:border-amber-400/40 hover:bg-[#1c2233] text-xs transition-all shadow-sm"
-            title="Open 3-Step Guided Tour & Starter Templates"
+            onClick={() => setIsPublishOpen(true)}
+            title="Publish project to web with live URL, QR code, and custom domain"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              height: 28,
+              padding: '0 10px',
+              borderRadius: 6,
+              border: isPublished ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(99,102,241,0.4)',
+              background: isPublished
+                ? 'rgba(16,185,129,0.12)'
+                : '#6366f1',
+              color: isPublished ? '#34d399' : '#ffffff',
+              cursor: 'pointer',
+              fontSize: 11,
+              fontWeight: 600,
+              boxShadow: isPublished ? '0 0 10px rgba(16,185,129,0.15)' : '0 0 10px rgba(99,102,241,0.25)',
+              transition: 'all 0.15s ease',
+            }}
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span className="hidden sm:inline font-medium">Guide</span>
+            <Globe size={13} style={{ color: isPublished ? '#34d399' : '#ffffff' }} />
+            <span>{isPublished ? 'Published' : 'Publish'}</span>
+            {isPublished && (
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 4px #34d399' }} />
+            )}
           </button>
 
-          {/* Admin Database & Supabase Studio Button - Strictly Admin Only */}
-          {currentUser?.role === 'admin' && (
-            <button
-              onClick={() => setIsDatabaseOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all bg-[#151926] text-zinc-300 border-[#262f44] hover:text-white hover:border-[#384666] hover:bg-[#1a2030]"
-              title="Studio Admin Database (Administrator Console)"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden md:inline font-semibold text-emerald-300">Admin DB</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            </button>
-          )}
+          {/* More */}
+          <div style={{ position: 'relative' }}>
+            <IconBtn icon={<MoreHorizontal size={15} />} onClick={() => setIsMoreOpen(!isMoreOpen)} active={isMoreOpen} title="More" />
+            {isMoreOpen && (
+              <div style={S.dropdownR}>
+                <DropRow icon={<Inbox size={13} />} label="Form Leads & Submissions" onClick={() => { setIsMoreOpen(false); setIsLeadsOpen(true); }} />
+                <DropRow icon={<SearchCheck size={13} />} label="SEO Health Audit" onClick={() => { setIsMoreOpen(false); setIsSeoOpen(true); }} />
+                <DropRow icon={<BarChart2 size={13} />} label="Site Analytics & Traffic" onClick={() => { setIsMoreOpen(false); setIsAnalyticsOpen(true); }} />
+                <div style={{ height: 1, background: '#1e1e1e', margin: '4px 0' }} />
+                <DropRow icon={<Sparkles size={13} />} label="Getting Started" onClick={() => { setIsMoreOpen(false); setShowOnboarding(true); }} />
+                <DropRow icon={<History size={13} />} label="Version History" onClick={() => { setIsMoreOpen(false); setIsVersionHistoryOpen(true); }} />
+                <DropRow icon={<Keyboard size={13} />} label="Shortcuts" onClick={() => { setIsMoreOpen(false); setShowShortcutsModal(true); }} />
+                <div style={{ height: 1, background: '#1e1e1e', margin: '4px 0' }} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', fontSize: 11, color: '#555' }}>
+                  <span>Mode</span>
+                  <button onClick={() => { setEditorComplexity(editorComplexity === 'pro' ? 'simple' : 'pro'); setIsMoreOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 5, background: '#1e1e1e', border: '1px solid #2a2a2a', color: '#e8e8e8', cursor: 'pointer', fontSize: 11, fontWeight: 500 }}>
+                    <Zap size={11} style={{ color: '#f59e0b' }} />{editorComplexity}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
-          {/* Radiant Gradient Preview Button */}
-          <button
-            onClick={() => setEditorMode(editorMode === 'preview' ? 'design' : 'preview')}
-            className="btn-primary"
-            title="Toggle Live Interactive Preview (Ctrl+P)"
-          >
-            <Eye className="w-3.5 h-3.5 text-indigo-100" />
-            <span>Preview</span>
-          </button>
+          <div style={S.sep} />
 
-          {/* Sleek Slate Export Code Button */}
-          <button
-            onClick={() => setIsExportOpen(true)}
-            className="btn-secondary"
-            title="Export Production Code"
-          >
-            <Code2 className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Export Code</span>
-          </button>
-
-          {/* Inspector Panel Toggle Button */}
+          {/* Inspector toggle */}
           <button
             onClick={toggleRightSidebar}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all ${
-              rightSidebarOpen
-                ? 'bg-indigo-600/25 text-indigo-200 border-indigo-500/50 font-medium shadow-sm'
-                : 'bg-[#151926] text-zinc-400 border-[#262f44] hover:text-white hover:border-[#384666]'
-            }`}
             title={rightSidebarOpen ? 'Hide Inspector' : 'Show Inspector'}
+            style={{
+              ...S.textBtn,
+              background: rightSidebarOpen ? '#1e1e1e' : 'transparent',
+              color: rightSidebarOpen ? '#e8e8e8' : '#666',
+              borderColor: rightSidebarOpen ? '#2a2a2a' : '#1e1e1e',
+            }}
           >
-            <Sliders className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="hidden sm:inline">Inspector</span>
+            <Sliders size={13} />
+            <span>Inspector</span>
           </button>
 
-          {/* Authenticated User Account Menu */}
-          {currentUser && (
-            <div className="relative ml-1">
+          {/* Account */}
+          {currentUser ? (
+            <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#151926] border border-[#262f44] hover:border-indigo-500/40 text-zinc-200 transition-all text-xs"
-                title={`Account: ${currentUser.name} (${currentUser.email})`}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, height: 28, padding: '0 8px', borderRadius: 7, background: '#141414', border: '1px solid #222', cursor: 'pointer' }}
               >
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-[10px] font-bold text-white uppercase shadow-sm">
-                  {currentUser.name ? currentUser.name[0] : 'U'}
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff' }}>
+                  {currentUser.name?.[0]?.toUpperCase() ?? 'U'}
                 </div>
-                <span className="hidden md:inline font-medium text-zinc-300 max-w-[90px] truncate">
-                  {currentUser.name}
-                </span>
-                <ChevronDown className="w-3 h-3 text-zinc-400" />
+                <span style={{ fontSize: 11, color: '#aaa', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.name}</span>
+                <ChevronDown size={11} style={{ color: '#444' }} />
               </button>
-
               {isUserMenuOpen && (
-                <div className="absolute top-full right-0 mt-2 w-56 bg-[#141417] border border-[#2a2a30] rounded-xl shadow-2xl p-2 z-50 animate-fade-in text-xs">
-                  <div className="px-2.5 py-2 border-b border-[#222226] mb-1.5">
-                    <div className="font-semibold text-white truncate">{currentUser.name}</div>
-                    <div className="text-[11px] text-zinc-400 truncate">{currentUser.email}</div>
-                    <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-medium text-[10px]">
-                      <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                      <span>100% Free • All Features Unlocked</span>
-                    </div>
+                <div style={S.dropdownR}>
+                  <div style={{ padding: '8px 10px 10px', borderBottom: '1px solid #1e1e1e', marginBottom: 4 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#e8e8e8' }}>{currentUser.name}</div>
+                    <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>{currentUser.email}</div>
                   </div>
-
-                  <button
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      setIsProfileOpen(true);
-                    }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-indigo-300 hover:bg-indigo-500/10 transition-colors text-left"
-                  >
-                    <User className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Edit Profile & Account</span>
-                  </button>
-
-                  {currentUser.role === 'admin' && (
-                    <button
-                      onClick={() => {
-                        setIsDatabaseOpen(true);
-                        setIsUserMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-emerald-300 hover:bg-emerald-500/10 transition-colors text-left"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Admin Database</span>
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      logout();
-                    }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-300 hover:bg-rose-500/10 transition-colors text-left"
-                  >
-                    <LogOut className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Log Out</span>
-                  </button>
+                  <DropRow icon={<FolderOpen size={13} />} label="My Projects" onClick={() => { setIsUserMenuOpen(false); setIsProjectManagerOpen(true); }} />
+                  <DropRow icon={<History size={13} />} label="Version History" onClick={() => { setIsUserMenuOpen(false); setIsVersionHistoryOpen(true); }} />
+                  <DropRow icon={<User size={13} />} label="Edit Profile" onClick={() => { setIsUserMenuOpen(false); setIsProfileOpen(true); }} />
+                  <DropRow icon={<Inbox size={13} />} label="Form Submissions" onClick={() => { setIsLeadsOpen(true); setIsUserMenuOpen(false); }} />
+                  <div style={{ height: 1, background: '#1e1e1e', margin: '4px 0' }} />
+                  <DropRow icon={<LogOut size={13} />} label="Sign Out" danger onClick={() => { setIsUserMenuOpen(false); logout(); }} />
                 </div>
               )}
             </div>
+          ) : (
+            <button onClick={() => setIsAuthModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, height: 28, padding: '0 12px', borderRadius: 7, background: '#e8e8e8', border: 'none', color: '#080808', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+              <LogIn size={13} />Sign In
+            </button>
           )}
         </div>
       </header>
 
-      {/* 3-Step Guided Onboarding Tour Modal */}
       <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
-
-      {/* Profile & Account Modal */}
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
-
-      {/* Export Modal */}
       <ExportModal isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} />
-
-      {/* Database Modal (Restricted to Administrator Only) */}
-      {currentUser?.role === 'admin' && (
-        <DatabaseModal isOpen={isDatabaseOpen} onClose={() => setIsDatabaseOpen(false)} />
-      )}
+      <PublishModal isOpen={isPublishOpen} onClose={() => setIsPublishOpen(false)} />
+      <LeadsModal isOpen={isLeadsOpen} onClose={() => setIsLeadsOpen(false)} />
+      <SeoAuditModal isOpen={isSeoOpen} onClose={() => setIsSeoOpen(false)} />
+      <AnalyticsModal isOpen={isAnalyticsOpen} onClose={() => setIsAnalyticsOpen(false)} />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <ProjectManagerModal isOpen={isProjectManagerOpen} onClose={() => setIsProjectManagerOpen(false)} />
+      <VersionHistoryModal isOpen={isVersionHistoryOpen} onClose={() => setIsVersionHistoryOpen(false)} />
     </>
   );
 };

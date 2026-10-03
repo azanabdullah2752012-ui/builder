@@ -2,10 +2,13 @@ import React, { useState, useRef } from 'react';
 import type { CanvasElement, ResizeHandleType } from '../../types/editor';
 import { useEditor } from '../../context/useEditor';
 import { ResizeHandles } from './ResizeHandles';
-import { Rocket, LayoutGrid, Layers } from 'lucide-react';
 import { SHAPE_DEFINITIONS, getShapeSvgNode } from '../../utils/shapeDefinitions';
 import { getComputedButtonStyles, renderButtonIcon } from '../../utils/buttonStyles';
 import { executeElementAction } from '../../utils/actionExecutor';
+import { computeSmartSnapping } from '../../utils/snappingEngine';
+import { AccordionWidget, CarouselWidget, VideoWidget, CounterWidget } from '../Widgets/InteractiveWidgets';
+import { ProductCardWidget } from '../Widgets/ProductCardWidget';
+import { LottieWidget } from '../Widgets/LottieWidget';
 
 interface CanvasElementComponentProps {
   element: CanvasElement;
@@ -23,7 +26,10 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
   const {
     project,
     activePage,
+    selectedElementIds,
     selectElement,
+    toggleSelectElement,
+    moveSelectedElements,
     updateElement,
     updatePageSettings,
     setElementParent,
@@ -31,6 +37,10 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
     editorMode,
     showToast,
     setActivePage,
+    snapToObjects,
+    snapToGuides,
+    userGuides,
+    previewStateVariant,
   } = useEditor();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -90,13 +100,27 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
     if (e.button !== 0) return;
     e.stopPropagation();
 
-    selectElement(element.id);
+    // Multi-selection toggle with Shift or Meta/Ctrl
+    if (e.shiftKey || e.metaKey) {
+      e.preventDefault();
+      toggleSelectElement(element.id, true);
+      return;
+    }
+
+    // If element is not already part of multi-selection, select it singly
+    if (!selectedElementIds.includes(element.id)) {
+      selectElement(element.id);
+    }
 
     // If locked or in inline edit, do not initiate drag
     if (element.locked || isEditingInline) return;
 
     // Prevent default browser text selection or ghost image drag
     e.preventDefault();
+
+    const isMultiDragging = selectedElementIds.length > 1 && selectedElementIds.includes(element.id);
+    let lastDeltaX = 0;
+    let lastDeltaY = 0;
 
     setIsDragging(true);
     dragStartRef.current = {
@@ -121,130 +145,62 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         }
       }
 
+      if (isMultiDragging) {
+        const stepDx = Math.round(deltaX - lastDeltaX);
+        const stepDy = Math.round(deltaY - lastDeltaY);
+        if (stepDx !== 0 || stepDy !== 0) {
+          moveSelectedElements(stepDx, stepDy);
+          lastDeltaX += stepDx;
+          lastDeltaY += stepDy;
+        }
+        return;
+      }
+
       let newX = Math.round(dragStartRef.current.elX + deltaX);
       let newY = Math.round(dragStartRef.current.elY + deltaY);
 
       // Smart Snapping Logic (disabled when Alt key is held)
-      let snapX: number | null = null;
-      let snapY: number | null = null;
-      let labelX: string | undefined = undefined;
-      let labelY: string | undefined = undefined;
-      const threshold = 6;
+      let snapLines: import('../../types/editor').SmartSnapLine[] = [];
+      let equalSpacings: import('../../types/editor').EqualSpacingIndicator[] = [];
 
       if (!moveEvent.altKey) {
-        const elRight = newX + element.width;
-        const elCenter = newX + element.width / 2;
-        const elBottom = newY + element.height;
-        const elCenterY = newY + element.height / 2;
-
-        // 1. Center of canvas snap
-        const canvasCenter = Math.round(canvasWidth / 2);
-        if (Math.abs(elCenter - canvasCenter) <= threshold) {
-          newX = Math.round(canvasCenter - element.width / 2);
-          snapX = canvasCenter;
-          labelX = 'Canvas Center';
-        }
-
-        const canvasCenterY = Math.round(canvasHeight / 2);
-        if (Math.abs(elCenterY - canvasCenterY) <= threshold) {
-          newY = Math.round(canvasCenterY - element.height / 2);
-          snapY = canvasCenterY;
-          labelY = 'Canvas Middle';
-        }
-
-        // 2. Snap to sibling elements' boundaries & centers
-        for (const other of activePage.elements) {
-          if (other.id === element.id) continue;
-          const otherRight = other.x + other.width;
-          const otherCenter = other.x + other.width / 2;
-          const otherBottom = other.y + other.height;
-          const otherCenterY = other.y + other.height / 2;
-
-          // Horizontal alignment
-          if (snapX === null) {
-            // Left to Left
-            if (Math.abs(newX - other.x) <= threshold) {
-              newX = other.x;
-              snapX = other.x;
-              labelX = 'Align Left';
-            }
-            // Center to Center
-            else if (Math.abs(elCenter - otherCenter) <= threshold) {
-              newX = Math.round(otherCenter - element.width / 2);
-              snapX = Math.round(otherCenter);
-              labelX = 'Align Center';
-            }
-            // Right to Right
-            else if (Math.abs(elRight - otherRight) <= threshold) {
-              newX = otherRight - element.width;
-              snapX = otherRight;
-              labelX = 'Align Right';
-            }
-            // Adjacent: Left to sibling Right
-            else if (Math.abs(newX - otherRight) <= threshold) {
-              newX = otherRight;
-              snapX = otherRight;
-              labelX = 'Snap Edge';
-            }
-            // Adjacent: Right to sibling Left
-            else if (Math.abs(elRight - other.x) <= threshold) {
-              newX = other.x - element.width;
-              snapX = other.x;
-              labelX = 'Snap Edge';
-            }
+        const snapRes = computeSmartSnapping(
+          element,
+          newX,
+          newY,
+          activePage.elements,
+          userGuides,
+          canvasWidth,
+          canvasHeight,
+          {
+            snapToObjects,
+            snapToGuides,
+            snapToCanvasCenter: true,
+            snapToEqualSpacing: true,
+            threshold: 6,
           }
+        );
 
-          // Vertical alignment
-          if (snapY === null) {
-            // Top to Top
-            if (Math.abs(newY - other.y) <= threshold) {
-              newY = other.y;
-              snapY = other.y;
-              labelY = 'Align Top';
-            }
-            // Center to Center
-            else if (Math.abs(elCenterY - otherCenterY) <= threshold) {
-              newY = Math.round(otherCenterY - element.height / 2);
-              snapY = Math.round(otherCenterY);
-              labelY = 'Align Middle';
-            }
-            // Bottom to Bottom
-            else if (Math.abs(elBottom - otherBottom) <= threshold) {
-              newY = otherBottom - element.height;
-              snapY = otherBottom;
-              labelY = 'Align Bottom';
-            }
-            // Adjacent: Top to sibling Bottom
-            else if (Math.abs(newY - otherBottom) <= threshold) {
-              newY = otherBottom;
-              snapY = otherBottom;
-              labelY = 'Snap Edge';
-            }
-            // Adjacent: Bottom to sibling Top
-            else if (Math.abs(elBottom - other.y) <= threshold) {
-              newY = other.y - element.height;
-              snapY = other.y;
-              labelY = 'Snap Edge';
-            }
-          }
-
-          if (snapX !== null && snapY !== null) break;
-        }
-
-        // 3. Fallback 8px grid snapping
-        if (snapX === null) {
-          const gridX = Math.round(newX / 8) * 8;
-          if (Math.abs(newX - gridX) <= 3) newX = gridX;
-        }
-        if (snapY === null) {
-          const gridY = Math.round(newY / 8) * 8;
-          if (Math.abs(newY - gridY) <= 3) newY = gridY;
-        }
+        newX = snapRes.snappedX;
+        newY = snapRes.snappedY;
+        snapLines = snapRes.snapLines;
+        equalSpacings = snapRes.equalSpacings;
       }
 
-      // Broadcast active alignment guides to canvas
+      // Broadcast active alignment guides and equal spacings to canvas
+      const vLine = snapLines.find((l) => l.type === 'vertical');
+      const hLine = snapLines.find((l) => l.type === 'horizontal');
       window.dispatchEvent(
-        new CustomEvent('canvas:guides', { detail: { x: snapX, y: snapY, labelX, labelY } })
+        new CustomEvent('canvas:guides', {
+          detail: {
+            snapLines,
+            equalSpacings,
+            x: vLine?.position ?? null,
+            y: hLine?.position ?? null,
+            labelX: vLine?.label,
+            labelY: hLine?.label,
+          },
+        })
       );
 
       // Clamping inside canvas bounds
@@ -259,9 +215,19 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
       setIsDragging(false);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
-      window.dispatchEvent(new CustomEvent('canvas:guides', { detail: { x: null, y: null } }));
+      window.dispatchEvent(
+        new CustomEvent('canvas:guides', { detail: { snapLines: [], equalSpacings: [], x: null, y: null } })
+      );
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+
+      if (isMultiDragging) {
+        if (lastDeltaX !== 0 || lastDeltaY !== 0) {
+          updateElement(element.id, {}, true);
+        }
+        return;
+      }
+
       // Record history on drag completion
       updateElement(element.id, {}, true);
 
@@ -515,16 +481,31 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
     overflow: 'visible', // CRITICAL: Never clip handles or floating HUD!
   };
 
-  const activeHover = isHovered || forceHover;
-  const hs = b?.hoverStyles;
+  const isPreviewingHover = isSelected && previewStateVariant === 'hover';
+  const isPreviewingActive = isSelected && previewStateVariant === 'active';
+  const isPreviewingFocus = isSelected && previewStateVariant === 'focus';
 
-  // Compute transform and shadows for hover
-  const activeScale = activeHover
+  const activeHover = isHovered || forceHover || isPreviewingHover;
+  const activePressed = isPreviewingActive;
+  const activeFocused = isPreviewingFocus;
+
+  const hs = b?.hoverStyles;
+  const as = b?.activeStyles;
+  const fs = b?.focusStyles;
+
+  // Compute transform and shadows for interactive states (hover, active/pressed, focus)
+  const activeScale = activePressed
+    ? as?.scale !== undefined ? as.scale : 0.96
+    : activeHover
     ? hs?.scale || s.hoverScale || (s.hoverEffect === 'scale' ? 1.04 : undefined)
     : undefined;
-  const activeTranslateY = activeHover
-    ? (s.hoverTranslateY !== undefined ? s.hoverTranslateY : (s.hoverEffect === 'lift' ? -4 : undefined))
+
+  const activeTranslateY = activePressed
+    ? as?.translateY !== undefined ? as.translateY : 2
+    : activeHover
+    ? (hs?.translateY !== undefined ? hs.translateY : (s.hoverTranslateY !== undefined ? s.hoverTranslateY : (s.hoverEffect === 'lift' ? -4 : undefined)))
     : undefined;
+
   const transformParts: string[] = [];
   if (activeTranslateY !== undefined && activeTranslateY !== 0) {
     transformParts.push(`translateY(${activeTranslateY}px)`);
@@ -532,9 +513,25 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
   if (activeScale !== undefined && activeScale !== 1) {
     transformParts.push(`scale(${activeScale})`);
   }
+  if (s.rotation !== undefined && s.rotation !== 0) {
+    transformParts.push(`rotate(${s.rotation}deg)`);
+  }
+  if (s.scale !== undefined && s.scale !== 1 && activeScale === undefined) {
+    transformParts.push(`scale(${s.scale})`);
+  }
+  if (s.skewX !== undefined && s.skewX !== 0) {
+    transformParts.push(`skewX(${s.skewX}deg)`);
+  }
+  if (s.skewY !== undefined && s.skewY !== 0) {
+    transformParts.push(`skewY(${s.skewY}deg)`);
+  }
   const computedTransform = transformParts.length > 0 ? transformParts.join(' ') : undefined;
 
-  const activeShadow = activeHover
+  const activeShadow = activePressed
+    ? as?.boxShadow || 'inset 0 2px 4px rgba(0,0,0,0.4)'
+    : activeFocused
+    ? fs?.boxShadow || (fs?.outlineColor ? `0 0 0 ${fs.outlineWidth || 2}px ${fs.outlineColor}` : '0 0 0 2px #6366f1, 0 0 12px rgba(99,102,241,0.5)')
+    : activeHover
     ? hs?.boxShadow || s.hoverShadow || (s.hoverEffect === 'lift' ? '0 16px 32px -4px rgba(0,0,0,0.5), 0 8px 16px -4px rgba(0,0,0,0.3)' : s.hoverEffect === 'glow' ? '0 0 25px rgba(99, 102, 241, 0.65)' : undefined)
     : s.boxShadow || undefined;
 
@@ -547,32 +544,76 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
     height: '100%',
     position: 'relative',
     background:
-      activeHover && hs?.backgroundColor
+      element.type === 'shape'
+        ? 'transparent'
+        : activePressed && as?.backgroundColor
+        ? as.backgroundColor
+        : activeFocused && fs?.backgroundColor
+        ? fs.backgroundColor
+        : activeHover && hs?.backgroundColor
         ? hs.backgroundColor
         : s.gradient || btnStyles?.background || s.backgroundColor || btnStyles?.backgroundColor || (isSection ? 'transparent' : 'transparent'),
-    color: activeHover && hs?.color ? hs.color : s.color || btnStyles?.color || 'inherit',
+    color:
+      activePressed && as?.color
+        ? as.color
+        : activeFocused && fs?.color
+        ? fs.color
+        : activeHover && hs?.color
+        ? hs.color
+        : s.color || btnStyles?.color || 'inherit',
     fontSize: s.fontSize ? `${s.fontSize}px` : btnStyles?.fontSize || undefined,
     fontWeight: s.fontWeight || btnStyles?.fontWeight || undefined,
     fontFamily: s.fontFamily || undefined,
     textAlign: s.textAlign || 'left',
     lineHeight: s.lineHeight || undefined,
     letterSpacing: s.letterSpacing ? `${s.letterSpacing}px` : undefined,
-    borderRadius: s.borderRadius !== undefined ? `${s.borderRadius}px` : btnStyles?.borderRadius || undefined,
-    borderWidth: s.borderWidth !== undefined ? `${s.borderWidth}px` : btnStyles?.borderWidth || (isSection ? '1px' : undefined),
-    borderStyle: s.borderStyle || btnStyles?.borderStyle || (isSection ? 'dashed' : 'none'),
+    textTransform: s.textTransform || undefined,
+    textDecoration: s.textDecoration || undefined,
+    fontStyle: s.fontStyle || undefined,
+    borderRadius: element.type === 'shape' ? undefined : s.borderRadius !== undefined ? `${s.borderRadius}px` : btnStyles?.borderRadius || undefined,
+    borderWidth: element.type === 'shape' ? 0 : s.borderWidth !== undefined ? `${s.borderWidth}px` : btnStyles?.borderWidth || (isSection ? '1px' : undefined),
+    borderStyle: element.type === 'shape' ? 'none' : s.borderStyle || btnStyles?.borderStyle || (isSection ? 'dashed' : 'none'),
     borderColor:
-      activeHover && hs?.borderColor
+      element.type === 'shape'
+        ? 'transparent'
+        : activePressed && as?.borderColor
+        ? as.borderColor
+        : activeFocused && (fs?.borderColor || fs?.outlineColor)
+        ? fs.borderColor || fs.outlineColor
+        : activeHover && hs?.borderColor
         ? hs.borderColor
         : activeHover && s.hoverEffect === 'glow'
         ? '#818cf8'
         : s.borderColor || btnStyles?.borderColor || (isSection ? '#94a3b8' : 'transparent'),
-    boxShadow: activeShadow || btnStyles?.boxShadow,
-    opacity: activeHover && hs?.opacity !== undefined ? hs.opacity : s.opacity !== undefined ? s.opacity : 1,
+    boxShadow: element.type === 'shape' ? undefined : activeShadow || btnStyles?.boxShadow,
+    outline: activeFocused && fs?.outlineColor ? `${fs.outlineWidth || 2}px solid ${fs.outlineColor}` : undefined,
+    outlineOffset: activeFocused ? '2px' : undefined,
+    opacity:
+      activePressed && as?.opacity !== undefined
+        ? as.opacity
+        : activeHover && hs?.opacity !== undefined
+        ? hs.opacity
+        : s.opacity !== undefined
+        ? s.opacity
+        : 1,
     transform: computedTransform,
-    filter: activeHover && s.hoverEffect === 'brighten' ? 'brightness(1.15)' : undefined,
+    filter: [s.filter, activeHover && s.hoverEffect === 'brighten' ? 'brightness(1.15)' : ''].filter(Boolean).join(' ') || undefined,
     boxSizing: 'border-box',
-    backdropFilter: (btnStyles as any)?.backdropFilter,
-    WebkitBackdropFilter: (btnStyles as any)?.WebkitBackdropFilter,
+    backdropFilter: s.backdropFilter || (btnStyles as any)?.backdropFilter,
+    WebkitBackdropFilter: s.backdropFilter || (btnStyles as any)?.WebkitBackdropFilter,
+    mixBlendMode: s.mixBlendMode || undefined,
+    overflow: s.overflow || (isSection ? 'visible' : undefined),
+    cursor: s.cursor || undefined,
+    animation: (() => {
+      if (!s.animationName || s.animationName === 'none') return undefined;
+      const isHoverTrigger = s.animationTrigger === 'hover';
+      if (isHoverTrigger && !isHovered) return undefined;
+      const duration = s.animationDuration || 0.7;
+      const timing = s.animationTimingFunction || 'cubic-bezier(0.16, 1, 0.3, 1)';
+      const delay = s.animationDelay || 0;
+      const iteration = s.animationIterationCount || '1';
+      return `${s.animationName} ${duration}s ${timing} ${delay}s ${iteration} both`;
+    })(),
     userSelect: isEditingInline ? 'text' : 'none',
     display: 'flex',
     flexDirection: l?.direction || 'column',
@@ -602,7 +643,6 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         : s.textAlign === 'right'
         ? 'flex-end'
         : 'flex-start',
-    overflow: 'hidden',
     transition: s.transitionDuration
       ? `all ${s.transitionDuration}ms ${s.transitionTimingFunction || 'cubic-bezier(0.4, 0, 0.2, 1)'}`
       : 'all 180ms cubic-bezier(0.4, 0, 0.2, 1)',
@@ -618,13 +658,16 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
           onBlur={handleInlineBlur}
           onKeyDown={handleInlineKeyDown}
           autoFocus
-          className="w-full h-full bg-transparent resize-none outline-none border border-blue-400 p-1"
+          onFocus={(e) => e.currentTarget.select()}
+          className="w-full h-full bg-transparent resize-none outline-none border-2 border-indigo-500 rounded p-1 shadow-inner"
           style={{
             color: s.color || 'inherit',
             fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
             fontWeight: s.fontWeight || undefined,
             fontFamily: s.fontFamily || undefined,
             textAlign: s.textAlign || 'left',
+            lineHeight: s.lineHeight || 1.3,
+            letterSpacing: s.letterSpacing ? `${s.letterSpacing}px` : undefined,
           }}
         />
       );
@@ -645,37 +688,6 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         );
 
       case 'text':
-        if (element.id === 'el_nav_logo' || element.content === '⬢') {
-          return (
-            <div className="w-full h-full flex items-center justify-center select-none pointer-events-none">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L3 7V17L12 22L21 17V7L12 2Z" stroke="#818cf8" strokeWidth="1.75" strokeLinejoin="round" />
-                <path d="M12 12L21 7M12 12V22M12 12L3 7" stroke="#60a5fa" strokeWidth="1.75" strokeLinejoin="round" />
-              </svg>
-            </div>
-          );
-        }
-        if (element.id === 'el_card_1_icon' || element.content === '🚀') {
-          return (
-            <div className="w-full h-full flex items-center justify-center select-none pointer-events-none">
-              <Rocket className="w-5 h-5 text-indigo-400" />
-            </div>
-          );
-        }
-        if (element.id === 'el_card_2_icon' || element.content === '⚏') {
-          return (
-            <div className="w-full h-full flex items-center justify-center select-none pointer-events-none">
-              <LayoutGrid className="w-5 h-5 text-sky-400" />
-            </div>
-          );
-        }
-        if (element.id === 'el_card_3_icon' || element.content === '▤') {
-          return (
-            <div className="w-full h-full flex items-center justify-center select-none pointer-events-none">
-              <Layers className="w-5 h-5 text-purple-400" />
-            </div>
-          );
-        }
         return (
           <div className={`w-full h-full whitespace-pre-wrap select-none pointer-events-none p-1 ${b?.actionType === 'navigate-url' ? 'underline underline-offset-4 decoration-indigo-400/50' : ''}`}>
             {element.content || 'Double-click to write text...'}
@@ -716,13 +728,28 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
       case 'shape': {
         const shapeKind = s.shapeKind || 'circle';
         const def = SHAPE_DEFINITIONS[shapeKind] || SHAPE_DEFINITIONS.circle;
-        const fillColor = s.gradient || s.backgroundColor || def.defaultColor;
+        const gradId = `grad-${element.id}`;
+
+        let gradColors: [string, string] | null = null;
+        if (s.gradient) {
+          const hexMatches = s.gradient.match(/#(?:[0-9a-fA-F]{3}){1,2}/g);
+          if (hexMatches && hexMatches.length >= 2) {
+            gradColors = [hexMatches[0], hexMatches[1]];
+          } else {
+            const rgbMatches = s.gradient.match(/rgba?\([^)]+\)/g);
+            if (rgbMatches && rgbMatches.length >= 2) {
+              gradColors = [rgbMatches[0], rgbMatches[1]];
+            }
+          }
+        }
+
+        const fillColor = gradColors ? `url(#${gradId})` : (s.backgroundColor || def.defaultColor);
         const strokeColor = s.borderColor || 'none';
         const strokeW = s.borderWidth || 0;
         const svgNode = getShapeSvgNode(shapeKind, fillColor, strokeColor, strokeW);
 
         return (
-          <div className="w-full h-full flex items-center justify-center pointer-events-none select-none overflow-hidden">
+          <div className="w-full h-full flex items-center justify-center pointer-events-none select-none">
             <svg
               viewBox={def.viewBox}
               className="w-full h-full drop-shadow-sm"
@@ -732,6 +759,14 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
                 transform: s.rotation ? `rotate(${s.rotation}deg)` : undefined,
               }}
             >
+              {gradColors && (
+                <defs>
+                  <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={gradColors[0]} />
+                    <stop offset="100%" stopColor={gradColors[1]} />
+                  </linearGradient>
+                </defs>
+              )}
               {svgNode.tag === 'circle' && <circle {...svgNode.props} />}
               {svgNode.tag === 'rect' && <rect {...svgNode.props} />}
               {svgNode.tag === 'polygon' && <polygon {...svgNode.props} />}
@@ -752,7 +787,193 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
           />
         );
 
-      case 'container':
+      case 'input': {
+        const inputType =
+          element.formConfig?.inputType ||
+          (element.name.toLowerCase().includes('email')
+            ? 'email'
+            : element.name.toLowerCase().includes('password')
+            ? 'password'
+            : 'text');
+        const placeholder =
+          element.formConfig?.placeholder || element.content || `Enter ${element.name || 'text'}...`;
+        return (
+          <input
+            id={`input-${element.id}`}
+            data-field-id={element.id}
+            type={inputType}
+            placeholder={placeholder}
+            defaultValue=""
+            required={element.formConfig?.required}
+            className="w-full h-full bg-transparent border-0 outline-none text-inherit placeholder-zinc-500 px-3 cursor-text"
+            style={{
+              fontSize: s.fontSize ? `${s.fontSize}px` : '13px',
+              fontFamily: s.fontFamily,
+              color: s.color || '#ffffff',
+            }}
+            onClick={(e) => {
+              if (editorMode === 'preview') {
+                e.stopPropagation();
+              }
+            }}
+          />
+        );
+      }
+
+      case 'textarea': {
+        const placeholder =
+          element.formConfig?.placeholder || element.content || `Enter ${element.name || 'message'}...`;
+        return (
+          <textarea
+            id={`input-${element.id}`}
+            data-field-id={element.id}
+            placeholder={placeholder}
+            defaultValue=""
+            required={element.formConfig?.required}
+            rows={3}
+            className="w-full h-full bg-transparent border-0 outline-none text-inherit placeholder-zinc-500 p-3 resize-none cursor-text"
+            style={{
+              fontSize: s.fontSize ? `${s.fontSize}px` : '13px',
+              fontFamily: s.fontFamily,
+              color: s.color || '#ffffff',
+            }}
+            onClick={(e) => {
+              if (editorMode === 'preview') {
+                e.stopPropagation();
+              }
+            }}
+          />
+        );
+      }
+
+      case 'select': {
+        const options = element.formConfig?.options || ['Option 1', 'Option 2', 'Option 3'];
+        return (
+          <select
+            id={`input-${element.id}`}
+            data-field-id={element.id}
+            required={element.formConfig?.required}
+            className="w-full h-full bg-transparent border-0 outline-none text-inherit px-3 cursor-pointer"
+            style={{
+              fontSize: s.fontSize ? `${s.fontSize}px` : '13px',
+              fontFamily: s.fontFamily,
+              color: s.color || '#ffffff',
+              backgroundColor: s.backgroundColor || '#131620',
+            }}
+            onClick={(e) => {
+              if (editorMode === 'preview') {
+                e.stopPropagation();
+              }
+            }}
+          >
+            {options.map((opt, i) => (
+              <option key={i} value={opt} className="bg-zinc-900 text-white">
+                {opt}
+              </option>
+            ))}
+          </select>
+        );
+      }
+
+      case 'checkbox': {
+        return (
+          <label className="w-full h-full flex items-center gap-2.5 px-2 select-none cursor-pointer">
+            <input
+              id={`input-${element.id}`}
+              data-field-id={element.id}
+              type="checkbox"
+              defaultChecked={element.formConfig?.checked}
+              className="w-4 h-4 rounded text-indigo-600 bg-zinc-800 border-zinc-700 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+              onClick={(e) => {
+                if (editorMode === 'preview') {
+                  e.stopPropagation();
+                }
+              }}
+            />
+            <span
+              style={{
+                fontSize: s.fontSize ? `${s.fontSize}px` : '12px',
+                color: s.color || '#cbd5e1',
+                fontFamily: s.fontFamily,
+              }}
+            >
+              {element.content || 'I agree to the terms and privacy policy'}
+            </span>
+          </label>
+        );
+      }
+
+      case 'accordion': {
+        return <AccordionWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'carousel': {
+        return <CarouselWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'video': {
+        return <VideoWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'counter': {
+        return <CounterWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'product-card': {
+        return <ProductCardWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'lottie': {
+        return <LottieWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'container': {
+        // Smart input detection: if role is 'input' or name contains 'input', render an interactive input inside
+        const isInputField =
+          element.role === 'input' ||
+          (element.name.toLowerCase().includes('input') && (!element.children || element.children.length === 0));
+
+        if (isInputField) {
+          const inputType =
+            element.formConfig?.inputType ||
+            (element.name.toLowerCase().includes('email')
+              ? 'email'
+              : element.name.toLowerCase().includes('password')
+              ? 'password'
+              : 'text');
+          const placeholder =
+            element.formConfig?.placeholder ||
+            element.content ||
+            (element.name.toLowerCase().includes('email')
+              ? 'name@company.com'
+              : element.name.toLowerCase().includes('name')
+              ? 'Your Full Name'
+              : 'Type here...');
+
+          return (
+            <input
+              id={`input-${element.id}`}
+              data-field-id={element.id}
+              type={inputType}
+              placeholder={placeholder}
+              defaultValue=""
+              className="w-full h-full bg-transparent border-0 outline-none text-inherit placeholder-zinc-500 px-3 cursor-text"
+              style={{
+                fontSize: s.fontSize ? `${s.fontSize}px` : '13px',
+                fontFamily: s.fontFamily,
+                color: s.color || '#ffffff',
+              }}
+              onClick={(e) => {
+                if (editorMode === 'preview') {
+                  e.stopPropagation();
+                }
+              }}
+            />
+          );
+        }
+        return null;
+      }
+
       default:
         return null;
     }
@@ -788,7 +1009,13 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
       {/* Selected Chrome - 8 Prominent Resize Handles & Live Coordinate HUD (unclipped in outer wrapper) */}
       {isSelected && !element.locked && (
         <>
-          <ResizeHandles onResizeStart={handleResizeStart} />
+          {selectedElementIds.length > 1 ? (
+            <div className="absolute -top-5 left-0 px-1.5 py-0.5 rounded bg-indigo-600/90 text-white text-[9px] font-medium shadow pointer-events-none select-none z-40 whitespace-nowrap">
+              {element.name}
+            </div>
+          ) : (
+            <ResizeHandles onResizeStart={handleResizeStart} />
+          )}
           {/* Subtle real-time dimension & position HUD indicator */}
           {isDragging && (
             <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-zinc-950/95 text-indigo-300 text-[10px] font-mono border border-indigo-500/50 shadow-2xl pointer-events-none select-none z-50 whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md">
