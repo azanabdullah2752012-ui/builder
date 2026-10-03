@@ -628,7 +628,8 @@ ${laptopCss}
     /* Auto Responsive Layout: Tablets (max-width: 768px) */
     @media (max-width: 768px) {
       .page-canvas {
-        max-width: 768px;
+        max-width: 100%;
+        width: 100%;
         min-height: ${tabletLayout.canvasHeight}px;
       }
 ${tabletCss}
@@ -637,12 +638,13 @@ ${tabletCss}
     /* Auto Responsive Layout: Mobile Phones (max-width: 480px) */
     @media (max-width: 480px) {
       body {
-        padding: 12px 8px;
+        padding: 12px 6px;
       }
       .page-canvas {
-        max-width: 390px;
+        max-width: 100%;
+        width: 100%;
         min-height: ${mobileLayout.canvasHeight}px;
-        border-radius: 24px;
+        border-radius: 20px;
       }
 ${mobileCss}
     }

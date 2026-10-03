@@ -1,4 +1,4 @@
-import type { CanvasElement, ViewportMode, LayoutDirection } from '../types/editor';
+import type { CanvasElement, ViewportMode } from '../types/editor';
 
 export const VIEWPORT_CONFIG: Record<
   ViewportMode,
@@ -24,7 +24,8 @@ export function computeResponsiveLayout(
   elements: CanvasElement[],
   viewportMode: ViewportMode,
   baseWidth = 1200,
-  baseHeight = 800
+  baseHeight = 800,
+  customViewportWidth?: number
 ): ResponsiveResult {
   if (elements.length === 0) {
     return {
@@ -64,14 +65,17 @@ export function computeResponsiveLayout(
   }
 
   const config = VIEWPORT_CONFIG[viewportMode];
-  const targetWidth = config.width;
-  const margin = config.margin;
-  const contentWidth = targetWidth - margin * 2;
+  const targetWidth = customViewportWidth
+    ? Math.min(baseWidth, Math.max(320, customViewportWidth))
+    : config.width;
+  let margin = config.margin;
+  if (targetWidth <= 420) margin = Math.min(margin, 16);
+  const contentWidth = Math.max(100, targetWidth - margin * 2);
   const scaleRatio = targetWidth / baseWidth;
 
   // 1. Identify container-child relationships
-  // Priority: Explicit el.parentId first; fallback to spatial geometry
   const parentMap = new Map<string, string>(); // childId -> parentId
+  const childrenMap = new Map<string, CanvasElement[]>(); // parentId -> child elements
   const containers = elements.filter(
     (el) =>
       el.type === 'section' ||
@@ -82,9 +86,8 @@ export function computeResponsiveLayout(
   );
 
   for (const el of elements) {
-    if (el.parentId) {
-      parentMap.set(el.id, el.parentId);
-    } else {
+    let pId = el.parentId;
+    if (!pId) {
       // Geometric fallback for legacy elements without explicit parentId
       for (const c of containers) {
         if (el.id === c.id) continue;
@@ -94,299 +97,247 @@ export function computeResponsiveLayout(
           el.y >= c.y - 8 &&
           el.y + el.height <= c.y + c.height + 8;
         if (isInside) {
-          parentMap.set(el.id, c.id);
+          pId = c.id;
           break;
         }
       }
     }
+    if (pId) {
+      parentMap.set(el.id, pId);
+      const list = childrenMap.get(pId) || [];
+      list.push(el);
+      childrenMap.set(pId, list);
+    }
   }
 
-  // 2. Separate into Root elements and Child elements
   const rootElements = elements.filter((el) => !parentMap.has(el.id));
-  const childElements = elements.filter((el) => parentMap.has(el.id));
-
-  // Sort roots by Y position, then X position
-  const sortedRoots = [...rootElements].sort((a, b) => {
-    if (Math.abs(a.y - b.y) <= 40) {
-      return a.x - b.x;
-    }
-    return a.y - b.y;
-  });
-
-  // 3. Group root elements into horizontal visual rows
-  const rows: CanvasElement[][] = [];
-  let currentRow: CanvasElement[] = [];
-  let currentRowY = -1;
-
-  for (const el of sortedRoots) {
-    if (currentRow.length === 0) {
-      currentRow.push(el);
-      currentRowY = el.y;
-    } else {
-      if (Math.abs(el.y - currentRowY) <= 55) {
-        currentRow.push(el);
-      } else {
-        rows.push(currentRow);
-        currentRow = [el];
-        currentRowY = el.y;
-      }
-    }
-  }
-  if (currentRow.length > 0) {
-    rows.push(currentRow);
-  }
-
-  // 4. Reflow root elements based on device width & explicit user overrides
   const responsiveElementsMap = new Map<string, CanvasElement>();
-  let runningY = margin;
 
-  for (const row of rows) {
-    const totalRowWidth = row.reduce((sum, item) => sum + item.width, 0);
-    const hasMultipleItems = row.length > 1;
+  // 2. Recursive layout function for containers and their child trees
+  function layoutContainer(
+    container: CanvasElement,
+    startX: number,
+    startY: number,
+    availableW: number
+  ): number {
+    const bpSetting = getBreakpointSetting(container, viewportMode);
+    const isLocked = container.responsive?.locked === true;
 
-    for (const el of row) {
-      const bpSetting = getBreakpointSetting(el, viewportMode);
-      const isLocked = el.responsive?.locked === true;
-
-      // Check if element is explicitly hidden at this breakpoint
-      if (bpSetting.visible === false || bpSetting.mode === 'hide') {
-        responsiveElementsMap.set(el.id, {
-          ...el,
-          styles: { ...el.styles, opacity: 0 },
-          width: 0,
-          height: 0,
-        });
-        continue;
+    // Check if container is explicitly hidden
+    if (bpSetting.visible === false || bpSetting.mode === 'hide') {
+      responsiveElementsMap.set(container.id, {
+        ...container,
+        styles: { ...container.styles, opacity: 0 },
+        width: 0,
+        height: 0,
+        x: startX,
+        y: startY,
+      });
+      const desc = childrenMap.get(container.id) || [];
+      for (const d of desc) {
+        responsiveElementsMap.set(d.id, { ...d, styles: { ...d.styles, opacity: 0 }, width: 0, height: 0 });
       }
-
-      // Check if element has RESPONSIVE LOCK or KEEP-POSITION mode
-      if (isLocked || bpSetting.mode === 'keep-position') {
-        let keptW = el.width;
-        if (bpSetting.width) {
-          keptW = parseWidthOverride(bpSetting.width, contentWidth);
-        }
-        // Preserve desktop coordinates, clamping if exceeding target width
-        const keptX = Math.min(el.x, Math.max(margin, targetWidth - keptW - margin));
-        const adapted = adaptElement(el, keptX, el.y, keptW, el.height, viewportMode);
-        responsiveElementsMap.set(el.id, adapted);
-        runningY = Math.max(runningY, el.y + el.height + 20);
-        continue;
-      }
-
-      // Check explicit FULL-WIDTH mode
-      if (bpSetting.mode === 'full-width') {
-        const fw = contentWidth;
-        const fh = el.type === 'image' ? Math.min(340, Math.round(fw * (el.height / (el.width || 1)))) : el.height;
-        const adapted = adaptElement(el, margin, runningY, fw, fh, viewportMode);
-        responsiveElementsMap.set(el.id, adapted);
-        runningY += fh + (viewportMode === 'mobile' ? 16 : 24);
-        continue;
-      }
-
-      // Check explicit STACK mode or automatic stacking heuristic
-      const shouldAutoStack =
-        bpSetting.mode === 'stack' ||
-        (bpSetting.mode === 'auto' &&
-          (viewportMode === 'mobile' ? hasMultipleItems : totalRowWidth + (row.length - 1) * 16 > contentWidth));
-
-      if (shouldAutoStack) {
-        let newWidth = el.width;
-        let newHeight = el.height;
-        const newX = margin;
-
-        if (bpSetting.width) {
-          newWidth = parseWidthOverride(bpSetting.width, contentWidth);
-        } else if (
-          el.type === 'section' ||
-          el.type === 'container' ||
-          el.type === 'image' ||
-          el.role === 'card' ||
-          el.role === 'container' ||
-          el.role === 'navigation'
-        ) {
-          newWidth = contentWidth;
-          if (el.type === 'image') {
-            const aspect = el.height / (el.width || 1);
-            newHeight = Math.min(340, Math.max(160, Math.round(contentWidth * aspect)));
-          }
-        } else if (el.type === 'text') {
-          newWidth = contentWidth;
-          newHeight = Math.round(el.height * 1.1);
-        } else if (el.type === 'button') {
-          newWidth = Math.min(el.width, contentWidth);
-        } else if (el.type === 'divider') {
-          newWidth = contentWidth;
-        }
-
-        const adaptedEl = adaptElement(el, newX, runningY, newWidth, newHeight, viewportMode);
-        responsiveElementsMap.set(el.id, adaptedEl);
-
-        const verticalGap = viewportMode === 'mobile' ? 16 : 20;
-        runningY += newHeight + verticalGap;
-      } else {
-        // Fits horizontally or single item
-        let newWidth = el.width;
-        let newHeight = el.height;
-        let newX = margin;
-
-        if (bpSetting.width) {
-          newWidth = parseWidthOverride(bpSetting.width, contentWidth);
-          newX = Math.round(margin + (el.x - 40) * scaleRatio);
-        } else if (
-          el.type === 'section' ||
-          el.type === 'container' ||
-          el.role === 'navigation' ||
-          el.type === 'divider' ||
-          el.width >= 800
-        ) {
-          newWidth = contentWidth;
-          newX = margin;
-        } else {
-          newWidth = Math.min(contentWidth, Math.round(el.width * scaleRatio));
-          newX = Math.round(margin + (el.x - 40) * scaleRatio);
-          newX = Math.max(margin, Math.min(targetWidth - newWidth - margin, newX));
-        }
-
-        const adaptedEl = adaptElement(el, newX, runningY, newWidth, newHeight, viewportMode);
-        responsiveElementsMap.set(el.id, adaptedEl);
-        runningY += newHeight + (viewportMode === 'mobile' ? 16 : 24);
-      }
+      return 0;
     }
-  }
 
-  // 5. Position child elements inside their adapted parent sections & containers
-  // Group children by parentId
-  const childrenByParent = new Map<string, CanvasElement[]>();
-  for (const child of childElements) {
-    const pId = parentMap.get(child.id)!;
-    const list = childrenByParent.get(pId) || [];
-    list.push(child);
-    childrenByParent.set(pId, list);
-  }
+    // Check if container has RESPONSIVE LOCK or KEEP-POSITION
+    if (isLocked || bpSetting.mode === 'keep-position') {
+      let keptW = container.width;
+      if (bpSetting.width) keptW = parseWidthOverride(bpSetting.width, availableW);
+      const keptX = Math.min(container.x, Math.max(margin, targetWidth - keptW - margin));
+      const adapted = adaptElement(container, keptX, container.y, keptW, container.height, viewportMode);
+      responsiveElementsMap.set(container.id, adapted);
+      return container.height;
+    }
 
-  for (const [parentId, childrenList] of childrenByParent.entries()) {
-    const originalParent = elements.find((e) => e.id === parentId);
-    const adaptedParent = responsiveElementsMap.get(parentId);
+    // Determine container width
+    let containerW = availableW;
+    if (bpSetting.width) {
+      containerW = parseWidthOverride(bpSetting.width, availableW);
+    } else if (bpSetting.mode === 'full-width') {
+      containerW = availableW;
+    } else if (container.width >= 800 || container.type === 'section' || container.role === 'navigation') {
+      containerW = availableW;
+    } else {
+      containerW = Math.min(availableW, Math.round(container.width * scaleRatio));
+    }
 
-    if (!originalParent || !adaptedParent) {
-      for (const child of childrenList) {
-        responsiveElementsMap.set(child.id, child);
+    const children = childrenMap.get(container.id) || [];
+    const layout = container.layout;
+    const padding = layout?.padding || { top: 20, right: 20, bottom: 20, left: 20 };
+    const gap = layout?.gap !== undefined ? layout.gap : 16;
+    const innerW = Math.max(60, containerW - padding.left - padding.right);
+
+    // If container has no children, return its height directly
+    if (children.length === 0) {
+      const adapted = adaptElement(container, startX, startY, containerW, container.height, viewportMode);
+      responsiveElementsMap.set(container.id, adapted);
+      return container.height;
+    }
+
+    const effectiveDir =
+      container.responsive?.[viewportMode]?.direction ||
+      layout?.responsiveDirection?.[viewportMode] ||
+      layout?.direction ||
+      (viewportMode === 'mobile' ? 'column' : 'auto');
+
+    let runningChildY = startY + padding.top;
+    let maxChildBottom = runningChildY;
+
+    // Sort children by explicit index if present, else visual Y then X
+    const sortedChildren = [...children].sort((a, b) => {
+      if (container.children) {
+        const idxA = container.children.indexOf(a.id);
+        const idxB = container.children.indexOf(b.id);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
       }
+      if (Math.abs(a.y - b.y) <= 30) return a.x - b.x;
+      return a.y - b.y;
+    });
+
+    const isNavbar = container.role === 'navigation' || container.name.toLowerCase().includes('nav');
+
+    // On mobile, if navbar: keep brand and primary action, hide desktop menu links to avoid collision
+    if (isNavbar && viewportMode === 'mobile') {
+      let navRunningX = startX + padding.left;
+      for (const ch of sortedChildren) {
+        const chBp = getBreakpointSetting(ch, viewportMode);
+        const isNavLink = ch.name.toLowerCase().includes('nav -') || ch.role === 'link';
+        if (isNavLink && chBp.mode === 'auto') {
+          responsiveElementsMap.set(ch.id, { ...ch, styles: { ...ch.styles, opacity: 0 }, width: 0, height: 0 });
+          continue;
+        }
+        if (chBp.visible === false || chBp.mode === 'hide') {
+          responsiveElementsMap.set(ch.id, { ...ch, styles: { ...ch.styles, opacity: 0 }, width: 0, height: 0 });
+          continue;
+        }
+        const chW = Math.min(innerW, ch.width);
+        const chH = ch.height;
+        const adapted = adaptElement(ch, navRunningX, startY + (container.height - chH) / 2, chW, chH, viewportMode);
+        responsiveElementsMap.set(ch.id, adapted);
+        navRunningX += chW + 12;
+      }
+      const adapted = adaptElement(container, startX, startY, containerW, Math.max(container.height, 60), viewportMode);
+      responsiveElementsMap.set(container.id, adapted);
+      return adapted.height;
+    }
+
+    // Determine if child items should stack vertically
+    const shouldStackAll =
+      effectiveDir === 'column' ||
+      viewportMode === 'mobile' ||
+      sortedChildren.some((c) => c.type === 'container' || c.role === 'card' || c.width > innerW * 0.6);
+
+    if (shouldStackAll) {
+      // Stack children vertically
+      for (const ch of sortedChildren) {
+        const chBp = getBreakpointSetting(ch, viewportMode);
+        if (chBp.visible === false || chBp.mode === 'hide') {
+          responsiveElementsMap.set(ch.id, { ...ch, styles: { ...ch.styles, opacity: 0 }, width: 0, height: 0 });
+          continue;
+        }
+
+        const childX = startX + padding.left;
+        let childW = innerW;
+        if (chBp.width) {
+          childW = parseWidthOverride(chBp.width, innerW);
+        } else if (ch.type === 'button') {
+          childW = Math.min(innerW, Math.max(ch.width, 160));
+        } else if (ch.type === 'image') {
+          childW = innerW;
+        } else if (ch.type === 'container' || ch.role === 'card' || ch.type === 'section') {
+          childW = innerW;
+        } else {
+          childW = Math.min(innerW, ch.width);
+        }
+
+        // If this child is itself a container with nested children, recurse!
+        if (childrenMap.has(ch.id)) {
+          const nestedHeight = layoutContainer(ch, childX, runningChildY, childW);
+          runningChildY += nestedHeight + gap;
+        } else {
+          let childH = ch.height;
+          if (ch.type === 'image') {
+            const aspect = ch.height / (ch.width || 1);
+            childH = Math.min(360, Math.max(120, Math.round(childW * aspect)));
+          }
+          const adapted = adaptElement(ch, childX, runningChildY, childW, childH, viewportMode);
+          responsiveElementsMap.set(ch.id, adapted);
+          runningChildY += childH + gap;
+        }
+      }
+      maxChildBottom = runningChildY - gap + padding.bottom;
+    } else {
+      // Side-by-side or multi-column layout with wrapping (e.g. tablet rows)
+      let rowRunningX = startX + padding.left;
+      let rowMaxH = 0;
+
+      for (const ch of sortedChildren) {
+        const chBp = getBreakpointSetting(ch, viewportMode);
+        if (chBp.visible === false || chBp.mode === 'hide') {
+          responsiveElementsMap.set(ch.id, { ...ch, styles: { ...ch.styles, opacity: 0 }, width: 0, height: 0 });
+          continue;
+        }
+
+        const chScaleW = Math.min(innerW, Math.round(ch.width * scaleRatio));
+        if (rowRunningX + chScaleW > startX + containerW - padding.right && rowRunningX > startX + padding.left) {
+          runningChildY += rowMaxH + gap;
+          rowRunningX = startX + padding.left;
+          rowMaxH = 0;
+        }
+
+        const childX = rowRunningX;
+        let childW = chScaleW;
+
+        if (childrenMap.has(ch.id)) {
+          const nestedHeight = layoutContainer(ch, childX, runningChildY, childW);
+          rowMaxH = Math.max(rowMaxH, nestedHeight);
+          rowRunningX += childW + gap;
+        } else {
+          const adapted = adaptElement(ch, childX, runningChildY, childW, ch.height, viewportMode);
+          responsiveElementsMap.set(ch.id, adapted);
+          rowMaxH = Math.max(rowMaxH, ch.height);
+          rowRunningX += childW + gap;
+        }
+      }
+      runningChildY += rowMaxH;
+      maxChildBottom = runningChildY + padding.bottom;
+    }
+
+    const finalContainerHeight = Math.max(container.height, maxChildBottom - startY);
+    const adapted = adaptElement(container, startX, startY, containerW, finalContainerHeight, viewportMode);
+    responsiveElementsMap.set(container.id, adapted);
+    return finalContainerHeight;
+  }
+
+  // 3. Layout Root elements top-to-bottom
+  const sortedRoots = [...rootElements].sort((a, b) => a.y - b.y);
+
+  let currentY = margin;
+  for (const root of sortedRoots) {
+    const isLocked = root.responsive?.locked === true;
+    const bpSetting = getBreakpointSetting(root, viewportMode);
+
+    if (bpSetting.visible === false || bpSetting.mode === 'hide') {
+      responsiveElementsMap.set(root.id, { ...root, styles: { ...root.styles, opacity: 0 }, width: 0, height: 0 });
       continue;
     }
 
-    // Determine layout direction for this container/section at target breakpoint
-    const layout = originalParent.layout;
-    const isFlexLayout = layout?.layoutType === 'flex';
-
-    // Check responsive direction override (e.g. desktop: Row -> mobile: Column)
-    const effectiveDirection: LayoutDirection =
-      originalParent.responsive?.[viewportMode]?.direction ||
-      layout?.responsiveDirection?.[viewportMode] ||
-      layout?.direction ||
-      (viewportMode === 'mobile' ? 'column' : 'row');
-
-    const padding = layout?.padding || { top: 20, right: 20, bottom: 20, left: 20 };
-    const gap = layout?.gap !== undefined ? layout.gap : 16;
-
-    if (isFlexLayout) {
-      // Flex Layout model for Section / Container
-      let childRunningX = adaptedParent.x + padding.left;
-      let childRunningY = adaptedParent.y + padding.top;
-      const innerAvailableW = Math.max(60, adaptedParent.width - padding.left - padding.right);
-
-      // Sort children by originalParent.children array if defined, else by Y then X
-      const orderedChildren = [...childrenList].sort((a, b) => {
-        if (originalParent.children) {
-          const idxA = originalParent.children.indexOf(a.id);
-          const idxB = originalParent.children.indexOf(b.id);
-          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-        }
-        return a.y - b.y;
-      });
-
-      for (const child of orderedChildren) {
-        const childSetting = getBreakpointSetting(child, viewportMode);
-        if (childSetting.visible === false || childSetting.mode === 'hide') {
-          responsiveElementsMap.set(child.id, {
-            ...child,
-            styles: { ...child.styles, opacity: 0 },
-            width: 0,
-            height: 0,
-          });
-          continue;
-        }
-
-        let childW = child.width;
-        let childH = child.height;
-
-        if (childSetting.width) {
-          childW = parseWidthOverride(childSetting.width, innerAvailableW);
-        } else if (effectiveDirection === 'column' || childSetting.mode === 'full-width') {
-          if (child.type === 'container' || child.role === 'card' || child.type === 'text') {
-            childW = innerAvailableW;
-          } else {
-            childW = Math.min(child.width, innerAvailableW);
-          }
-        } else {
-          childW = Math.min(child.width, innerAvailableW);
-        }
-
-        if (effectiveDirection === 'column') {
-          const adaptedChild = adaptElement(child, childRunningX, childRunningY, childW, childH, viewportMode);
-          responsiveElementsMap.set(child.id, adaptedChild);
-          childRunningY += childH + gap;
-        } else {
-          // Row direction
-          const adaptedChild = adaptElement(child, childRunningX, childRunningY, childW, childH, viewportMode);
-          responsiveElementsMap.set(child.id, adaptedChild);
-          childRunningX += childW + gap;
-        }
-      }
-
-      // Adjust parent height if children expand past original parent height
-      const childrenBottom = childRunningY + padding.bottom - gap;
-      if (effectiveDirection === 'column' && childrenBottom > adaptedParent.y + adaptedParent.height) {
-        adaptedParent.height = childrenBottom - adaptedParent.y;
-      }
-    } else {
-      // Absolute positioning inside parent
-      for (const child of childrenList) {
-        const childSetting = getBreakpointSetting(child, viewportMode);
-        if (childSetting.visible === false || childSetting.mode === 'hide') {
-          responsiveElementsMap.set(child.id, {
-            ...child,
-            styles: { ...child.styles, opacity: 0 },
-            width: 0,
-            height: 0,
-          });
-          continue;
-        }
-
-        const relXRatio = (child.x - originalParent.x) / (originalParent.width || 1);
-        const relY = child.y - originalParent.y;
-
-        let newChildX = adaptedParent.x + Math.round(relXRatio * adaptedParent.width);
-        let newChildY = adaptedParent.y + relY;
-        let newChildWidth = Math.min(adaptedParent.width - 24, child.width);
-
-        if (childSetting.width) {
-          newChildWidth = parseWidthOverride(childSetting.width, adaptedParent.width - 24);
-        }
-
-        // Clamp to parent
-        if (newChildX + newChildWidth > adaptedParent.x + adaptedParent.width - 8) {
-          newChildX = Math.max(adaptedParent.x + 8, adaptedParent.x + adaptedParent.width - newChildWidth - 8);
-          newChildWidth = Math.min(newChildWidth, adaptedParent.width - 16);
-        }
-
-        const adaptedChild = adaptElement(child, newChildX, newChildY, newChildWidth, child.height, viewportMode);
-        responsiveElementsMap.set(child.id, adaptedChild);
-      }
+    if (isLocked || bpSetting.mode === 'keep-position') {
+      let keptW = root.width;
+      if (bpSetting.width) keptW = parseWidthOverride(bpSetting.width, contentWidth);
+      const keptX = Math.min(root.x, Math.max(margin, targetWidth - keptW - margin));
+      const adapted = adaptElement(root, keptX, root.y, keptW, root.height, viewportMode);
+      responsiveElementsMap.set(root.id, adapted);
+      currentY = Math.max(currentY, root.y + root.height + 20);
+      continue;
     }
+
+    const height = layoutContainer(root, margin, currentY, contentWidth);
+    currentY += height + (viewportMode === 'mobile' ? 20 : 28);
   }
 
-  // 6. Assemble final adapted element list preserving original z-indices
+  // 4. Assemble final adapted element list preserving original z-indices
   const finalElements = elements.map((original) => {
     return responsiveElementsMap.get(original.id) || original;
   });

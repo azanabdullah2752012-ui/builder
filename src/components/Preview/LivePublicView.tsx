@@ -116,16 +116,17 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Compute responsive layout
+  // Compute responsive layout dynamically matched to device screen width
   const responsiveLayout = useMemo(() => {
     if (!activePage) return { elements: [], canvasWidth: 1200, canvasHeight: 800 };
     return computeResponsiveLayout(
       activePage.elements,
       currentViewportMode,
       activePage.canvasWidth || 1200,
-      activePage.canvasHeight || 800
+      activePage.canvasHeight || 800,
+      windowWidth > 0 && windowWidth < 1200 ? windowWidth : undefined
     );
-  }, [activePage, currentViewportMode]);
+  }, [activePage, currentViewportMode, windowWidth]);
 
   // Handle element clicks
   const handleElementClick = (element: CanvasElement, e: React.MouseEvent) => {
@@ -471,9 +472,10 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
 
       {/* Main Artboard Canvas Presentation */}
       <main
-        className="relative overflow-visible mx-auto"
+        className="relative overflow-visible mx-auto w-full"
         style={{
-          width: `${canvasWidth}px`,
+          width: '100%',
+          maxWidth: `${canvasWidth}px`,
           minHeight: `${canvasHeight}px`,
         }}
       >
