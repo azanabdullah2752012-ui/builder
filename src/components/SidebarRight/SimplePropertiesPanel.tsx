@@ -141,10 +141,12 @@ export const SimplePropertiesPanel: React.FC = () => {
     );
   }
 
-  // Element IS selected
   const hasText = ['text', 'button', 'input', 'textarea'].includes(selectedElement.type);
   const isImage = selectedElement.type === 'image';
   const isButton = selectedElement.type === 'button';
+  const isPoll = selectedElement.type === 'poll';
+  const isGuestbook = selectedElement.type === 'guestbook';
+  const isReaction = selectedElement.type === 'reaction';
 
   return (
     <aside
@@ -209,6 +211,157 @@ export const SimplePropertiesPanel: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* POLL CONTROLS */}
+      {isPoll && (
+        <div style={{ background: '#13151f', border: '1px solid #202434', borderRadius: 14, padding: 14 }}>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#a5b4fc', display: 'block', marginBottom: 8 }}>
+            🗳️ Poll Question
+          </label>
+          <input
+            type="text"
+            value={selectedElement.pollConfig?.question || ''}
+            onChange={(e) => updateElement(selectedElement.id, {
+              pollConfig: {
+                ...(selectedElement.pollConfig || { question: '', options: [] }),
+                question: e.target.value,
+              },
+            })}
+            style={{
+              width: '100%',
+              background: '#090a0f',
+              border: '1px solid #282e42',
+              borderRadius: 10,
+              color: '#ffffff',
+              padding: '8px 10px',
+              fontSize: 13,
+              outline: 'none',
+            }}
+          />
+          <div style={{ marginTop: 10 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 6 }}>
+              Choices:
+            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {(selectedElement.pollConfig?.options || []).map((opt, i) => (
+                <input
+                  key={opt.id || i}
+                  type="text"
+                  value={opt.label}
+                  onChange={(e) => {
+                    const opts = [...(selectedElement.pollConfig?.options || [])];
+                    opts[i] = { ...opts[i], label: e.target.value };
+                    updateElement(selectedElement.id, {
+                      pollConfig: {
+                        ...(selectedElement.pollConfig || { question: '', options: [] }),
+                        options: opts,
+                      },
+                    });
+                  }}
+                  style={{
+                    background: '#090a0f',
+                    border: '1px solid #282e42',
+                    borderRadius: 8,
+                    color: '#ffffff',
+                    padding: '6px 8px',
+                    fontSize: 12,
+                    outline: 'none',
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GUESTBOOK CONTROLS */}
+      {isGuestbook && (
+        <div style={{ background: '#13151f', border: '1px solid #202434', borderRadius: 14, padding: 14 }}>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#f43f5e', display: 'block', marginBottom: 8 }}>
+            💌 Guestbook Wall Title
+          </label>
+          <input
+            type="text"
+            value={selectedElement.guestbookConfig?.title || ''}
+            onChange={(e) => updateElement(selectedElement.id, {
+              guestbookConfig: {
+                ...(selectedElement.guestbookConfig || { title: '', entries: [] }),
+                title: e.target.value,
+              },
+            })}
+            style={{
+              width: '100%',
+              background: '#090a0f',
+              border: '1px solid #282e42',
+              borderRadius: 10,
+              color: '#ffffff',
+              padding: '8px 10px',
+              fontSize: 13,
+              outline: 'none',
+            }}
+          />
+        </div>
+      )}
+
+      {/* REACTION CONTROLS */}
+      {isReaction && (
+        <div style={{ background: '#13151f', border: '1px solid #202434', borderRadius: 14, padding: 14 }}>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#ec4899', display: 'block', marginBottom: 8 }}>
+            💖 Tap Reaction Emoji
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, marginBottom: 12 }}>
+            {['🔥', '🥒', '❤️', '🚀', '🎮', '⭐', '🍕', '🍦', '🏆', '🎉'].map((emo) => (
+              <button
+                key={emo}
+                type="button"
+                onClick={() => {
+                  playSound('pop');
+                  updateElement(selectedElement.id, {
+                    reactionConfig: {
+                      ...(selectedElement.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
+                      emoji: emo,
+                    },
+                  });
+                }}
+                style={{
+                  background: selectedElement.reactionConfig?.emoji === emo ? '#6366f1' : '#181b28',
+                  border: '1px solid #2a3149',
+                  borderRadius: 8,
+                  padding: '6px 0',
+                  fontSize: 16,
+                  cursor: 'pointer',
+                  transition: 'transform 0.1s ease',
+                }}
+              >
+                {emo}
+              </button>
+            ))}
+          </div>
+          <label style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>
+            Button Label
+          </label>
+          <input
+            type="text"
+            value={selectedElement.reactionConfig?.label || ''}
+            onChange={(e) => updateElement(selectedElement.id, {
+              reactionConfig: {
+                ...(selectedElement.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
+                label: e.target.value,
+              },
+            })}
+            style={{
+              width: '100%',
+              background: '#090a0f',
+              border: '1px solid #282e42',
+              borderRadius: 8,
+              color: '#ffffff',
+              padding: '6px 8px',
+              fontSize: 12,
+              outline: 'none',
+            }}
+          />
+        </div>
+      )}
 
       {/* 1. TEXT EDITING (If element has text) */}
       {hasText && (

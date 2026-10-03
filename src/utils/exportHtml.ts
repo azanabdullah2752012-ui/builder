@@ -488,6 +488,101 @@ ${indent}  <lottie-player src="${url}" background="transparent" speed="${speed}"
 ${indent}</div>`;
     }
 
+    if (el.type === 'poll') {
+      const q = (el.pollConfig?.question || 'What feature should we ship next? 🚀').replace(/"/g, '&quot;');
+      const opts = el.pollConfig?.options || [
+        { id: 'opt_1', label: '⚡ Instant AI Publishing', votes: 42 },
+        { id: 'opt_2', label: '🎨 3D Motion Canvas', votes: 28 },
+        { id: 'opt_3', label: '🤝 Real-Time Multiplayer', votes: 65 },
+      ];
+      const total = opts.reduce((a, b) => a + b.votes, 0) || 1;
+      const themeColor = el.pollConfig?.themeColor || '#6366f1';
+      const optsJson = JSON.stringify(opts).replace(/"/g, '&quot;');
+
+      const optsHtml = opts.map((opt) => {
+        const pct = Math.round((opt.votes / total) * 100);
+        return `\n${indent}    <button type="button" class="poll-option-btn" data-opt-id="${opt.id}" onclick="voteStudioPoll('${el.id}', '${opt.id}')" style="position: relative; width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #fff; padding: 10px 14px; text-align: left; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s;">
+${indent}      <div class="poll-bar" style="position: absolute; left: 0; top: 0; bottom: 0; width: ${pct}%; background: ${themeColor}; opacity: 0.25; border-radius: 10px; transition: width 0.4s ease;"></div>
+${indent}      <span style="position: relative; z-index: 2; font-size: 13px; font-weight: 600;">${opt.label.replace(/"/g, '&quot;')}</span>
+${indent}      <span class="poll-pct" style="position: relative; z-index: 2; font-size: 12px; font-weight: 700; color: #cbd5e1;">${pct}%</span>
+${indent}    </button>`;
+      }).join('');
+
+      return `${indent}<div class="el-${el.id} studio-poll-widget" id="${el.id}" data-theme="${themeColor}" data-options='${optsJson}' style="display: flex; flex-direction: column; padding: 20px; border-radius: 16px; background: #121624; border: 1px solid #262f46; color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,0.3);"${clickAttr}>
+${indent}  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+${indent}    <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #10b981; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); padding: 2px 8px; border-radius: 9999px;">● Live Poll</span>
+${indent}    <span class="poll-total-count" style="font-size: 11px; color: #94a3b8; font-weight: 600;">${total} votes</span>
+${indent}  </div>
+${indent}  <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 14px; line-height: 1.4;">${q}</h4>
+${indent}  <div class="poll-options-container" style="display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto;">${optsHtml}
+${indent}  </div>
+${indent}</div>`;
+    }
+
+    if (el.type === 'guestbook') {
+      const title = (el.guestbookConfig?.title || 'Visitor Guestbook & Wall 💌').replace(/"/g, '&quot;');
+      const subtitle = (el.guestbookConfig?.subtitle || 'Leave a shoutout, feedback, or say hi!').replace(/"/g, '&quot;');
+      const entries = el.guestbookConfig?.entries || [
+        { id: '1', name: 'Sarah Chen', message: 'The interactive widgets are so buttery smooth! Love this! 🔥', avatarEmoji: '🚀', date: 'Just now', likes: 12 },
+        { id: '2', name: 'Alex Rivera', message: 'Built and launched my website in under 5 minutes. Incredible work!', avatarEmoji: '✨', date: '2h ago', likes: 8 },
+      ];
+
+      const entriesHtml = entries.map((en) => {
+        return `\n${indent}    <div class="guestbook-note" style="padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); margin-bottom: 8px;">
+${indent}      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+${indent}        <div style="display: flex; align-items: center; gap: 6px;">
+${indent}          <span style="font-size: 14px;">${en.avatarEmoji || '✨'}</span>
+${indent}          <strong style="font-size: 12px; color: #e2e8f0;">${en.name.replace(/"/g, '&quot;')}</strong>
+${indent}        </div>
+${indent}        <span style="font-size: 10px; color: #94a3b8;">${en.date}</span>
+${indent}      </div>
+${indent}      <p style="margin: 0; font-size: 12px; color: #cbd5e1; line-height: 1.5;">${en.message.replace(/"/g, '&quot;')}</p>
+${indent}    </div>`;
+      }).join('');
+
+      return `${indent}<div class="el-${el.id} studio-guestbook-widget" id="${el.id}" style="display: flex; flex-direction: column; padding: 18px; border-radius: 18px; background: #121522; border: 1px solid #262e46; color: #fff; box-shadow: 0 16px 36px rgba(0,0,0,0.35);"${clickAttr}>
+${indent}  <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 10px;">
+${indent}    <div>
+${indent}      <h4 style="margin: 0; font-size: 14px; font-weight: 700;">${title}</h4>
+${indent}      <p style="margin: 2px 0 0; font-size: 11px; color: #94a3b8;">${subtitle}</p>
+${indent}    </div>
+${indent}    <span style="font-size: 10px; font-weight: 700; background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); padding: 2px 8px; border-radius: 9999px;">${entries.length} notes</span>
+${indent}  </div>
+${indent}  <div class="guestbook-feed" id="feed-${el.id}" style="flex: 1; overflow-y: auto; max-height: 220px; padding-right: 4px;">${entriesHtml}
+${indent}  </div>
+${indent}  <form onsubmit="submitStudioGuestbook(event, '${el.id}')" style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; margin-top: 8px;">
+${indent}    <div style="display: flex; gap: 6px;">
+${indent}      <select name="avatar" style="background: #090a0f; border: 1px solid #2a3147; border-radius: 8px; color: #fff; font-size: 12px; padding: 4px 6px;">
+${indent}        <option value="🚀">🚀</option>
+${indent}        <option value="✨">✨</option>
+${indent}        <option value="🥒">🥒</option>
+${indent}        <option value="🍕">🍕</option>
+${indent}        <option value="💖">💖</option>
+${indent}        <option value="🐶">🐶</option>
+${indent}      </select>
+${indent}      <input type="text" name="name" placeholder="Your name (optional)" style="flex: 1; background: #090a0f; border: 1px solid #2a3147; border-radius: 8px; color: #fff; font-size: 12px; padding: 6px 10px; outline: none;" />
+${indent}    </div>
+${indent}    <div style="display: flex; gap: 6px;">
+${indent}      <input type="text" name="message" required placeholder="Write a friendly note..." style="flex: 1; background: #090a0f; border: 1px solid #2a3147; border-radius: 8px; color: #fff; font-size: 12px; padding: 6px 10px; outline: none;" />
+${indent}      <button type="submit" style="background: #6366f1; color: #fff; border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer;">Post ✍️</button>
+${indent}    </div>
+${indent}  </form>
+${indent}</div>`;
+    }
+
+    if (el.type === 'reaction') {
+      const emoji = el.reactionConfig?.emoji || '🔥';
+      const label = el.reactionConfig?.label || 'Hype';
+      const count = el.reactionConfig?.count ?? 128;
+      const sound = el.reactionConfig?.soundEffect || 'pop';
+
+      return `${indent}<button type="button" class="el-${el.id} studio-reaction-widget" id="${el.id}" data-count="${count}" data-sound="${sound}" onclick="tapStudioReaction('${el.id}')" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border-radius: 9999px; background: #181c2b; border: 1px solid #313b59; color: #fff; cursor: pointer; transition: transform 0.15s ease, background 0.15s ease;"${clickAttr}>
+${indent}  <span style="font-size: 18px;">${emoji}</span>
+${indent}  <span style="font-size: 13px; font-weight: 700;">${label}</span>
+${indent}  <span class="reaction-count" style="font-size: 12px; font-weight: 800; background: rgba(255,255,255,0.12); padding: 2px 8px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.15);">${count}</span>
+${indent}</button>`;
+    }
+
     if (el.type === 'button' || role === 'button') {
       const icon = el.behavior?.buttonIcon || 'none';
       const iconPos = el.behavior?.buttonIconPosition || 'right';
@@ -918,6 +1013,95 @@ ${generateScrollObserverScript()}
       var progress = (window.scrollY / total) * 100;
       bar.style.width = Math.min(100, Math.max(0, progress)) + '%';
     });
+
+    // ── Live Visitor Polls Runtime ──
+    function voteStudioPoll(elId, optId) {
+      var widget = document.getElementById(elId);
+      if (!widget) return;
+      var rawOpts = widget.getAttribute('data-options');
+      if (!rawOpts) return;
+      var options = JSON.parse(rawOpts);
+      var storeKey = 'studio_poll_' + elId;
+      var voted = localStorage.getItem(storeKey + '_voted');
+      if (voted === optId) return;
+
+      var extraCounts = JSON.parse(localStorage.getItem(storeKey + '_counts') || '{}');
+      if (voted && extraCounts[voted]) extraCounts[voted] = Math.max(0, extraCounts[voted] - 1);
+      extraCounts[optId] = (extraCounts[optId] || 0) + 1;
+      localStorage.setItem(storeKey + '_voted', optId);
+      localStorage.setItem(storeKey + '_counts', JSON.stringify(extraCounts));
+
+      var total = 0;
+      options.forEach(function(o) {
+        o.votes += (extraCounts[o.id] || 0);
+        total += o.votes;
+      });
+
+      var totalBadge = widget.querySelector('.poll-total-count');
+      if (totalBadge) totalBadge.textContent = total + (total === 1 ? ' vote' : ' votes');
+
+      options.forEach(function(o) {
+        var pct = total > 0 ? Math.round((o.votes / total) * 100) : 0;
+        var btn = widget.querySelector('[data-opt-id="' + o.id + '"]');
+        if (btn) {
+          var bar = btn.querySelector('.poll-bar');
+          var pctEl = btn.querySelector('.poll-pct');
+          if (bar) bar.style.width = pct + '%';
+          if (pctEl) pctEl.textContent = pct + '%';
+          if (o.id === optId) {
+            btn.style.borderColor = 'rgba(99, 102, 241, 0.8)';
+            btn.style.background = 'rgba(99, 102, 241, 0.15)';
+          } else {
+            btn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            btn.style.background = 'rgba(255, 255, 255, 0.03)';
+          }
+        }
+      });
+    }
+
+    // ── Interactive Guestbook Wall Runtime ──
+    function submitStudioGuestbook(event, elId) {
+      event.preventDefault();
+      var form = event.target;
+      var avatar = form.elements['avatar'] ? form.elements['avatar'].value : '✨';
+      var name = (form.elements['name'] && form.elements['name'].value.trim()) || 'Visitor Friend';
+      var msgInput = form.elements['message'];
+      var message = msgInput ? msgInput.value.trim() : '';
+      if (!message) return;
+
+      var feed = document.getElementById('feed-' + elId);
+      if (feed) {
+        var card = document.createElement('div');
+        card.className = 'guestbook-note';
+        card.style.cssText = 'padding: 10px 12px; border-radius: 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); margin-bottom: 8px; animation: fadeIn 0.3s ease;';
+        card.innerHTML = '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">' +
+          '<div style="display: flex; align-items: center; gap: 6px;">' +
+            '<span style="font-size: 14px;">' + avatar + '</span>' +
+            '<strong style="font-size: 12px; color: #a5b4fc;">' + name.replace(/</g, '&lt;') + '</strong>' +
+          '</div>' +
+          '<span style="font-size: 10px; color: #94a3b8;">Just now</span>' +
+        '</div>' +
+        '<p style="margin: 0; font-size: 12px; color: #f8fafc; line-height: 1.5;">' + message.replace(/</g, '&lt;') + '</p>';
+        feed.insertBefore(card, feed.firstChild);
+      }
+
+      msgInput.value = '';
+    }
+
+    // ── Reaction Counter Runtime ──
+    function tapStudioReaction(elId) {
+      var btn = document.getElementById(elId);
+      if (!btn) return;
+      var storeKey = 'studio_reaction_' + elId;
+      var current = parseInt(localStorage.getItem(storeKey) || btn.getAttribute('data-count') || '0', 10);
+      current += 1;
+      localStorage.setItem(storeKey, current.toString());
+      var badge = btn.querySelector('.reaction-count');
+      if (badge) badge.textContent = current.toLocaleString();
+
+      btn.style.transform = 'scale(1.15)';
+      setTimeout(function() { btn.style.transform = 'scale(1)'; }, 200);
+    }
 
     renderStudioCart();
   </script>

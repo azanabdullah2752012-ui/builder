@@ -750,6 +750,214 @@ export const PropertiesPanel: React.FC = () => {
           </div>
         )}
 
+        {/* Section: Poll Settings */}
+        {el.type === 'poll' && (
+          <div>
+            <div style={S.sectionTitle}>Poll Configuration</div>
+            <div style={S.row}>
+              <span style={S.label}>Question</span>
+              <input
+                type="text"
+                value={el.pollConfig?.question || ''}
+                onChange={(e) => updateElement(el.id, {
+                  pollConfig: {
+                    ...(el.pollConfig || { question: '', options: [] }),
+                    question: e.target.value,
+                  },
+                })}
+                style={S.input}
+              />
+            </div>
+            <div style={S.row}>
+              <span style={S.label}>Theme</span>
+              <input
+                type="color"
+                value={el.pollConfig?.themeColor || '#6366f1'}
+                onChange={(e) => updateElement(el.id, {
+                  pollConfig: {
+                    ...(el.pollConfig || { question: '', options: [] }),
+                    themeColor: e.target.value,
+                  },
+                })}
+                style={{ ...S.input, width: 36, height: 24, padding: 0, cursor: 'pointer' }}
+              />
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <span style={{ ...S.label, display: 'block', marginBottom: 4 }}>Poll Options</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {(el.pollConfig?.options || []).map((opt, idx) => (
+                  <div key={opt.id || idx} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      value={opt.label}
+                      onChange={(e) => {
+                        const newOpts = [...(el.pollConfig?.options || [])];
+                        newOpts[idx] = { ...newOpts[idx], label: e.target.value };
+                        updateElement(el.id, {
+                          pollConfig: {
+                            ...(el.pollConfig || { question: '', options: [] }),
+                            options: newOpts,
+                          },
+                        });
+                      }}
+                      style={{ ...S.input, flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newOpts = (el.pollConfig?.options || []).filter((_, i) => i !== idx);
+                        updateElement(el.id, {
+                          pollConfig: {
+                            ...(el.pollConfig || { question: '', options: [] }),
+                            options: newOpts,
+                          },
+                        });
+                      }}
+                      style={{ ...S.iconBtn, width: 22, height: 22, color: '#ef4444' }}
+                      title="Remove Option"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentOpts = el.pollConfig?.options || [];
+                    const newOpt = {
+                      id: `opt_${Date.now()}`,
+                      label: `Option ${currentOpts.length + 1}`,
+                      votes: 0,
+                    };
+                    updateElement(el.id, {
+                      pollConfig: {
+                        ...(el.pollConfig || { question: '', options: [] }),
+                        options: [...currentOpts, newOpt],
+                      },
+                    });
+                  }}
+                  style={{
+                    ...S.input,
+                    height: 24,
+                    marginTop: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    background: '#1a1a24',
+                    color: '#818cf8',
+                    border: '1px dashed #313952',
+                  }}
+                >
+                  + Add Option
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Section: Guestbook Settings */}
+        {el.type === 'guestbook' && (
+          <div>
+            <div style={S.sectionTitle}>Guestbook Wall</div>
+            <div style={S.row}>
+              <span style={S.label}>Title</span>
+              <input
+                type="text"
+                value={el.guestbookConfig?.title || ''}
+                onChange={(e) => updateElement(el.id, {
+                  guestbookConfig: {
+                    ...(el.guestbookConfig || { title: '', entries: [] }),
+                    title: e.target.value,
+                  },
+                })}
+                style={S.input}
+              />
+            </div>
+            <div style={S.row}>
+              <span style={S.label}>Subtitle</span>
+              <input
+                type="text"
+                value={el.guestbookConfig?.subtitle || ''}
+                onChange={(e) => updateElement(el.id, {
+                  guestbookConfig: {
+                    ...(el.guestbookConfig || { title: '', entries: [] }),
+                    subtitle: e.target.value,
+                  },
+                })}
+                style={S.input}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Section: Reaction Settings */}
+        {el.type === 'reaction' && (
+          <div>
+            <div style={S.sectionTitle}>Reaction Counter</div>
+            <div style={S.row}>
+              <span style={S.label}>Emoji</span>
+              <input
+                type="text"
+                value={el.reactionConfig?.emoji || '🔥'}
+                onChange={(e) => updateElement(el.id, {
+                  reactionConfig: {
+                    ...(el.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
+                    emoji: e.target.value,
+                  },
+                })}
+                style={{ ...S.input, width: 44, textAlign: 'center' }}
+              />
+            </div>
+            <div style={S.row}>
+              <span style={S.label}>Label</span>
+              <input
+                type="text"
+                value={el.reactionConfig?.label || ''}
+                onChange={(e) => updateElement(el.id, {
+                  reactionConfig: {
+                    ...(el.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
+                    label: e.target.value,
+                  },
+                })}
+                style={S.input}
+              />
+            </div>
+            <div style={S.row}>
+              <span style={S.label}>Base Count</span>
+              <input
+                type="number"
+                value={el.reactionConfig?.count ?? 0}
+                onChange={(e) => updateElement(el.id, {
+                  reactionConfig: {
+                    ...(el.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
+                    count: parseInt(e.target.value, 10) || 0,
+                  },
+                })}
+                style={S.input}
+              />
+            </div>
+            <div style={S.row}>
+              <span style={S.label}>Sound</span>
+              <select
+                value={el.reactionConfig?.soundEffect || 'pop'}
+                onChange={(e) => updateElement(el.id, {
+                  reactionConfig: {
+                    ...(el.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
+                    soundEffect: e.target.value as any,
+                  },
+                })}
+                style={S.input}
+              >
+                <option value="pop">Pop</option>
+                <option value="bell">Bell</option>
+                <option value="chime">Chime</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         {/* Section: Typography (if text or button) */}
         {hasText && (
           <div>

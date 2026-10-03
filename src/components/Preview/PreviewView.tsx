@@ -15,7 +15,15 @@ import {
 import { SHAPE_DEFINITIONS, getShapeSvgNode } from '../../utils/shapeDefinitions';
 import { getComputedButtonStyles, renderButtonIcon } from '../../utils/buttonStyles';
 import { executeElementAction } from '../../utils/actionExecutor';
-import { AccordionWidget, CarouselWidget, VideoWidget, CounterWidget } from '../Widgets/InteractiveWidgets';
+import {
+  AccordionWidget,
+  CarouselWidget,
+  VideoWidget,
+  CounterWidget,
+  PollWidget,
+  GuestbookWidget,
+  ReactionWidget,
+} from '../Widgets/InteractiveWidgets';
 import { ProductCardWidget } from '../Widgets/ProductCardWidget';
 import { CartDrawer } from '../Widgets/CartDrawer';
 import { LottieWidget } from '../Widgets/LottieWidget';
@@ -486,6 +494,30 @@ export const PreviewView: React.FC = () => {
       return (
         <div {...commonProps}>
           <LottieWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'poll') {
+      return (
+        <div {...commonProps}>
+          <PollWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'guestbook') {
+      return (
+        <div {...commonProps}>
+          <GuestbookWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'reaction') {
+      return (
+        <div {...commonProps}>
+          <ReactionWidget element={element} isInteractive={true} />
         </div>
       );
     }

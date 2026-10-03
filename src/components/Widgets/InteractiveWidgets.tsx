@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import type { CanvasElement } from '../../types/editor';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { CanvasElement, GuestbookEntry } from '../../types/editor';
+import { ChevronDown, ChevronLeft, ChevronRight, Check, Heart, Send } from 'lucide-react';
+import { playSound, triggerConfetti } from '../../utils/interactiveEffects';
+import { databaseService } from '../../services/databaseService';
 
 // ============================================================================
 // 1. FAQ Accordion Widget Component
@@ -366,3 +368,500 @@ export const CounterWidget: React.FC<CounterWidgetProps> = ({ element }) => {
     </div>
   );
 };
+
+// ============================================================================
+// 5. Live Visitor Poll Widget
+// ============================================================================
+
+interface PollWidgetProps {
+  element: CanvasElement;
+  isInteractive?: boolean;
+}
+
+export const PollWidget: React.FC<PollWidgetProps> = ({ element, isInteractive = true }) => {
+  const config = element.pollConfig;
+  const question = config?.question || 'What feature should we ship next? 🚀';
+  const initialOptions = useMemo(() => config?.options || [
+    { id: 'opt_1', label: '⚡ Instant AI Publishing', votes: 42 },
+    { id: 'opt_2', label: '🎨 3D Motion Canvas', votes: 28 },
+    { id: 'opt_3', label: '🤝 Real-Time Multiplayer', votes: 65 },
+    { id: 'opt_4', label: '📱 Native Mobile App', votes: 19 },
+  ], [config?.options]);
+
+  const storageKey = `studio_poll_${element.id}`;
+  const [votedOptionId, setVotedOptionId] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(`${storageKey}_voted`);
+    } catch {
+      return null;
+    }
+  });
+
+  const [extraVotes, setExtraVotes] = useState<Record<string, number>>(() => {
+    try {
+      const raw = localStorage.getItem(`${storageKey}_counts`);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Calculate totals and percentages
+  const optionsWithVotes = useMemo(() => {
+    return initialOptions.map((opt) => {
+      const added = extraVotes[opt.id] || 0;
+      return {
+        ...opt,
+        total: opt.votes + added,
+      };
+    });
+  }, [initialOptions, extraVotes]);
+
+  const totalVotes = useMemo(() => {
+    return optionsWithVotes.reduce((acc, curr) => acc + curr.total, 0);
+  }, [optionsWithVotes]);
+
+  const handleVote = (optId: string, e: React.MouseEvent) => {
+    if (!isInteractive) return;
+    e.stopPropagation();
+    if (votedOptionId === optId) return; // already voted for this
+
+    playSound('pop');
+    triggerConfetti(e.clientX, e.clientY);
+
+    setVotedOptionId(optId);
+    setExtraVotes((prev) => {
+      const next = { ...prev };
+      if (votedOptionId && next[votedOptionId]) {
+        next[votedOptionId] = Math.max(0, next[votedOptionId] - 1);
+      }
+      next[optId] = (next[optId] || 0) + 1;
+      try {
+        localStorage.setItem(`${storageKey}_voted`, optId);
+        localStorage.setItem(`${storageKey}_counts`, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    // Telemetry to backend submissions
+    try {
+      const chosen = initialOptions.find((o) => o.id === optId);
+      databaseService.submitLead({
+        page_slug: 'live-poll',
+        form_type: 'Live Poll Vote',
+        name: 'Poll Visitor',
+        email: 'visitor@poll.vote',
+        data: {
+          pollQuestion: question,
+          selectedOptionId: optId,
+          selectedOptionLabel: chosen?.label || optId,
+          elementId: element.id,
+        },
+      }).catch(() => {});
+    } catch {}
+  };
+
+  const themeColor = config?.themeColor || '#6366f1';
+  const s = element.styles || {};
+
+  return (
+    <div
+      className="w-full h-full flex flex-col p-4 select-none relative overflow-hidden text-left"
+      style={{
+        fontFamily: s.fontFamily,
+        color: s.color || '#ffffff',
+      }}
+    >
+      {/* Header Badge & Question */}
+      <div className="flex items-center justify-between gap-2 mb-2 shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <span className="text-[10px] font-extrabold tracking-wider uppercase text-emerald-400">
+            Live Poll
+          </span>
+        </div>
+        <span className="text-[11px] font-semibold text-zinc-400">
+          {totalVotes} {totalVotes === 1 ? 'vote' : 'votes'}
+        </span>
+      </div>
+
+      <h4
+        className="font-bold leading-tight mb-3 text-white line-clamp-2 shrink-0"
+        style={{ fontSize: s.fontSize ? `${s.fontSize}px` : '15px' }}
+      >
+        {question}
+      </h4>
+
+      {/* Options List */}
+      <div className="flex-1 flex flex-col gap-2 justify-center overflow-y-auto pr-1 min-h-[100px]">
+        {optionsWithVotes.map((opt) => {
+          const isSelected = votedOptionId === opt.id;
+          const pct = totalVotes > 0 ? Math.round((opt.total / totalVotes) * 100) : 0;
+
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={(e) => handleVote(opt.id, e)}
+              className={`w-full group relative overflow-hidden rounded-xl border text-left p-2.5 transition-all duration-200 cursor-pointer outline-none ${
+                isSelected
+                  ? 'border-indigo-500/80 bg-indigo-500/10 shadow-sm shadow-indigo-500/20'
+                  : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]'
+              }`}
+            >
+              {/* Animated Progress Bar Fill */}
+              <div
+                className="absolute inset-y-0 left-0 transition-all duration-500 rounded-l-xl opacity-25 group-hover:opacity-35 pointer-events-none"
+                style={{
+                  width: `${pct}%`,
+                  backgroundColor: isSelected ? themeColor : '#a1a1aa',
+                }}
+              />
+
+              {/* Content Row */}
+              <div className="relative z-10 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
+                      isSelected
+                        ? 'border-indigo-400 bg-indigo-500 text-white'
+                        : 'border-zinc-500 group-hover:border-zinc-300'
+                    }`}
+                  >
+                    {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                  </div>
+                  <span className="text-xs font-semibold text-zinc-100 truncate">
+                    {opt.label}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[11px] font-bold text-zinc-300">
+                    {pct}%
+                  </span>
+                  <span className="text-[10px] text-zinc-500">
+                    ({opt.total})
+                  </span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Canvas design mode shield */}
+      {!isInteractive && (
+        <div className="absolute inset-0 bg-transparent z-20 cursor-move" />
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// 6. Interactive Guestbook Wall Widget
+// ============================================================================
+
+interface GuestbookWidgetProps {
+  element: CanvasElement;
+  isInteractive?: boolean;
+}
+
+const AVATAR_EMOJIS = ['🚀', '✨', '🥒', '🍕', '💖', '🐶', '⚡', '🎉'];
+
+export const GuestbookWidget: React.FC<GuestbookWidgetProps> = ({ element, isInteractive = true }) => {
+  const config = element.guestbookConfig;
+  const title = config?.title || 'Visitor Guestbook & Wall 💌';
+  const subtitle = config?.subtitle || 'Leave a shoutout, feedback, or say hi!';
+
+  const storageKey = `studio_guestbook_${element.id}`;
+
+  const defaultEntries: GuestbookEntry[] = useMemo(() => config?.entries || [
+    { id: '1', name: 'Sarah Chen', message: 'The interactive widgets are so buttery smooth! Love this! 🔥', avatarEmoji: '🚀', date: 'Just now', likes: 12 },
+    { id: '2', name: 'Alex Rivera', message: 'Built and launched my website in under 5 minutes. Incredible work!', avatarEmoji: '✨', date: '2h ago', likes: 8 },
+  ], [config?.entries]);
+
+  const [entries, setEntries] = useState<GuestbookEntry[]>(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return defaultEntries;
+  });
+
+  const [name, setName] = useState('');
+  const [message, setMessage] = useState('');
+  const [selectedEmoji, setSelectedEmoji] = useState(AVATAR_EMOJIS[0]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isInteractive || !message.trim()) return;
+
+    playSound('pop');
+    triggerConfetti();
+
+    const newEntry: GuestbookEntry = {
+      id: `entry_${Date.now()}`,
+      name: name.trim() || 'Anonymous Friend',
+      message: message.trim(),
+      avatarEmoji: selectedEmoji,
+      date: 'Just now',
+      likes: 1,
+    };
+
+    const updated = [newEntry, ...entries].slice(0, config?.maxEntries || 30);
+    setEntries(updated);
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+    } catch {}
+
+    setMessage('');
+
+    // Telemetry to project database submissions
+    databaseService.submitLead({
+      page_slug: 'guestbook',
+      form_type: 'Guestbook Entry',
+      name: newEntry.name,
+      email: `${newEntry.name.toLowerCase().replace(/\s+/g, '')}@guestbook.wall`,
+      data: {
+        message: newEntry.message,
+        avatarEmoji: newEntry.avatarEmoji,
+        elementId: element.id,
+      },
+    }).catch(() => {});
+  };
+
+  const handleLike = (id: string, e: React.MouseEvent) => {
+    if (!isInteractive) return;
+    e.stopPropagation();
+    playSound('pop');
+    setEntries((prev) => {
+      const next = prev.map((it) => (it.id === id ? { ...it, likes: (it.likes || 0) + 1 } : it));
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const s = element.styles || {};
+
+  return (
+    <div
+      className="w-full h-full flex flex-col p-4 select-none relative overflow-hidden text-left"
+      style={{
+        fontFamily: s.fontFamily,
+        color: s.color || '#ffffff',
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-white/10 shrink-0">
+        <div>
+          <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
+            <span>{title}</span>
+          </h4>
+          {subtitle && <p className="text-[11px] text-zinc-400 mt-0.5">{subtitle}</p>}
+        </div>
+        <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
+          {entries.length} notes
+        </span>
+      </div>
+
+      {/* Wall Feed */}
+      <div className="flex-1 overflow-y-auto space-y-2 py-1 pr-1 min-h-[100px]">
+        {entries.map((entry) => (
+          <div
+            key={entry.id}
+            className="p-2.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition-colors"
+          >
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center gap-2">
+                <span className="text-base select-none">{entry.avatarEmoji || '✨'}</span>
+                <span className="text-xs font-semibold text-zinc-200 truncate">{entry.name}</span>
+              </div>
+              <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+                <span>{entry.date}</span>
+                <button
+                  type="button"
+                  onClick={(e) => handleLike(entry.id, e)}
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/5 hover:bg-rose-500/20 hover:text-rose-300 text-zinc-400 transition-colors cursor-pointer"
+                  title="Like message"
+                >
+                  <Heart className="w-2.5 h-2.5 fill-rose-500 text-rose-500" />
+                  <span>{entry.likes || 0}</span>
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-zinc-300 leading-relaxed break-words">{entry.message}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Interactive Form */}
+      {(config?.allowSubmissions ?? true) && (
+        <form onSubmit={handleSubmit} className="mt-2 pt-2 border-t border-white/10 shrink-0 flex flex-col gap-2">
+          {/* Avatar selector & Name row */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-lg p-0.5">
+              {AVATAR_EMOJIS.slice(0, 5).map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedEmoji(emoji);
+                  }}
+                  className={`w-6 h-6 rounded flex items-center justify-center text-xs transition-transform ${
+                    selectedEmoji === emoji ? 'bg-indigo-600 scale-110 shadow' : 'hover:bg-white/10'
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text"
+              placeholder="Your Name (optional)"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white placeholder-zinc-500 outline-none focus:border-indigo-500"
+            />
+          </div>
+
+          {/* Message input + Send */}
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Write a friendly note..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-indigo-500"
+            />
+            <button
+              type="submit"
+              disabled={!message.trim()}
+              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-indigo-600/30 shrink-0"
+            >
+              <span>Post</span>
+              <Send className="w-3 h-3" />
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Canvas design mode shield */}
+      {!isInteractive && (
+        <div className="absolute inset-0 bg-transparent z-20 cursor-move" />
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// 7. Interactive Reaction Button Widget
+// ============================================================================
+
+interface ReactionWidgetProps {
+  element: CanvasElement;
+  isInteractive?: boolean;
+}
+
+export const ReactionWidget: React.FC<ReactionWidgetProps> = ({ element, isInteractive = true }) => {
+  const config = element.reactionConfig;
+  const emoji = config?.emoji || '🔥';
+  const label = config?.label || 'Hype';
+  const initialCount = config?.count ?? 128;
+
+  const storageKey = `studio_reaction_${element.id}`;
+
+  const [count, setCount] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) return parseInt(raw, 10);
+    } catch {}
+    return initialCount;
+  });
+
+  const [isBouncing, setIsBouncing] = useState(false);
+  const [particles, setParticles] = useState<{ id: number; x: number }[]>([]);
+
+  const handleTap = (e: React.MouseEvent) => {
+    if (!isInteractive) return;
+    e.stopPropagation();
+
+    const snd = config?.soundEffect || 'pop';
+    if (snd !== 'none') playSound(snd as any);
+
+    if (config?.burstType !== 'none') {
+      triggerConfetti(e.clientX, e.clientY);
+    }
+
+    setIsBouncing(true);
+    setTimeout(() => setIsBouncing(false), 300);
+
+    const newId = Date.now();
+    setParticles((prev) => [...prev.slice(-3), { id: newId, x: Math.random() * 20 - 10 }]);
+    setTimeout(() => {
+      setParticles((prev) => prev.filter((p) => p.id !== newId));
+    }, 800);
+
+    setCount((prev) => {
+      const next = prev + 1;
+      try {
+        localStorage.setItem(storageKey, next.toString());
+      } catch {}
+      return next;
+    });
+  };
+
+  const s = element.styles || {};
+
+  return (
+    <div
+      onClick={handleTap}
+      className={`w-full h-full flex items-center justify-center gap-3 px-4 py-2 select-none relative cursor-pointer rounded-[inherit] transition-transform duration-150 active:scale-95 hover:scale-105 group ${
+        isBouncing ? 'animate-bounce' : ''
+      }`}
+      style={{
+        fontFamily: s.fontFamily,
+      }}
+    >
+      {/* Floating +1 badges */}
+      {particles.map((p) => (
+        <span
+          key={p.id}
+          className="absolute text-xs font-black text-emerald-400 pointer-events-none transition-all duration-700 animate-fade-in"
+          style={{
+            transform: `translate(${p.x}px, -28px)`,
+          }}
+        >
+          +1
+        </span>
+      ))}
+
+      <span className="text-xl group-hover:scale-125 transition-transform duration-200">
+        {emoji}
+      </span>
+      {label && (
+        <span
+          className="font-bold tracking-wide text-xs text-white"
+          style={{ fontSize: s.fontSize ? `${s.fontSize}px` : '13px' }}
+        >
+          {label}
+        </span>
+      )}
+      <span className="px-2 py-0.5 rounded-full bg-white/10 text-white/90 text-xs font-extrabold border border-white/15 tabular-nums">
+        {count.toLocaleString()}
+      </span>
+
+      {/* Canvas design mode shield */}
+      {!isInteractive && (
+        <div className="absolute inset-0 bg-transparent z-20 cursor-move" />
+      )}
+    </div>
+  );
+};
+

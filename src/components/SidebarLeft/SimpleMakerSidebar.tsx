@@ -91,7 +91,7 @@ export const SimpleMakerSidebar: React.FC = () => {
   };
 
   // Add Basic Element
-  const handleAddBasic = (type: 'title' | 'button' | 'image' | 'box' | 'message') => {
+  const handleAddBasic = (type: 'title' | 'button' | 'image' | 'box' | 'message' | 'poll' | 'reaction') => {
     playSound('pop');
     const offsetY = getSmartSectionOffsetY(activePage.elements, 60);
 
@@ -129,10 +129,17 @@ export const SimpleMakerSidebar: React.FC = () => {
       addElements([el]);
       showToast('Added Card Container! 📦', 'success');
     } else if (type === 'message') {
-      const offsetY = getSmartSectionOffsetY(activePage.elements, 60);
-      const els = KID_LEGO_BLOCKS.find((b) => b.id === 'block-guestbook')?.create(offsetY) || [];
-      addElements(els);
-      showToast('Added Message Box! 📬', 'success');
+      const el = createElement('guestbook', 40, offsetY);
+      addElements([el]);
+      showToast('Added Guestbook Wall! 💌', 'success');
+    } else if (type === 'poll') {
+      const el = createElement('poll', 40, offsetY);
+      addElements([el]);
+      showToast('Added Live Visitor Poll! 🗳️', 'success');
+    } else if (type === 'reaction') {
+      const el = createElement('reaction', 40, offsetY);
+      addElements([el]);
+      showToast('Added Fun Reaction Button! 💖', 'success');
     }
   };
 
@@ -505,8 +512,10 @@ export const SimpleMakerSidebar: React.FC = () => {
               { type: 'title' as const, label: 'Big Title Words', icon: <Type size={16} className="text-emerald-400" />, desc: 'Large heading for your topic' },
               { type: 'button' as const, label: 'Confetti Button', icon: <MousePointerClick size={16} className="text-amber-400" />, desc: 'Clickable button with confetti explosion' },
               { type: 'image' as const, label: 'Picture Photo', icon: <ImageIcon size={16} className="text-sky-400" />, desc: 'Add a puppy or rocket photo' },
+              { type: 'poll' as const, label: 'Live Visitor Poll', icon: <Quote size={16} className="text-indigo-400" />, desc: 'Ask a question & let friends vote live' },
+              { type: 'message' as const, label: 'Guestbook Wall', icon: <Quote size={16} className="text-rose-400" />, desc: 'Message board for friends to leave notes' },
+              { type: 'reaction' as const, label: 'Reaction Counter', icon: <MousePointerClick size={16} className="text-pink-400" />, desc: 'Tap button to shower hype and love' },
               { type: 'box' as const, label: 'Story Card Box', icon: <Layout size={16} className="text-purple-400" />, desc: 'A container card to put things inside' },
-              { type: 'message' as const, label: 'Message Box', icon: <Quote size={16} className="text-rose-400" />, desc: 'Guestbook for friends to leave notes' },
             ].map((item) => (
               <div
                 key={item.type}

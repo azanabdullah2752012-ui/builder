@@ -6,7 +6,15 @@ import { SHAPE_DEFINITIONS, getShapeSvgNode } from '../../utils/shapeDefinitions
 import { getComputedButtonStyles, renderButtonIcon } from '../../utils/buttonStyles';
 import { executeElementAction } from '../../utils/actionExecutor';
 import { computeSmartSnapping } from '../../utils/snappingEngine';
-import { AccordionWidget, CarouselWidget, VideoWidget, CounterWidget } from '../Widgets/InteractiveWidgets';
+import {
+  AccordionWidget,
+  CarouselWidget,
+  VideoWidget,
+  CounterWidget,
+  PollWidget,
+  GuestbookWidget,
+  ReactionWidget,
+} from '../Widgets/InteractiveWidgets';
 import { ProductCardWidget } from '../Widgets/ProductCardWidget';
 import { LottieWidget } from '../Widgets/LottieWidget';
 
@@ -925,6 +933,18 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
 
       case 'lottie': {
         return <LottieWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'poll': {
+        return <PollWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'guestbook': {
+        return <GuestbookWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'reaction': {
+        return <ReactionWidget element={element} isInteractive={editorMode === 'preview'} />;
       }
 
       case 'container': {

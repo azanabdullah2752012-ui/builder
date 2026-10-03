@@ -25,6 +25,13 @@ import {
   Quote,
   Palette,
   Check,
+  BarChart2,
+  MessageSquare,
+  Heart,
+  Sliders,
+  PlaySquare,
+  Activity,
+  ShoppingBag,
 } from 'lucide-react';
 import { SECTION_TEMPLATES, getSmartSectionOffsetY } from '../../constants/templates';
 import { SHAPE_DEFINITIONS } from '../../utils/shapeDefinitions';
@@ -47,6 +54,17 @@ const BASIC_ELEMENTS: { type: ElementType; label: string; icon: React.ReactNode 
   { type: 'input', label: 'Text Input', icon: <FileText size={16} /> },
   { type: 'textarea', label: 'Text Area', icon: <Quote size={16} /> },
   { type: 'checkbox', label: 'Checkbox', icon: <CheckSquare size={16} /> },
+];
+
+const INTERACTIVE_WIDGETS: { type: ElementType; label: string; icon: React.ReactNode; badge?: string }[] = [
+  { type: 'poll', label: 'Live Poll', icon: <BarChart2 size={16} />, badge: 'VOTE' },
+  { type: 'guestbook', label: 'Guestbook', icon: <MessageSquare size={16} />, badge: 'WALL' },
+  { type: 'reaction', label: 'Reaction', icon: <Heart size={16} />, badge: 'TAP' },
+  { type: 'accordion', label: 'Accordion', icon: <ChevronDown size={16} /> },
+  { type: 'carousel', label: 'Carousel', icon: <Sliders size={16} /> },
+  { type: 'video', label: 'Video Player', icon: <PlaySquare size={16} /> },
+  { type: 'counter', label: 'Counter', icon: <Activity size={16} /> },
+  { type: 'product-card', label: 'Store Card', icon: <ShoppingBag size={16} />, badge: 'SHOP' },
 ];
 
 export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
@@ -522,6 +540,76 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                         title={`Click to add or drag onto canvas`}
                       >
                         <span style={{ color: '#a1a1aa' }}>{item.icon}</span>
+                        <span style={{ fontSize: 11, fontWeight: 500 }}>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Interactive Engagement Widgets */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>Interactive Widgets</span>
+                    <span style={{ fontSize: 9, color: '#10b981', fontWeight: 700 }}>LIVE</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    {INTERACTIVE_WIDGETS.filter(
+                      (item) => !searchQuery || item.label.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).map((item) => (
+                      <button
+                        key={item.type}
+                        type="button"
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('application/studio-element-type', item.type);
+                          e.dataTransfer.effectAllowed = 'copy';
+                        }}
+                        onClick={() => handleAdd(item.type)}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: 64,
+                          padding: '8px 4px',
+                          borderRadius: 8,
+                          backgroundColor: '#141418',
+                          border: '1px solid #1e1e24',
+                          color: '#d4d4d8',
+                          cursor: 'pointer',
+                          gap: 6,
+                          position: 'relative',
+                          transition: 'all 0.12s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#1a1a22';
+                          e.currentTarget.style.borderColor = '#2e2e3a';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#141418';
+                          e.currentTarget.style.borderColor = '#1e1e24';
+                        }}
+                        title={`Click to add or drag ${item.label} onto canvas`}
+                      >
+                        {item.badge && (
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: 4,
+                              right: 4,
+                              fontSize: 8,
+                              fontWeight: 800,
+                              color: '#6366f1',
+                              backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                              border: '1px solid rgba(99, 102, 241, 0.3)',
+                              padding: '1px 4px',
+                              borderRadius: 4,
+                            }}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                        <span style={{ color: '#818cf8' }}>{item.icon}</span>
                         <span style={{ fontSize: 11, fontWeight: 500 }}>{item.label}</span>
                       </button>
                     ))}

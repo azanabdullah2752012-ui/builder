@@ -869,10 +869,65 @@ export const KID_LEGO_BLOCKS: KidLegoBlock[] = [
       btn.content = 'Send Note 💌';
       btn.height = 42;
       btn.width = 180;
-      btn.styles = { ...btn.styles, backgroundColor: '#6366f1', color: '#ffffff', borderRadius: 10, fontWeight: 700 };
       btn.behavior = { actionType: 'confetti', actionSound: 'pop' };
 
       return [sec, t, inp, btn];
+    },
+  },
+  {
+    id: 'block-live-poll',
+    name: 'Live Voting Poll',
+    emoji: '🗳️',
+    description: 'Ask your friends a question and let them vote live with instant animated results!',
+    create: (offsetY = 40) => {
+      const sec = createElement('section', 40, offsetY);
+      sec.name = 'Poll Section';
+      sec.width = 1120;
+      sec.height = 380;
+      sec.styles = { ...sec.styles, backgroundColor: '#131626', borderColor: '#262d4a', borderRadius: 20 };
+
+      const poll = createElement('poll', 340, offsetY + 30, 1, sec.id);
+      poll.pollConfig = {
+        question: 'What game should we play next? 🎮',
+        themeColor: '#8b5cf6',
+        allowMultiple: false,
+        totalVotes: 89,
+        options: [
+          { id: 'p1', label: '🏎️ Mario Kart 8 Tournament', votes: 34 },
+          { id: 'p2', label: '⛏️ Minecraft Hardcore World', votes: 41 },
+          { id: 'p3', label: '🚀 Among Us Space Match', votes: 14 },
+        ],
+      };
+      return [sec, poll];
+    },
+  },
+  {
+    id: 'block-reaction-hype',
+    name: 'Reaction Love Button',
+    emoji: '💖',
+    description: 'A fun tap button where visitors shower your site with confetti and love!',
+    create: (offsetY = 40) => {
+      const sec = createElement('section', 40, offsetY);
+      sec.name = 'Hype Station';
+      sec.width = 1120;
+      sec.height = 180;
+      sec.styles = { ...sec.styles, backgroundColor: '#181b2a', borderColor: '#2b324c', borderRadius: 20 };
+
+      const title = createElement('text', 360, offsetY + 30, 1, sec.id);
+      title.content = '💖 Enjoyed this site? Leave a reaction!';
+      title.width = 480;
+      title.height = 30;
+      title.styles = { ...title.styles, fontSize: 18, fontWeight: 800, color: '#ffffff', textAlign: 'center' };
+
+      const react = createElement('reaction', 470, offsetY + 75, 1, sec.id);
+      react.reactionConfig = {
+        emoji: '🔥',
+        label: 'Super Hype',
+        count: 247,
+        soundEffect: 'pop',
+        burstType: 'confetti',
+      };
+      return [sec, title, react];
     },
   },
   {

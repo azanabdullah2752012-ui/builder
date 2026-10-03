@@ -786,6 +786,153 @@ export function createElement(
         },
       };
 
+    case 'poll':
+      return {
+        id,
+        name: 'Live Visitor Poll',
+        type: 'poll',
+        x,
+        y,
+        width: 440,
+        height: 320,
+        styles: {
+          backgroundColor: '#121624',
+          borderRadius: 16,
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderColor: '#262f46',
+          color: '#ffffff',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.3)',
+          opacity: 1,
+        },
+        pollConfig: {
+          question: 'What feature should we ship next? 🚀',
+          themeColor: '#6366f1',
+          allowMultiple: false,
+          totalVotes: 154,
+          options: [
+            { id: 'opt_1', label: '⚡ Instant AI Publishing', votes: 42 },
+            { id: 'opt_2', label: '🎨 3D Motion Canvas', votes: 28 },
+            { id: 'opt_3', label: '🤝 Real-Time Multiplayer', votes: 65 },
+            { id: 'opt_4', label: '📱 Native Mobile App', votes: 19 },
+          ],
+        },
+        role: 'none',
+        behavior: { actionType: 'none' },
+        locked: false,
+        zIndex,
+        parentId: parentId ?? null,
+        responsive: {
+          desktop: { mode: 'auto' },
+          tablet: { mode: 'auto', visible: true },
+          mobile: { mode: 'full-width', visible: true },
+          locked: false,
+        },
+      };
+
+    case 'guestbook':
+      return {
+        id,
+        name: 'Guestbook Wall',
+        type: 'guestbook',
+        x,
+        y,
+        width: 480,
+        height: 420,
+        styles: {
+          backgroundColor: '#121522',
+          borderRadius: 18,
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderColor: '#262e46',
+          color: '#ffffff',
+          boxShadow: '0 16px 36px rgba(0, 0, 0, 0.35)',
+          opacity: 1,
+        },
+        guestbookConfig: {
+          title: 'Visitor Guestbook & Wall 💌',
+          subtitle: 'Leave a shoutout, feedback, or say hi!',
+          allowSubmissions: true,
+          maxEntries: 20,
+          entries: [
+            {
+              id: 'gb_1',
+              name: 'Sarah Chen',
+              message: 'The interactive widgets are so buttery smooth! Love this! 🔥',
+              avatarEmoji: '🚀',
+              date: 'Just now',
+              likes: 12,
+            },
+            {
+              id: 'gb_2',
+              name: 'Alex Rivera',
+              message: 'Built and launched my website in under 5 minutes. Incredible work!',
+              avatarEmoji: '✨',
+              date: '2h ago',
+              likes: 8,
+            },
+            {
+              id: 'gb_3',
+              name: 'Liam Vance',
+              message: 'Loving the kid-friendly mode! My students made their own games page 🎮',
+              avatarEmoji: '🥒',
+              date: 'Yesterday',
+              likes: 15,
+            },
+          ],
+        },
+        role: 'none',
+        behavior: { actionType: 'none' },
+        locked: false,
+        zIndex,
+        parentId: parentId ?? null,
+        responsive: {
+          desktop: { mode: 'auto' },
+          tablet: { mode: 'auto', visible: true },
+          mobile: { mode: 'full-width', visible: true },
+          locked: false,
+        },
+      };
+
+    case 'reaction':
+      return {
+        id,
+        name: 'Reaction Button',
+        type: 'reaction',
+        x,
+        y,
+        width: 180,
+        height: 56,
+        styles: {
+          backgroundColor: '#181c2b',
+          borderRadius: 999,
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderColor: '#313b59',
+          color: '#ffffff',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+          opacity: 1,
+        },
+        reactionConfig: {
+          emoji: '🔥',
+          label: 'Hype',
+          count: 128,
+          burstType: 'confetti',
+          soundEffect: 'pop',
+        },
+        role: 'none',
+        behavior: { actionType: 'none' },
+        locked: false,
+        zIndex,
+        parentId: parentId ?? null,
+        responsive: {
+          desktop: { mode: 'auto' },
+          tablet: { mode: 'auto', visible: true },
+          mobile: { mode: 'auto', visible: true },
+          locked: false,
+        },
+      };
+
     default:
       return {
         id,

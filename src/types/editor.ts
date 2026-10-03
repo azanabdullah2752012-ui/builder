@@ -50,7 +50,10 @@ export type ElementType =
   | 'video'
   | 'counter'
   | 'product-card'
-  | 'lottie';
+  | 'lottie'
+  | 'poll'
+  | 'guestbook'
+  | 'reaction';
 
 export interface ElementStyles {
   // Fill & Colors
@@ -372,6 +375,45 @@ export interface LottieWidgetConfig {
   trigger?: 'autoplay' | 'hover' | 'scroll';
 }
 
+export interface PollOption {
+  id: string;
+  label: string;
+  votes: number;
+}
+
+export interface PollWidgetConfig {
+  question: string;
+  options: PollOption[];
+  allowMultiple?: boolean;
+  totalVotes?: number;
+  themeColor?: string;
+}
+
+export interface GuestbookEntry {
+  id: string;
+  name: string;
+  message: string;
+  avatarEmoji?: string;
+  date: string;
+  likes?: number;
+}
+
+export interface GuestbookWidgetConfig {
+  title: string;
+  subtitle?: string;
+  entries: GuestbookEntry[];
+  allowSubmissions?: boolean;
+  maxEntries?: number;
+}
+
+export interface ReactionWidgetConfig {
+  emoji: string;
+  label: string;
+  count: number;
+  burstType?: 'confetti' | 'hearts' | 'stars' | 'emojis' | 'none';
+  soundEffect?: 'pop' | 'bell' | 'chime' | 'none';
+}
+
 export interface CanvasElement {
   id: string;
   name: string;
@@ -402,6 +444,9 @@ export interface CanvasElement {
   counterConfig?: CounterWidgetConfig;
   productConfig?: ProductConfig;
   lottieConfig?: LottieWidgetConfig;
+  pollConfig?: PollWidgetConfig;
+  guestbookConfig?: GuestbookWidgetConfig;
+  reactionConfig?: ReactionWidgetConfig;
 }
 
 export interface Page {

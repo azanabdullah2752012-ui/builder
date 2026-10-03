@@ -6,7 +6,15 @@ import { getComputedButtonStyles, renderButtonIcon } from '../../utils/buttonSty
 import { SHAPE_DEFINITIONS, getShapeSvgNode } from '../../utils/shapeDefinitions';
 import { executeElementAction } from '../../utils/actionExecutor';
 import { ExternalLink, Sparkles, X } from 'lucide-react';
-import { AccordionWidget, CarouselWidget, VideoWidget, CounterWidget } from '../Widgets/InteractiveWidgets';
+import {
+  AccordionWidget,
+  CarouselWidget,
+  VideoWidget,
+  CounterWidget,
+  PollWidget,
+  GuestbookWidget,
+  ReactionWidget,
+} from '../Widgets/InteractiveWidgets';
 import { ProductCardWidget } from '../Widgets/ProductCardWidget';
 import { CartDrawer } from '../Widgets/CartDrawer';
 import { LottieWidget } from '../Widgets/LottieWidget';
@@ -422,6 +430,12 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
           <ProductCardWidget element={element} isInteractive={true} />
         ) : element.type === 'lottie' ? (
           <LottieWidget element={element} isInteractive={true} />
+        ) : element.type === 'poll' ? (
+          <PollWidget element={element} isInteractive={true} />
+        ) : element.type === 'guestbook' ? (
+          <GuestbookWidget element={element} isInteractive={true} />
+        ) : element.type === 'reaction' ? (
+          <ReactionWidget element={element} isInteractive={true} />
         ) : (element.role === 'input' || (element.type === 'container' && element.name.toLowerCase().includes('input'))) ? (
           <input
             id={`input-${element.id}`}
