@@ -30,6 +30,7 @@ import { SECTION_TEMPLATES, getSmartSectionOffsetY } from '../../constants/templ
 import { SHAPE_DEFINITIONS } from '../../utils/shapeDefinitions';
 import { EMOJI_CATALOG } from '../../constants/emojiCatalog';
 import { playSound } from '../../utils/interactiveEffects';
+import { SimpleMakerSidebar } from './SimpleMakerSidebar';
 
 interface ElementsSidebarProps {
   activeTab: 'elements' | 'layers' | 'pages' | 'theme';
@@ -72,7 +73,12 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
     updatePageSettings,
     setLeftSidebarOpen,
     showToast,
+    editorComplexity,
   } = useEditor();
+
+  if (editorComplexity === 'simple') {
+    return <SimpleMakerSidebar />;
+  }
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<'all' | 'shapes' | 'emojis' | 'templates'>('all');

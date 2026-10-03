@@ -22,6 +22,8 @@ import {
   createPricingSection,
   createSignUpSection,
 } from '../../constants/templates';
+import { KID_STARTER_SITES, KID_LEGO_BLOCKS } from '../../constants/kidTemplates';
+import { playSound, triggerConfetti } from '../../utils/interactiveEffects';
 import { CanvasContextMenu } from './CanvasContextMenu';
 import { CanvasFloatingControls } from './CanvasFloatingControls';
 import { CanvasRulers } from './CanvasRulers';
@@ -53,6 +55,9 @@ export const Canvas: React.FC = () => {
     insertEmoji,
     showToast,
     resetToDefaultDemo,
+    editorComplexity,
+    setEditorComplexity,
+    updatePageSettings,
   } = useEditor();
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -464,6 +469,72 @@ export const Canvas: React.FC = () => {
               data-canvas-surface="true"
               className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center select-none"
             >
+              {editorComplexity === 'simple' ? (
+                <div className="max-w-xl w-full bg-[#12141c]/95 border border-[#262c3f] rounded-3xl p-8 shadow-2xl backdrop-blur-md animate-scale-in">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center mx-auto mb-4 shadow-lg text-3xl">
+                    🥒
+                  </div>
+                  <h3 className="text-xl font-black text-white mb-2 tracking-tight">
+                    Welcome to Pickle Studio!
+                  </h3>
+                  <p className="text-xs text-zinc-400 mb-6 max-w-md mx-auto">
+                    Pick a 100% complete, beautiful starter site below, or choose one from the Simple Maker on the left:
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3 text-left mb-6">
+                    {KID_STARTER_SITES.map((site) => (
+                      <button
+                        key={site.id}
+                        type="button"
+                        onClick={() => {
+                          playSound('pop');
+                          triggerConfetti();
+                          const els = site.createElements();
+                          updatePageSettings(activePage.id, {
+                            backgroundColor: site.id === 'site-lemonade' ? '#1c1917' : site.id === 'site-science' ? '#0c1222' : site.id === 'site-pet' ? '#111827' : '#0d1117',
+                          });
+                          addElements(els);
+                          showToast(`Loaded ${site.title}! 🎉`, 'success');
+                        }}
+                        className="p-3.5 rounded-2xl border border-zinc-800 bg-[#161928] hover:border-emerald-500 hover:scale-[1.02] transition-all flex items-start gap-3 cursor-pointer group shadow-sm text-left"
+                      >
+                        <span className="text-3xl shrink-0">{site.emoji}</span>
+                        <div>
+                          <div className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">
+                            {site.title}
+                          </div>
+                          <div className="text-[11px] text-zinc-400 mt-1 line-clamp-2">
+                            {site.description}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playSound('pop');
+                        const block = KID_LEGO_BLOCKS[0];
+                        const els = block.create(60);
+                        addElements(els);
+                        showToast('Added Big Friendly Banner! 🏷️', 'success');
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <span>+ Start with Big Banner</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorComplexity('pro')}
+                      className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold text-xs transition-all cursor-pointer"
+                    >
+                      Switch to Pro Mode 🛠️
+                    </button>
+                  </div>
+                </div>
+              ) : (
               <div className="max-w-xl w-full bg-zinc-900/95 border border-zinc-800 rounded-2xl p-7 shadow-2xl backdrop-blur-sm animate-scale-in">
                 {/* Header */}
                 <div className="w-12 h-12 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-3 shadow-inner">
@@ -582,6 +653,7 @@ export const Canvas: React.FC = () => {
                   </button>
                 </div>
               </div>
+              )}
             </div>
           )}
         </div>

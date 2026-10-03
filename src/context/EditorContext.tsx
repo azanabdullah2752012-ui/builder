@@ -265,6 +265,10 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const setEditorComplexity = useCallback((complexity: 'simple' | 'pro') => {
     setEditorComplexityState(complexity);
+    if (complexity === 'simple') {
+      setLeftSidebarOpen(true);
+      setRightSidebarOpen(true);
+    }
     try {
       localStorage.setItem('pickle_editor_complexity', complexity);
     } catch {}
@@ -273,6 +277,10 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const toggleEditorComplexity = useCallback(() => {
     setEditorComplexityState((prev) => {
       const next = prev === 'simple' ? 'pro' : 'simple';
+      if (next === 'simple') {
+        setLeftSidebarOpen(true);
+        setRightSidebarOpen(true);
+      }
       try {
         localStorage.setItem('pickle_editor_complexity', next);
       } catch {}
@@ -293,15 +301,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setShowOnboardingState(show);
   }, []);
 
-  // Studio Sidebars (collapsible for maximum canvas breathing room)
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(() => {
-    // In simple mode, start with clean collapsed icon rail so canvas is wide open
-    try {
-      const saved = localStorage.getItem('pickle_editor_complexity') || localStorage.getItem('craft_editor_complexity');
-      if (saved === 'pro') return true;
-    } catch {}
-    return false;
-  });
+  // Studio Sidebars (open by default so user sees components and starter kits immediately)
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState<boolean>(true);
 
   const toggleLeftSidebar = useCallback(() => {
