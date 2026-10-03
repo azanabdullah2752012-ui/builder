@@ -2300,7 +2300,7 @@
   padding: 24px;
   position: relative;
   display: flex;
-  flex-col: column;
+  flex-direction: column;
   overflow: hidden;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -2311,6 +2311,7 @@
 }
 
 .craft-pod-badge {
+  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -2323,25 +2324,29 @@
   background: rgba(16, 185, 129, 0.1);
   color: var(--pickle-mint-bright);
   border: 1px solid rgba(16, 185, 129, 0.25);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .craft-pod-title {
+  width: 100%;
   font-size: 18px;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 8px;
+  line-height: 1.35;
 }
 
 .craft-pod-desc {
+  width: 100%;
   font-size: 13px;
   color: var(--pickle-text-muted);
   line-height: 1.55;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .craft-pod-stage {
-  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
   background: rgba(7, 9, 14, 0.7);
   border: 1px solid var(--pickle-border);
   border-radius: 8px;
@@ -2349,12 +2354,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 190px;
+  align-items: center;
+  min-height: 170px;
   position: relative;
   overflow: hidden;
 }
 
 .craft-pod-controls {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2517,6 +2524,7 @@
 
 /* Publishing Pod */
 .craft-pub-box {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -2548,6 +2556,7 @@
 
 /* SEO Score Gauge */
 .craft-gauge-wrapper {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-around;
