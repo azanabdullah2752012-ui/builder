@@ -8,6 +8,12 @@
 
 ## Highlights & Capabilities
 
+- **Kid & Beginner-Friendly "Simple Mode" (Anyone Can Make a Site)**:
+  - **1-Click Starter Kits**: Instant, complete websites that look masterfully designed right out of the box — *Gamer & Streamer Hub*, *Pet Fan Club*, *Lemonade Stand & Bakery*, and *Mars Rover Science Project*.
+  - **Snap-Together Lego Blocks**: Add pre-composed sections with 1 click — *Big Friendly Banner*, *3 Fun Facts Cards*, *Message Box / Guestbook*, and *Official Pickle Anti-Slop Badge*.
+  - **1-Click Magic Color Palettes**: Instantly transform the whole site's mood and colors with curated, zero-slop palettes (*Pickle Mint*, *Candy Pop*, *Cyber Arcade*, *Ocean Splash*, *Cosmic Galaxy*, *Sunshine Party*).
+  - **Simple Visual Inspector**: Click any text, button, or photo to edit with big friendly controls — `[A-]` and `[A+]` font sizing, round color swatches, curated photo library (puppies, rockets, games), and confetti pop triggers.
+  - **1-Click Live Celebration**: Big glowing "Publish Live 🚀" button with celebratory confetti burst, instant shareable URL, and phone/tablet scan QR code.
 - **Automatic Multi-Breakpoint Responsive Engine**: Design once, and the editor automatically reflows across **Desktop (1200px)**, **Laptop (1024px)**, **Tablet (768px)**, and **Phone (390px)**.
   - Multi-column sections automatically stack into clean single-column flows on mobile viewports.
   - Headings and typography gracefully scale to prevent awkward line breaks.
