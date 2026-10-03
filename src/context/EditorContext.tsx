@@ -33,8 +33,24 @@ import { databaseService } from '../services/databaseService';
 
 
 export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Direct Cloud State: initializes with normalized base project, then hydrates from Supabase Cloud
+  // Direct State: initializes from localStorage, fallback to normalized base project
   const [project, setProject] = useState<ProjectState>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved =
+          localStorage.getItem('pickle_studio_active_project') ||
+          localStorage.getItem('visual_website_builder_project_v14') ||
+          localStorage.getItem('craft_studio_active_project');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.pages && parsed.pages.length > 0) {
+            return normalizeProjectState(parsed);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load project from localStorage:', err);
+      }
+    }
     return normalizeProjectState(INITIAL_PROJECT);
   });
 
@@ -340,7 +356,39 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return activePage.elements.find((el) => el.id === selectedElementId) || null;
   }, [activePage.elements, selectedElementId]);
 
-  // Auto-save: debounced persistence directly to Supabase Cloud (800ms)
+  // 1. Instant local persistence: save to localStorage on every state change so browser refresh NEVER loses work
+  useEffect(() => {
+    try {
+      if (typeof localStorage !== 'undefined' && project) {
+        const serialized = JSON.stringify(project);
+        localStorage.setItem('pickle_studio_active_project', serialized);
+        localStorage.setItem('visual_website_builder_project_v14', serialized);
+        localStorage.setItem(`pickle_project_${project.id}`, serialized);
+        if (project.slug) {
+          localStorage.setItem(`pickle_project_slug_${project.slug}`, serialized);
+        }
+      }
+    } catch (e) {
+      console.warn('Local autosave failed:', e);
+    }
+  }, [project]);
+
+  // Flush to localStorage before window unload / refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      try {
+        if (typeof localStorage !== 'undefined' && project) {
+          const serialized = JSON.stringify(project);
+          localStorage.setItem('pickle_studio_active_project', serialized);
+          localStorage.setItem('visual_website_builder_project_v14', serialized);
+        }
+      } catch {}
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [project]);
+
+  // 2. Debounced cloud sync: save to Supabase Cloud & SQLite backend (800ms)
   useEffect(() => {
     setCloudSyncStatus('saving');
     setIsSaved(false);
@@ -359,11 +407,11 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setLastSavedText(`Supabase Synced at ${timeStr}`);
         } else {
           setCloudSyncStatus('offline');
-          setLastSavedText(`Saved to Workspace (${timeStr})`);
+          setLastSavedText(`Saved locally (${timeStr})`);
         }
       } catch {
         setCloudSyncStatus('offline');
-        setLastSavedText('Saving error');
+        setLastSavedText('Saved locally');
       }
     }, 800);
 
@@ -2119,18 +2167,24 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     refreshCloudProjects();
   }, [refreshCloudProjects]);
 
-  // Hydrate latest project directly from Supabase Cloud on boot
+  // Hydrate latest project directly from Supabase Cloud on boot if logged in
   useEffect(() => {
     let isMounted = true;
     databaseService.getProjects(currentUser?.email).then(async (projects) => {
       if (isMounted && projects && projects.length > 0) {
-        const latest = await databaseService.getProject(projects[0].id);
-        if (isMounted && latest && latest.pages && latest.pages.length > 0) {
-          setProject(normalizeProjectState(latest));
-          setCloudSyncStatus('saved');
-          const timeStr = new Date(latest.updatedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          setLastCloudSavedAt(timeStr);
-          setLastSavedText(`Supabase Synced at ${timeStr}`);
+        // Only override if user is logged into Supabase, or if localStorage has no saved project
+        const hasLocal =
+          typeof localStorage !== 'undefined' &&
+          (localStorage.getItem('pickle_studio_active_project') || localStorage.getItem('visual_website_builder_project_v14'));
+        if (!hasLocal || currentUser) {
+          const latest = await databaseService.getProject(projects[0].id);
+          if (isMounted && latest && latest.pages && latest.pages.length > 0) {
+            setProject(normalizeProjectState(latest));
+            setCloudSyncStatus('saved');
+            const timeStr = new Date(latest.updatedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            setLastCloudSavedAt(timeStr);
+            setLastSavedText(`Supabase Synced at ${timeStr}`);
+          }
         }
       }
     });

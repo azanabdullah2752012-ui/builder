@@ -546,6 +546,51 @@ export const databaseService = {
       }
     } catch {}
 
+    // 3. Client LocalStorage fallback (critical for static GitHub Pages and offline)
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const localList: ProjectSummary[] = [];
+        const publishedKey = 'pickle_published_projects';
+        const raw = localStorage.getItem(publishedKey);
+        if (raw) {
+          const map = JSON.parse(raw);
+          Object.values(map).forEach((proj: any) => {
+            if (proj && proj.id && !localList.some((p) => p.id === proj.id)) {
+              localList.push({
+                id: proj.id,
+                name: proj.name || 'Untitled Project',
+                slug: proj.slug,
+                thumbnail_url: proj.thumbnail_url,
+                updatedAt: proj.updatedAt || new Date().toISOString(),
+                pageCount: proj.pages?.length || 1,
+                elementCount: (proj.pages || []).reduce((acc: number, p: any) => acc + (p.elements?.length || 0), 0),
+                isPublic: !!proj.isPublic,
+                userId: proj.userId,
+              });
+            }
+          });
+        }
+        const activeProj = localStorage.getItem('pickle_studio_active_project') || localStorage.getItem('visual_website_builder_project_v14');
+        if (activeProj) {
+          const proj = JSON.parse(activeProj);
+          if (proj && proj.id && !localList.some((p) => p.id === proj.id)) {
+            localList.unshift({
+              id: proj.id,
+              name: proj.name || 'Untitled Project',
+              slug: proj.slug,
+              thumbnail_url: proj.thumbnail_url,
+              updatedAt: proj.updatedAt || new Date().toISOString(),
+              pageCount: proj.pages?.length || 1,
+              elementCount: (proj.pages || []).reduce((acc: number, p: any) => acc + (p.elements?.length || 0), 0),
+              isPublic: !!proj.isPublic,
+              userId: proj.userId,
+            });
+          }
+        }
+        if (localList.length > 0) return localList;
+      }
+    } catch {}
+
     return [];
   },
 
