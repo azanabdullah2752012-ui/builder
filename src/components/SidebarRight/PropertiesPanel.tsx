@@ -24,6 +24,7 @@ import { triggerConfetti, playSound } from '../../utils/interactiveEffects';
 import { executeElementAction } from '../../utils/actionExecutor';
 import { MOTION_PRESETS } from '../../utils/motionAnimations';
 import type { ActionType, StateVariant } from '../../types/editor';
+import { SimplePropertiesPanel } from './SimplePropertiesPanel';
 
 const S = {
   panel: {
@@ -192,7 +193,12 @@ export const PropertiesPanel: React.FC = () => {
     toggleRightSidebar,
     setPreviewStateVariant,
     showToast,
+    editorComplexity,
   } = useEditor();
+
+  if (editorComplexity === 'simple') {
+    return <SimplePropertiesPanel />;
+  }
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');

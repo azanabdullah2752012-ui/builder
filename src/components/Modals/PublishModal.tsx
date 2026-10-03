@@ -3,6 +3,7 @@ import { useEditor } from '../../context/useEditor';
 import { databaseService } from '../../services/databaseService';
 import { slugify, generateEmbedCode, generateQrCodeSvg } from '../../utils/publishUtils';
 import { generateExportHtml } from '../../utils/exportHtml';
+import { triggerConfetti, playSound } from '../../utils/interactiveEffects';
 import {
   X,
   Globe,
@@ -110,7 +111,9 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
             publishedAt: res.publishedAt,
           },
         });
-        showToast('🚀 Site successfully published live to the web!', 'success');
+        triggerConfetti();
+        playSound('success');
+        showToast('🚀 Hooray! Your site is live on the internet!', 'success');
       } else {
         showToast(res.error || 'Failed to publish site to cloud', 'warning');
       }

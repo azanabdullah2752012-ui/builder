@@ -339,6 +339,66 @@ export const EditorHeader: React.FC = () => {
 
         {/* ── Right: Actions ───────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {/* Mode Switcher (Simple / Kid Mode vs Pro Mode) */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: '#15161d',
+              border: '1px solid #232738',
+              borderRadius: 8,
+              padding: 2,
+              gap: 2,
+            }}
+          >
+            <button
+              onClick={() => setEditorComplexity('simple')}
+              title="Simple Mode: Perfect for kids, students, and beginners (1-Click Kits & Lego Blocks)"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                height: 24,
+                padding: '0 8px',
+                borderRadius: 6,
+                border: 'none',
+                background: editorComplexity === 'simple' ? '#10b981' : 'transparent',
+                color: editorComplexity === 'simple' ? '#ffffff' : '#71717a',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.12s ease',
+              }}
+            >
+              <span>🧒</span>
+              <span>Simple</span>
+            </button>
+            <button
+              onClick={() => setEditorComplexity('pro')}
+              title="Pro Mode: Full sub-pixel styling, custom properties, and advanced layout"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                height: 24,
+                padding: '0 8px',
+                borderRadius: 6,
+                border: 'none',
+                background: editorComplexity === 'pro' ? '#262938' : 'transparent',
+                color: editorComplexity === 'pro' ? '#e2e8f0' : '#71717a',
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.12s ease',
+              }}
+            >
+              <Zap size={11} className={editorComplexity === 'pro' ? 'text-amber-400' : ''} />
+              <span>Pro</span>
+            </button>
+          </div>
+
+          <div style={S.sep} />
+
           <TextBtn icon={<Eye size={13} />} label="Preview" onClick={() => setEditorMode(editorMode === 'preview' ? 'design' : 'preview')} active={editorMode === 'preview'} />
           <TextBtn icon={<Code2 size={13} />} label="Export" onClick={() => setIsExportOpen(true)} />
           <button
@@ -349,22 +409,28 @@ export const EditorHeader: React.FC = () => {
               alignItems: 'center',
               gap: 5,
               height: 28,
-              padding: '0 10px',
-              borderRadius: 6,
-              border: isPublished ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(99,102,241,0.4)',
+              padding: '0 12px',
+              borderRadius: 8,
+              border: isPublished ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(16,185,129,0.5)',
               background: isPublished
-                ? 'rgba(16,185,129,0.12)'
+                ? 'rgba(16,185,129,0.15)'
+                : editorComplexity === 'simple'
+                ? 'linear-gradient(135deg, #10b981, #059669)'
                 : '#6366f1',
               color: isPublished ? '#34d399' : '#ffffff',
               cursor: 'pointer',
               fontSize: 11,
-              fontWeight: 600,
-              boxShadow: isPublished ? '0 0 10px rgba(16,185,129,0.15)' : '0 0 10px rgba(99,102,241,0.25)',
+              fontWeight: 700,
+              boxShadow: isPublished ? '0 0 10px rgba(16,185,129,0.15)' : '0 0 12px rgba(16,185,129,0.3)',
               transition: 'all 0.15s ease',
             }}
           >
             <Globe size={13} style={{ color: isPublished ? '#34d399' : '#ffffff' }} />
-            <span>{isPublished ? 'Published' : 'Publish'}</span>
+            <span>
+              {editorComplexity === 'simple'
+                ? (isPublished ? 'Live on Web 🚀' : 'Publish Live 🚀')
+                : (isPublished ? 'Published' : 'Publish')}
+            </span>
             {isPublished && (
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 4px #34d399' }} />
             )}

@@ -30,7 +30,7 @@ export interface AnalyticsSummary {
   recentEvents: AnalyticsEvent[];
 }
 
-const STORAGE_KEY = 'craft_studio_analytics_events';
+const STORAGE_KEY = 'pickle_studio_analytics_events';
 
 function isStorageAvailable(): boolean {
   return typeof window !== 'undefined' && typeof localStorage !== 'undefined';

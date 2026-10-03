@@ -12,6 +12,7 @@ import { ProductLandingPage } from './components/Landing/ProductLandingPage';
 import { ToastContainer } from './components/Toast/ToastContainer';
 import { ShortcutsModal } from './components/Modals/ShortcutsModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { KidFriendlyDock } from './components/SimpleMode/KidFriendlyDock';
 
 const EditorLayout: React.FC = () => {
   const { editorMode, setEditorMode, leftSidebarOpen, rightSidebarOpen } = useEditor();
@@ -108,6 +109,9 @@ const EditorLayout: React.FC = () => {
         <div className="flex-1 flex flex-col h-full overflow-hidden relative min-w-0">
           <ErrorBoundary fallbackTitle="Canvas Error">
             <Canvas />
+          </ErrorBoundary>
+          <ErrorBoundary fallbackTitle="Dock Error">
+            <KidFriendlyDock />
           </ErrorBoundary>
         </div>
 

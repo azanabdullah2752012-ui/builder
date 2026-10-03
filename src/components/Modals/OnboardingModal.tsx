@@ -36,7 +36,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
   const handleFinish = () => {
     try {
-      localStorage.setItem('craft_onboarding_completed', 'true');
+      localStorage.setItem('pickle_onboarding_completed', 'true');
     } catch {}
 
     if (selectedTemplate === 'blank') {
@@ -59,7 +59,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
   const handleSkip = () => {
     try {
-      localStorage.setItem('craft_onboarding_completed', 'true');
+      localStorage.setItem('pickle_onboarding_completed', 'true');
     } catch {}
     onClose();
   };

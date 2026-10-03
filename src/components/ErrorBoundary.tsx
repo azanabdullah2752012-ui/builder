@@ -32,6 +32,9 @@ export class ErrorBoundary extends Component<Props, State> {
   private handleHardReset = () => {
     try {
       localStorage.removeItem('visual_website_builder_project_v14');
+      localStorage.removeItem('pickle_auth_user');
+      localStorage.removeItem('pickle_editor_complexity');
+      localStorage.removeItem('pickle_onboarding_completed');
       localStorage.removeItem('craft_auth_user');
       localStorage.removeItem('craft_editor_complexity');
       localStorage.removeItem('craft_onboarding_completed');

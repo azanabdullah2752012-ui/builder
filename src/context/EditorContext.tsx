@@ -63,7 +63,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return 'design';
       }
       try {
-        const saved = localStorage.getItem('craft_auth_user');
+        const saved = localStorage.getItem('pickle_auth_user') || localStorage.getItem('craft_auth_user');
         if (saved) {
           const u = JSON.parse(saved);
           if (u && (u.email || u.name)) return 'design';
@@ -145,7 +145,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Authenticated Creator Session
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string; plan?: string; role?: string } | null>(() => {
     try {
-      const saved = localStorage.getItem('craft_auth_user');
+      const saved = localStorage.getItem('pickle_auth_user') || localStorage.getItem('craft_auth_user');
       if (saved) {
         const u = JSON.parse(saved);
         if (
@@ -153,15 +153,16 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           (u.name === 'Craft Creator' ||
             u.name === 'Alex Morgan' ||
             u.email === 'creator@craftstudio.dev' ||
-            u.email === 'alex@craftstudio.dev')
+            u.email === 'alex@craftstudio.dev' ||
+            u.email === 'azan@craftstudio.dev')
         ) {
           const actualUser = {
             name: 'Azan Abdullah',
-            email: 'azan@craftstudio.dev',
+            email: 'azan@picklestudio.dev',
             plan: 'Free (All Features Unlocked)',
             role: 'owner',
           };
-          localStorage.setItem('craft_auth_user', JSON.stringify(actualUser));
+          localStorage.setItem('pickle_auth_user', JSON.stringify(actualUser));
           return actualUser;
         }
         return {
@@ -171,14 +172,14 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
       return {
         name: 'Azan Abdullah',
-        email: 'azan@craftstudio.dev',
+        email: 'azan@picklestudio.dev',
         plan: 'Free (All Features Unlocked)',
         role: 'owner',
       };
     } catch {
       return {
         name: 'Azan Abdullah',
-        email: 'azan@craftstudio.dev',
+        email: 'azan@picklestudio.dev',
         plan: 'Free (All Features Unlocked)',
         role: 'owner',
       };
@@ -189,8 +190,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCurrentUser(user);
     try {
       if (user) {
-        localStorage.setItem('craft_auth_user', JSON.stringify(user));
+        localStorage.setItem('pickle_auth_user', JSON.stringify(user));
       } else {
+        localStorage.removeItem('pickle_auth_user');
         localStorage.removeItem('craft_auth_user');
       }
     } catch {}
@@ -255,7 +257,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Editor Complexity: 'simple' (clean & uncluttered for new users) vs 'pro' (full advanced suite)
   const [editorComplexity, setEditorComplexityState] = useState<'simple' | 'pro'>(() => {
     try {
-      const saved = localStorage.getItem('craft_editor_complexity');
+      const saved = localStorage.getItem('pickle_editor_complexity') || localStorage.getItem('craft_editor_complexity');
       if (saved === 'simple' || saved === 'pro') return saved;
     } catch {}
     return 'simple'; // Default to clean simple mode for new users!
@@ -264,7 +266,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const setEditorComplexity = useCallback((complexity: 'simple' | 'pro') => {
     setEditorComplexityState(complexity);
     try {
-      localStorage.setItem('craft_editor_complexity', complexity);
+      localStorage.setItem('pickle_editor_complexity', complexity);
     } catch {}
   }, []);
 
@@ -272,7 +274,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setEditorComplexityState((prev) => {
       const next = prev === 'simple' ? 'pro' : 'simple';
       try {
-        localStorage.setItem('craft_editor_complexity', next);
+        localStorage.setItem('pickle_editor_complexity', next);
       } catch {}
       return next;
     });
@@ -281,7 +283,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // First-time Onboarding Walkthrough
   const [showOnboarding, setShowOnboardingState] = useState<boolean>(() => {
     try {
-      return !localStorage.getItem('craft_onboarding_completed');
+      return !localStorage.getItem('pickle_onboarding_completed') && !localStorage.getItem('craft_onboarding_completed');
     } catch {
       return true;
     }
@@ -295,7 +297,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(() => {
     // In simple mode, start with clean collapsed icon rail so canvas is wide open
     try {
-      const saved = localStorage.getItem('craft_editor_complexity');
+      const saved = localStorage.getItem('pickle_editor_complexity') || localStorage.getItem('craft_editor_complexity');
       if (saved === 'pro') return true;
     } catch {}
     return false;
