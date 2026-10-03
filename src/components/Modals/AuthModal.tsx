@@ -109,7 +109,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">
-                {mode === 'signin' ? 'Sign In to Craft Studio' : 'Create Your Studio Account'}
+                {mode === 'signin' ? 'Sign In to Pickle Studio' : 'Create Your Pickle Studio Account'}
               </h2>
               <p className="text-[11px] text-zinc-400">
                 Cloud persistence, multi-project sync & version rollbacks

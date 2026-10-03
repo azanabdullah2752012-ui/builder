@@ -14,7 +14,6 @@ import {
   Search,
   Clock,
   Sparkles,
-  Zap,
 } from 'lucide-react';
 
 interface ProjectManagerModalProps {
@@ -34,8 +33,6 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
     setIsVersionHistoryOpen,
     lastCloudSavedAt,
     showToast,
-    userPlanTier,
-    openUpgradeModal,
   } = useEditor();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,14 +52,6 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
     return p.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  const handleStartCreate = () => {
-    if (userPlanTier === 'free' && cloudProjects.length >= 2) {
-      openUpgradeModal('You have reached the 2-project quota on the Free Starter plan. Upgrade to Pro Studio for unlimited projects.');
-      return;
-    }
-    setIsCreatingNew(!isCreatingNew);
-  };
-
   const handleOpenProject = async (p: ProjectSummary) => {
     if (p.id === project.id) {
       showToast('Project is already open on canvas', 'info');
@@ -74,22 +63,10 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
   };
 
   const handleCreateSubmit = (templateType: 'blank' | 'landing') => {
-    if (userPlanTier === 'free' && cloudProjects.length >= 2) {
-      openUpgradeModal('Free Starter is limited to 2 projects. Upgrade to Pro Studio for unlimited cloud projects.');
-      return;
-    }
     createNewProject(newProjectName.trim() || undefined, templateType);
     setNewProjectName('');
     setIsCreatingNew(false);
     onClose();
-  };
-
-  const handleDuplicate = () => {
-    if (userPlanTier === 'free' && cloudProjects.length >= 2) {
-      openUpgradeModal('Free Starter plan is limited to 2 projects. Upgrade to Pro Studio to duplicate and store unlimited projects.');
-      return;
-    }
-    duplicateCurrentProject();
   };
 
   const formatRelativeTime = (isoString?: string) => {
@@ -122,27 +99,9 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-white">Project Manager</h2>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                    userPlanTier === 'free'
-                      ? cloudProjects.length >= 2
-                        ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
-                        : 'bg-zinc-800 text-zinc-300 border-zinc-700'
-                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                  }`}
-                >
-                  {cloudProjects.length} {userPlanTier === 'free' ? '/ 2 (Free Plan)' : 'Projects (Unlimited)'}
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  {cloudProjects.length} Projects
                 </span>
-                {userPlanTier === 'free' && cloudProjects.length >= 2 && (
-                  <button
-                    type="button"
-                    onClick={() => openUpgradeModal('Upgrade to Pro Studio for unlimited cloud projects and snapshots.')}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
-                  >
-                    <Zap className="w-3 h-3 text-indigo-400" />
-                    <span>Get Unlimited</span>
-                  </button>
-                )}
               </div>
               <p className="text-[11px] text-zinc-400 flex items-center gap-1.5 mt-0.5">
                 <Cloud className="w-3 h-3 text-emerald-400" />
@@ -153,7 +112,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={handleStartCreate}
+              onClick={() => setIsCreatingNew(!isCreatingNew)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-md shadow-indigo-600/20 transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -219,7 +178,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
 
           <div className="flex items-center gap-2 text-xs">
             <button
-              onClick={handleDuplicate}
+              onClick={() => duplicateCurrentProject()}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#252c3d] bg-[#171b26] text-zinc-300 hover:text-white hover:border-indigo-500/40 transition-colors"
               title="Duplicate current project"
             >

@@ -395,7 +395,7 @@ export function createNavbarSection(offsetY = 24): CanvasElement[] {
 
   const logo = createElement('text', 68, offsetY + 16, 1, section.id);
   logo.name = 'Brand Logo';
-  logo.content = '✦ CRAFT STUDIO';
+  logo.content = '🥒 PICKLE CORP';
   logo.width = 180;
   logo.height = 32;
   logo.styles = {
@@ -1004,7 +1004,7 @@ export function createFooterSection(offsetY = 80): CanvasElement[] {
 
   const brand = createElement('text', 60, offsetY + 30, 1, section.id);
   brand.name = 'Footer Brand';
-  brand.content = '✦ CRAFT STUDIO\n\nDesign it. Define it. Ship it.\nThe modern visual builder for semantic web experiences.';
+  brand.content = '🥒 PICKLE CORP™\n\nIndependent Freelance Studio. Paid Strictly in Favors.\nFounded by Kaiser & Thanvi.';
   brand.width = 380;
   brand.height = 100;
   brand.styles = {

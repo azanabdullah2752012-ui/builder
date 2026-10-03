@@ -8,7 +8,7 @@ interface ProfileModalProps {
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
-  const { currentUser, setCurrentUser, showToast, userPlanTier, openUpgradeModal } = useEditor();
+  const { currentUser, setCurrentUser, showToast } = useEditor();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -38,7 +38,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
     const updated = {
       name: name.trim(),
       email: email.trim(),
-      plan: currentUser?.plan || 'Free Starter',
+      plan: 'Free (All Features Unlocked)',
       role: role.trim() || 'owner',
     };
 
@@ -114,43 +114,24 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
             </div>
           </div>
 
-          {/* Subscription Plan Selection */}
+          {/* Subscription Plan Selection - 100% Free with all features */}
           <div>
             <label className="block text-xs font-medium text-zinc-300 mb-1.5">
               Subscription Plan
             </label>
-            <div className={`p-3.5 rounded-xl border flex items-center justify-between ${
-              userPlanTier === 'enterprise'
-                ? 'border-purple-500/30 bg-purple-950/20'
-                : userPlanTier === 'pro'
-                ? 'border-indigo-500/30 bg-indigo-950/20'
-                : 'border-slate-700 bg-slate-900/50'
-            }`}>
+            <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-white">
-                  <Check className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>
-                    {userPlanTier === 'enterprise' ? 'Studio Enterprise' : userPlanTier === 'pro' ? 'Pro Studio' : 'Free Starter'}
-                  </span>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>100% Free Forever • All Features Unlocked</span>
                 </div>
                 <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
-                  {userPlanTier === 'enterprise'
-                    ? 'Agency-scale workspace with unlimited seats, custom domains, and white-labeling.'
-                    : userPlanTier === 'pro'
-                    ? 'Unlimited projects, multi-page routing, Next.js code export, and SEO auto-fixes.'
-                    : 'Up to 2 active projects with standard single-page HTML/CSS export.'}
+                  No subscriptions, no tier restrictions, and no paywalls. Unlimited projects and full code export included.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  openUpgradeModal();
-                }}
-                className="shrink-0 ml-3 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-[11px] transition-colors"
-              >
-                {userPlanTier === 'free' ? 'Upgrade Plan' : 'Manage Tier'}
-              </button>
+              <span className="shrink-0 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-semibold border border-emerald-500/30">
+                $0 / Free
+              </span>
             </div>
           </div>
 

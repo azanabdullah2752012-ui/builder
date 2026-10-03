@@ -51,9 +51,9 @@ export interface DatabaseStats {
 const LOCAL_USERS_KEY = 'studio_db_fallback_users';
 
 const DEFAULT_USERS: DatabaseUser[] = [
-  { id: 1, name: 'Azan Abdullah', email: 'azan@craftstudio.dev', plan: 'Free (All Features Unlocked)', role: 'admin', status: 'active', created_at: '2026-09-29 12:00:00' },
-  { id: 2, name: 'Elena Rostova', email: 'elena@visioncraft.ai', plan: 'Free (All Features Unlocked)', role: 'user', status: 'active', created_at: '2026-09-29 12:30:00' },
-  { id: 3, name: 'Marcus Brody', email: 'marcus@hypergrowth.co', plan: 'Free (All Features Unlocked)', role: 'user', status: 'active', created_at: '2026-09-29 13:00:00' },
+  { id: 1, name: 'Azan Abdullah', email: 'azanmail2022@gmail.com', plan: 'Pickle Corp Unlocked ($0.00)', role: 'admin', status: 'active', created_at: '2026-09-29 12:00:00' },
+  { id: 2, name: 'Kaiser', email: 'kaiser@picklecorp.dev', plan: 'Co-Founder (50% Architecture)', role: 'admin', status: 'active', created_at: '2026-09-29 12:30:00' },
+  { id: 3, name: 'Thanvi', email: 'thanvi@picklecorp.dev', plan: 'Co-Founder (50% Aesthetics)', role: 'admin', status: 'active', created_at: '2026-09-29 13:00:00' },
 ];
 
 function getLocalUsers(): DatabaseUser[] {
@@ -238,7 +238,7 @@ export const databaseService = {
         return {
           success: true,
           user: existing,
-          message: `Welcome back, ${existing.name}! Entering Craft Studio...`,
+          message: `Welcome back, ${existing.name}! Entering Pickle Studio...`,
           supabaseAuth: supabaseResult,
         };
       }
@@ -600,7 +600,7 @@ export const databaseService = {
         ...config,
         publishedAt,
         seoTitle: config?.seoTitle || project.publishConfig?.seoTitle || project.name,
-        seoDescription: config?.seoDescription || project.publishConfig?.seoDescription || `Crafted with Craft Studio - ${project.name}`,
+        seoDescription: config?.seoDescription || project.publishConfig?.seoDescription || `Built with Pickle Studio by Pickle Corp - ${project.name}`,
       },
     };
 
@@ -617,7 +617,7 @@ export const databaseService = {
       updatedProject
     );
 
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://craftstudio.dev';
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://picklecorp.dev';
     const liveUrl = `${baseUrl}/?p=${slug}`;
 
     return {

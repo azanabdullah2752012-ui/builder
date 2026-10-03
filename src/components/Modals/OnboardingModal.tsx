@@ -80,7 +80,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               <Sparkles className="w-4 h-4 text-amber-300" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white tracking-wide">Welcome to Craft Studio</h2>
+              <h2 className="text-sm font-bold text-white tracking-wide">Welcome to Pickle Studio</h2>
               <p className="text-[11px] text-zinc-400">Step {step} of 3 • Quick 30-Second Setup</p>
             </div>
           </div>
@@ -203,7 +203,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               <div>
                 <h3 className="text-base font-bold text-white mb-1">Visual editing without cognitive overload</h3>
                 <p className="text-xs text-zinc-400">
-                  Craft Studio is built to keep your workspace clean, focused, and frustration-free.
+                  Pickle Studio is engineered by Kaiser & Thanvi (Pickle Corp) to keep your workspace clean, focused, and frustration-free.
                 </p>
               </div>
 

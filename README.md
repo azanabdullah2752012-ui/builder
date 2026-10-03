@@ -1,8 +1,8 @@
-# Craft Studio — Visual Website Builder
+# Pickle Studio — Visual Website Builder
 
-> **Design it. Define it. Ship it.**
+> **The high-precision visual web compiler by Pickle Corp™**
 
-Craft Studio is a modern, high-precision web-based visual website builder where visual canvas elements carry true semantic meaning. Built strictly for human-controlled, code-free visual design, Craft Studio combines Figma-grade spatial manipulation with Webflow-grade production code generation — completely free of AI fluff or generic template slop.
+**Pickle Studio** is the flagship web-based visual website builder engineered by **Pickle Corp™** (founded by **Kaiser & Thanvi**). Built strictly for human-controlled, code-free visual design where visual canvas elements carry authentic semantic HTML meaning, Pickle Studio combines Figma-grade spatial manipulation with Webflow-grade production code generation — completely free of AI fluff, vendor lock-in, or subscription paywalls. Cash declined. Zero fiat. $0.00 invoices. Studio Mascot: **Gummy** (a flat mint gumdrop appointed to management).
 
 ---
 
@@ -203,6 +203,7 @@ npm run test:responsive
 
 ---
 
-## License
+## License & Ownership
 
-Craft Studio is proprietary software. All rights reserved.
+© 2026 Pickle Corp. Kaiser & Thanvi.
+Independent Freelance Studio. Paid Strictly in Favors. All rights reserved.

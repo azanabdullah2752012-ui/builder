@@ -284,13 +284,13 @@ export function autoFixSeoIssues(
 
   // 1. Fix missing SEO Title
   if (!updatedPublishConfig.seoTitle || updatedPublishConfig.seoTitle.length < 10) {
-    updatedPublishConfig.seoTitle = `${project?.name || updatedPage.name || 'Craft Studio'} - High-Performance Design`;
+    updatedPublishConfig.seoTitle = `${project?.name || updatedPage.name || 'Pickle Studio'} - High-Performance Design`;
     fixedCount++;
   }
 
   // 2. Fix missing Meta Description
   if (!updatedPublishConfig.seoDescription || updatedPublishConfig.seoDescription.length < 30) {
-    updatedPublishConfig.seoDescription = `Explore ${project?.name || updatedPage.name || 'Craft Studio'}. Created with cutting-edge visual design, responsive layouts, and interactive experiences.`;
+    updatedPublishConfig.seoDescription = `Explore ${project?.name || updatedPage.name || 'Pickle Studio'}. Created with cutting-edge visual design, responsive layouts, and interactive experiences by Pickle Corp.`;
     fixedCount++;
   }
 

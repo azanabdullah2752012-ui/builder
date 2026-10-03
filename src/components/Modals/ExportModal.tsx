@@ -10,7 +10,7 @@ interface ExportModalProps {
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => {
-  const { project, activePage, showToast, userPlanTier, openUpgradeModal } = useEditor();
+  const { project, activePage, showToast } = useEditor();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'html' | 'json'>('html');
   const [selectedPageId, setSelectedPageId] = useState<string>(activePage.id);
@@ -66,11 +66,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
   };
 
   const handleDownloadAllZip = () => {
-    if (userPlanTier === 'free') {
-      openUpgradeModal('Full multi-page ZIP export is a Pro Studio feature. Upgrade to Pro to download complete multi-page zip archives.');
-      return;
-    }
-
     try {
       const files: { filename: string; content: string }[] = [];
 
@@ -239,11 +234,6 @@ Upload these files directly to any static web host:
             >
               <Archive className="w-3.5 h-3.5" />
               <span>Download Full Site (.ZIP)</span>
-              {userPlanTier === 'free' && (
-                <span className="px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[9px] font-bold">
-                  PRO
-                </span>
-              )}
             </button>
           </div>
         </div>

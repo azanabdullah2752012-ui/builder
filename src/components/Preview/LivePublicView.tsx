@@ -172,9 +172,9 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
         </p>
         <a
           href="/"
-          className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-all shadow-lg shadow-indigo-950/40 inline-flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-lg shadow-emerald-950/40 inline-flex items-center gap-2"
         >
-          <span>Return to Craft Studio</span>
+          <span>Return to Pickle Studio</span>
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
       </div>
@@ -547,7 +547,7 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
             rel="noopener noreferrer"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Made with <strong>Craft Studio</strong></span>
+            <span>Built with <strong>Pickle Studio</strong> by <strong>Pickle Corp™</strong></span>
           </a>
         )}
       </footer>

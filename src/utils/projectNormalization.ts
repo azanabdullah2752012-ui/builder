@@ -10,12 +10,12 @@ export function normalizeProjectState(proj: ProjectState): ProjectState {
   return {
     ...proj,
     id: proj.id || 'proj_default_studio',
-    slug: proj.slug || proj.id || 'craft-site',
+    slug: proj.slug || proj.id || 'pickle-site',
     isPublic: proj.isPublic ?? false,
     publishedAt: proj.publishedAt,
     publishConfig: proj.publishConfig || {
       seoTitle: proj.name,
-      seoDescription: `Crafted with Craft Studio - ${proj.name}`,
+      seoDescription: `Built with Pickle Studio by Pickle Corp - ${proj.name}`,
     },
     pages: proj.pages.map((p) => {
       const elements = Array.isArray(p.elements) ? p.elements : [];

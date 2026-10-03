@@ -30,7 +30,6 @@ import type { Toast, EditorContextType } from './editorContextInstance';
 
 import { normalizeProjectState } from '../utils/projectNormalization';
 import { databaseService } from '../services/databaseService';
-import { normalizeSubscriptionTier, type SubscriptionTier } from '../types/subscription';
 
 
 export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -196,37 +195,6 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     } catch {}
   }, []);
-
-  // Subscription Tier & Upgrade Modal State
-  const userPlanTier: SubscriptionTier = useMemo(() => {
-    return normalizeSubscriptionTier(currentUser?.plan);
-  }, [currentUser?.plan]);
-
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState<boolean>(false);
-  const [upgradeModalReason, setUpgradeModalReason] = useState<string | null>(null);
-
-  const openUpgradeModal = useCallback((reason?: string) => {
-    setUpgradeModalReason(reason || null);
-    setIsUpgradeModalOpen(true);
-  }, []);
-
-  const upgradeUserPlan = useCallback(
-    async (tier: SubscriptionTier): Promise<boolean> => {
-      const planName =
-        tier === 'enterprise' ? 'Studio Enterprise' : tier === 'pro' ? 'Pro Studio' : 'Free Starter';
-      const updatedUser = {
-        name: currentUser?.name || 'Azan Abdullah',
-        email: currentUser?.email || 'azan@craftstudio.dev',
-        plan: planName,
-        role: currentUser?.role || 'owner',
-      };
-      handleSetCurrentUser(updatedUser);
-      setIsUpgradeModalOpen(false);
-      showToast(`🎉 Upgraded to ${planName}! All tier features are now active.`, 'success');
-      return true;
-    },
-    [currentUser, handleSetCurrentUser, showToast]
-  );
 
   // Listen for Supabase OAuth sign-in (e.g. Google OAuth redirect) and handle URL auth errors
   useEffect(() => {
@@ -2698,14 +2666,6 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     currentUser,
     setCurrentUser: handleSetCurrentUser,
     logout,
-
-    // Subscription & Billing
-    userPlanTier,
-    isUpgradeModalOpen,
-    setIsUpgradeModalOpen,
-    upgradeModalReason,
-    openUpgradeModal,
-    upgradeUserPlan,
 
     leftSidebarOpen,
     rightSidebarOpen,

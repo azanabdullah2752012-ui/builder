@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Craft Studio ErrorBoundary caught an unhandled error:', error, errorInfo);
+    console.error('Pickle Studio ErrorBoundary caught an unhandled error:', error, errorInfo);
     this.setState({ errorInfo });
   }
 

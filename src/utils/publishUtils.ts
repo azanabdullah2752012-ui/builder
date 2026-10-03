@@ -15,8 +15,8 @@ export function slugify(text: string): string {
 /**
  * Generates an embeddable responsive iframe snippet
  */
-export function generateEmbedCode(url: string, title: string = 'Craft Studio Site'): string {
-  return `<!-- Craft Studio Responsive Embed -->
+export function generateEmbedCode(url: string, title: string = 'Pickle Studio Site'): string {
+  return `<!-- Pickle Studio Responsive Embed (Pickle Corp™) -->
 <div style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
   <iframe
     src="${url}"
@@ -33,7 +33,7 @@ export function generateEmbedCode(url: string, title: string = 'Craft Studio Sit
  */
 export function generateOpenGraphMetaTags(project: ProjectState, page: Page, liveUrl: string): string {
   const title = project.publishConfig?.seoTitle || `${project.name} | ${page.name}`;
-  const desc = project.publishConfig?.seoDescription || `Explore ${project.name}, designed and published with Craft Studio.`;
+  const desc = project.publishConfig?.seoDescription || `Explore ${project.name}, designed and published with Pickle Studio by Pickle Corp.`;
   const image = project.publishConfig?.ogImage || project.pages[0]?.elements.find(e => e.type === 'image')?.imageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&h=630&q=80';
 
   return `<!-- Primary Meta Tags -->
