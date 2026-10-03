@@ -27,6 +27,15 @@ const EditorLayout: React.FC = () => {
     return null;
   });
 
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setPublicSlug(params.get('p') || params.get('site') || params.get('slug') || null);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // 0. Live Public View
   if (publicSlug) {
     return (

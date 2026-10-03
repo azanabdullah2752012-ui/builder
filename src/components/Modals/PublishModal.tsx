@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useEditor } from '../../context/useEditor';
 import { databaseService } from '../../services/databaseService';
-import { slugify, generateEmbedCode, generateQrCodeSvg } from '../../utils/publishUtils';
+import { slugify, generateEmbedCode, generateQrCodeSvg, getAppBaseUrl, getLiveUrl } from '../../utils/publishUtils';
 import { generateExportHtml } from '../../utils/exportHtml';
 import { triggerConfetti, playSound } from '../../utils/interactiveEffects';
 import {
@@ -46,8 +46,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
   const [copiedEmbed, setCopiedEmbed] = useState<boolean>(false);
   const [slugStatus, setSlugStatus] = useState<'checking' | 'available' | 'taken'>('available');
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://picklestudio.dev';
-  const liveUrl = `${origin}/?p=${customSlug}`;
+  const baseUrl = getAppBaseUrl();
+  const liveUrl = getLiveUrl(customSlug);
 
   // Sync state when project updates
   useEffect(() => {
@@ -366,7 +366,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                       borderRight: '1px solid #1e2434',
                     }}
                   >
-                    {origin}/?p=
+                    {baseUrl}/?p=
                   </div>
                   <input
                     type="text"
@@ -505,7 +505,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                       style={{ backgroundColor: '#090b10', border: '1px solid #1a2030' }}
                     >
                       <Lock className="w-2.5 h-2.5 text-emerald-400" />
-                      <span>{origin}/?p={customSlug}</span>
+                      <span>{baseUrl}/?p={customSlug}</span>
                     </div>
                   </div>
 

@@ -13,6 +13,31 @@ export function slugify(text: string): string {
 }
 
 /**
+ * Resolves the accurate root application URL, respecting GitHub Pages subpaths (/builder/)
+ */
+export function getAppBaseUrl(): string {
+  if (typeof window === 'undefined') {
+    return 'https://azanabdullah2752012-ui.github.io/builder';
+  }
+  const origin = window.location.origin;
+  let pathname = window.location.pathname || '';
+  if (pathname.endsWith('/index.html')) {
+    pathname = pathname.slice(0, -11);
+  }
+  pathname = pathname.replace(/\/+$/, '');
+  return `${origin}${pathname}`;
+}
+
+/**
+ * Generates the full live URL for a published project slug
+ */
+export function getLiveUrl(slug: string): string {
+  const base = getAppBaseUrl();
+  const clean = slugify(slug) || slug;
+  return `${base}/?p=${encodeURIComponent(clean)}`;
+}
+
+/**
  * Generates an embeddable responsive iframe snippet
  */
 export function generateEmbedCode(url: string, title: string = 'Pickle Studio Site'): string {

@@ -16,6 +16,9 @@ import {
 } from './supabaseClient';
 import type { ProjectState, ProjectSummary, ProjectRevision, ProjectPublishConfig } from '../types/editor';
 import { normalizeProjectState } from '../utils/projectNormalization';
+import { INITIAL_PROJECT, CANVAS_DEFAULT_WIDTH } from '../constants/defaults';
+import { KID_STARTER_SITES } from '../constants/kidTemplates';
+import { getLiveUrl } from '../utils/publishUtils';
 
 export interface DatabaseUser {
   id: number;
@@ -465,6 +468,22 @@ export const databaseService = {
       });
     } catch {}
 
+    // 3. LocalStorage persistence for client-side/GitHub Pages deployment
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(`pickle_project_${project.id}`, JSON.stringify(project));
+        if (project.slug) {
+          localStorage.setItem(`pickle_project_slug_${project.slug}`, JSON.stringify(project));
+        }
+        const publishedKey = 'pickle_published_projects';
+        const raw = localStorage.getItem(publishedKey);
+        const map = raw ? JSON.parse(raw) : {};
+        map[project.id] = project;
+        if (project.slug) map[project.slug] = project;
+        localStorage.setItem(publishedKey, JSON.stringify(map));
+      }
+    } catch {}
+
     return {
       success: true,
       cloud: cloudSynced,
@@ -531,13 +550,15 @@ export const databaseService = {
   },
 
   async getProject(idOrSlug: string): Promise<ProjectState | null> {
+    const cleanSlug = (idOrSlug || '').trim();
+
     // 1. Direct Supabase Query (check id first, then slug)
     const sb = getSupabase();
     if (sb) {
       try {
-        let { data, error } = await sb.from('projects').select('*').eq('id', idOrSlug).maybeSingle();
+        let { data, error } = await sb.from('projects').select('*').eq('id', cleanSlug).maybeSingle();
         if (!data || error) {
-          const slugRes = await sb.from('projects').select('*').eq('slug', idOrSlug).maybeSingle();
+          const slugRes = await sb.from('projects').select('*').eq('slug', cleanSlug).maybeSingle();
           if (!slugRes.error && slugRes.data) {
             data = slugRes.data;
           }
@@ -551,7 +572,7 @@ export const databaseService = {
 
     // 2. Local dev backend fallback
     try {
-      const res = await fetch(`/api/projects/${idOrSlug}`);
+      const res = await fetch(`/api/projects/${encodeURIComponent(cleanSlug)}`);
       if (res.ok) {
         const json = await res.json();
         if (json.project && json.project.data_json) {
@@ -560,6 +581,77 @@ export const databaseService = {
         }
       }
     } catch {}
+
+    // 3. Client LocalStorage fallback (critical for static GitHub Pages)
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const publishedKey = 'pickle_published_projects';
+        const raw = localStorage.getItem(publishedKey);
+        if (raw) {
+          const map = JSON.parse(raw);
+          if (map[cleanSlug]) {
+            return normalizeProjectState(map[cleanSlug]);
+          }
+        }
+        const byId = localStorage.getItem(`pickle_project_${cleanSlug}`);
+        if (byId) return normalizeProjectState(JSON.parse(byId));
+        const bySlug = localStorage.getItem(`pickle_project_slug_${cleanSlug}`);
+        if (bySlug) return normalizeProjectState(JSON.parse(bySlug));
+
+        // Active project in editor
+        const activeProj = localStorage.getItem('pickle_studio_active_project') || localStorage.getItem('visual_website_builder_project_v14');
+        if (activeProj) {
+          const parsed = JSON.parse(activeProj);
+          if (parsed && (parsed.id === cleanSlug || parsed.slug === cleanSlug)) {
+            return normalizeProjectState(parsed);
+          }
+        }
+      }
+    } catch {}
+
+    // 4. Default Project Fallback
+    if (cleanSlug === 'proj_default_01' || cleanSlug === 'proj-default-01' || cleanSlug === 'default') {
+      return normalizeProjectState(INITIAL_PROJECT);
+    }
+
+    // 5. Kid Starter Sites Fallback (site-gaming, site-pet, etc.)
+    const matchingStarter = KID_STARTER_SITES.find(
+      (s) =>
+        s.id === cleanSlug ||
+        s.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug ||
+        cleanSlug.includes(s.id.replace('site-', ''))
+    );
+    if (matchingStarter) {
+      const els = matchingStarter.createElements();
+      const starterProject: ProjectState = {
+        version: 1,
+        id: matchingStarter.id,
+        name: matchingStarter.title,
+        slug: cleanSlug,
+        isPublic: true,
+        activePageId: 'page_home',
+        updatedAt: new Date().toISOString(),
+        pages: [
+          {
+            id: 'page_home',
+            name: 'Home',
+            slug: '/',
+            canvasWidth: CANVAS_DEFAULT_WIDTH,
+            canvasHeight: 1400,
+            backgroundColor:
+              matchingStarter.id === 'site-lemonade'
+                ? '#1c1917'
+                : matchingStarter.id === 'site-science'
+                ? '#0c1222'
+                : matchingStarter.id === 'site-pet'
+                ? '#111827'
+                : '#0d1117',
+            elements: els,
+          },
+        ],
+      };
+      return starterProject;
+    }
 
     return null;
   },
@@ -617,8 +709,7 @@ export const databaseService = {
       updatedProject
     );
 
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://picklecorp.dev';
-    const liveUrl = `${baseUrl}/?p=${slug}`;
+    const liveUrl = getLiveUrl(slug);
 
     return {
       success: true,
