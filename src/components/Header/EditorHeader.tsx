@@ -201,12 +201,26 @@ export const EditorHeader: React.FC = () => {
 
           <div style={{ ...S.sep, margin: '0 4px 0 6px' }} />
 
-          {/* Brand */}
-          <div style={S.brand}>
+          {/* Brand / Home Link */}
+          <button
+            onClick={() => setEditorMode('landing')}
+            title="Return to Pickle Studio Home"
+            style={{
+              ...S.brand,
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '2px 4px',
+              borderRadius: 6,
+              transition: 'opacity 0.15s',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.8'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+          >
             <span style={{ fontSize: 15, marginRight: 2 }}>🥒</span>
             <span style={{ fontWeight: 800, letterSpacing: '-0.02em', color: '#10b981' }}>Pickle</span>
             <span style={{ fontWeight: 500, color: '#888', marginLeft: 3 }}>Studio</span>
-          </div>
+          </button>
 
           <div style={S.sep} />
 

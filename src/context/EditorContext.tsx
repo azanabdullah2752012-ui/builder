@@ -61,8 +61,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSelectedElementIds(id ? [id] : []);
   }, []);
   
-  // Initial mode: If user is already authenticated, or URL specifies ?editor=true / #editor, open Editor directly!
-  const [editorMode, setEditorMode] = useState<EditorMode>(() => {
+  // Initial mode: If user is already in design mode, or URL specifies ?editor=true / #editor, open Editor directly!
+  const [editorMode, setEditorModeState] = useState<EditorMode>(() => {
     if (typeof window !== 'undefined') {
       const search = window.location.search;
       const hash = window.location.hash;
@@ -78,7 +78,21 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       ) {
         return 'design';
       }
+      if (params.get('mode') === 'preview') {
+        return 'preview';
+      }
       try {
+        const savedMode = localStorage.getItem('pickle_editor_mode') as EditorMode;
+        if (savedMode === 'design' || savedMode === 'preview') {
+          return savedMode;
+        }
+        const hasProject = localStorage.getItem('pickle_studio_active_project');
+        if (hasProject) {
+          const parsed = JSON.parse(hasProject);
+          if (parsed?.pages?.[0]?.elements?.length > 0) {
+            return 'design';
+          }
+        }
         const saved = localStorage.getItem('pickle_auth_user') || localStorage.getItem('craft_auth_user');
         if (saved) {
           const u = JSON.parse(saved);
@@ -88,6 +102,15 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     return 'landing';
   });
+
+  const setEditorMode = useCallback((mode: EditorMode) => {
+    setEditorModeState(mode);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('pickle_editor_mode', mode);
+      }
+    } catch {}
+  }, []);
 
   const [viewportMode, setViewportMode] = useState<ViewportMode>('desktop');
   const [previewStateVariant, setPreviewStateVariant] = useState<StateVariant>('default');
@@ -2167,17 +2190,45 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     refreshCloudProjects();
   }, [refreshCloudProjects]);
 
-  // Hydrate latest project directly from Supabase Cloud on boot if logged in
+  // Safe project sync with Supabase Cloud on boot
   useEffect(() => {
     let isMounted = true;
     databaseService.getProjects(currentUser?.email).then(async (projects) => {
-      if (isMounted && projects && projects.length > 0) {
-        // Only override if user is logged into Supabase, or if localStorage has no saved project
-        const hasLocal =
-          typeof localStorage !== 'undefined' &&
-          (localStorage.getItem('pickle_studio_active_project') || localStorage.getItem('visual_website_builder_project_v14'));
-        if (!hasLocal || currentUser) {
+      if (!isMounted || !projects || projects.length === 0) return;
+
+      const localRaw = typeof localStorage !== 'undefined'
+        ? (localStorage.getItem('pickle_studio_active_project') || localStorage.getItem('visual_website_builder_project_v14'))
+        : null;
+
+      let localProj: ProjectState | null = null;
+      if (localRaw) {
+        try {
+          localProj = JSON.parse(localRaw);
+        } catch {}
+      }
+
+      // If user has NO local project at all (e.g. brand new browser), hydrate from cloud
+      if (!localProj || !localProj.pages || localProj.pages.length === 0) {
+        if (currentUser) {
           const latest = await databaseService.getProject(projects[0].id);
+          if (isMounted && latest && latest.pages && latest.pages.length > 0) {
+            setProject(normalizeProjectState(latest));
+            setCloudSyncStatus('saved');
+            const timeStr = new Date(latest.updatedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            setLastCloudSavedAt(timeStr);
+            setLastSavedText(`Supabase Synced at ${timeStr}`);
+          }
+        }
+        return;
+      }
+
+      // If local project exists, only update if the remote version of THIS SAME project is strictly newer
+      const matchingCloud = projects.find((p) => p.id === localProj!.id);
+      if (matchingCloud) {
+        const cloudTime = new Date(matchingCloud.updatedAt || 0).getTime();
+        const localTime = new Date(localProj.updatedAt || 0).getTime();
+        if (cloudTime > localTime + 2000) {
+          const latest = await databaseService.getProject(matchingCloud.id);
           if (isMounted && latest && latest.pages && latest.pages.length > 0) {
             setProject(normalizeProjectState(latest));
             setCloudSyncStatus('saved');

@@ -424,30 +424,54 @@ export const databaseService = {
     let cloudSynced = false;
     let cloudError: string | undefined = undefined;
 
+    // UUID validator for Postgres UUID columns
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
     // 1. Try Direct Supabase Cloud Save
     const sb = getSupabase();
     if (sb) {
       try {
+        let validUserId: string | null = null;
+        if (options?.userId && UUID_REGEX.test(options.userId)) {
+          validUserId = options.userId;
+        } else {
+          // Check if active Supabase session has a valid UUID
+          try {
+            const session = await sb.auth.getSession();
+            const sessionUid = session?.data?.session?.user?.id;
+            if (sessionUid && UUID_REGEX.test(sessionUid)) {
+              validUserId = sessionUid;
+            }
+          } catch {}
+        }
+
+        const projectPayload = {
+          ...project,
+          userEmail: options?.userId?.includes('@') ? options.userId : undefined,
+        };
+
         const payload: Record<string, any> = {
           id: project.id,
           name: project.name,
           slug: project.slug || project.id,
-          data: project,
+          data: projectPayload,
           is_public: options?.isPublic ?? project.isPublic ?? false,
           updated_at: new Date().toISOString(),
         };
-        if (options?.userId) {
-          payload.user_id = options.userId;
+
+        if (validUserId) {
+          payload.user_id = validUserId;
         }
 
         const { error } = await sb.from('projects').upsert(payload, { onConflict: 'id' });
         if (!error) {
           cloudSynced = true;
         } else {
-          // If table not found or RLS issue, log gently
+          console.warn('Supabase cloud project save notice:', error.message);
           cloudError = error.message;
         }
       } catch (err: any) {
+        console.warn('Supabase cloud project save error:', err.message);
         cloudError = err.message;
       }
     }
@@ -471,9 +495,12 @@ export const databaseService = {
     // 3. LocalStorage persistence for client-side/GitHub Pages deployment
     try {
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(`pickle_project_${project.id}`, JSON.stringify(project));
+        const serialized = JSON.stringify(project);
+        localStorage.setItem('pickle_studio_active_project', serialized);
+        localStorage.setItem('pickle_active_project_id', project.id);
+        localStorage.setItem(`pickle_project_${project.id}`, serialized);
         if (project.slug) {
-          localStorage.setItem(`pickle_project_slug_${project.slug}`, JSON.stringify(project));
+          localStorage.setItem(`pickle_project_slug_${project.slug}`, serialized);
         }
         const publishedKey = 'pickle_published_projects';
         const raw = localStorage.getItem(publishedKey);
@@ -492,13 +519,18 @@ export const databaseService = {
   },
 
   async getProjects(userId?: string): Promise<ProjectSummary[]> {
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
     // 1. Direct Supabase Query
     const sb = getSupabase();
     if (sb) {
       try {
         let query = sb.from('projects').select('id, user_id, name, slug, thumbnail_url, is_public, updated_at, data').order('updated_at', { ascending: false });
-        if (userId) {
+        if (userId && UUID_REGEX.test(userId)) {
           query = query.or(`user_id.eq.${userId},user_id.is.null,is_public.eq.true`);
+        } else {
+          // If userId is not a UUID (or undefined), avoid Postgres syntax error by querying public/open rows
+          query = query.or('user_id.is.null,is_public.eq.true');
         }
         const { data, error } = await query;
         if (!error && data && data.length > 0) {
