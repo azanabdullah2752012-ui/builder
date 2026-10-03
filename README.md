@@ -1,29 +1,75 @@
-# Craft Visual Website Builder
+# Craft Studio — Visual Website Builder
 
 > **Design it. Define it. Ship it.**
 
-A modern, web-based visual website builder where visual canvas elements carry true semantic meaning. Built strictly for human-controlled, code-free visual design without AI clutter.
+Craft Studio is a modern, high-precision web-based visual website builder where visual canvas elements carry true semantic meaning. Built strictly for human-controlled, code-free visual design, Craft Studio combines Figma-grade spatial manipulation with Webflow-grade production code generation — completely free of AI fluff or generic template slop.
 
 ---
 
-## Key Differentiators
+## Highlights & Capabilities
 
-- **Automatic Responsive Layout Engine**: Design once, and the editor automatically adapts the layout across **Desktop (1200px)**, **Laptop (1024px)**, **Tablet (768px)**, and **Phone (390px)**.
-  - Multi-column sections automatically stack into clean single-column flows on mobile devices.
-  - Headings and typography gracefully scale for smaller screens without awkward word wraps.
-  - Canvas height dynamically expands to fit stacked content.
-  - Child elements inside cards and navigation containers automatically maintain their spatial alignment.
-- **Semantic Role Layer**: Visual shapes aren't mere rectangles. A container can be defined as a `Button`, `Link`, `Card`, `Navigation`, or `Input`.
-- **True Behavior Engine**: Assign click actions (`Navigate to URL`, `Navigate to Page`, `Trigger Alert/Toast`, `Scroll to Top`) and rich hover interactions.
-- **Strict Element Locking**: Elements can be locked (`🔒 Lock`) to prevent accidental movement, resizing, or style changes while remaining selectable for quick unlocking.
-- **Zero AI in Core Editor**: 100% human-controlled visual canvas with immediate, deterministic feedback.
-- **Live Preview & Device Switcher**: Test how your website behaves and looks across Desktop, Laptop, Tablet, and Mobile views in both Design and Preview modes.
-- **Standalone Responsive Code Export**: Generates pure semantic HTML & CSS with built-in `@media` queries for laptops, tablets, and phones.
-- **Local Persistence**: State automatically saves to browser `localStorage` and persists across page reloads.
+- **Automatic Multi-Breakpoint Responsive Engine**: Design once, and the editor automatically reflows across **Desktop (1200px)**, **Laptop (1024px)**, **Tablet (768px)**, and **Phone (390px)**.
+  - Multi-column sections automatically stack into clean single-column flows on mobile viewports.
+  - Headings and typography gracefully scale to prevent awkward line breaks.
+  - Canvas height dynamically expands to fit reflowed content.
+  - Per-breakpoint manual overrides: `auto`, `keep-position`, `stack`, `full-width`, or `hide`.
+- **Figma-Style Smart Snapping & Measurement**:
+  - Sibling object edge-to-edge and center-to-center magnetic snapping with visual guide lines.
+  - Artboard center-X and middle-Y alignment snapping.
+  - Draggable horizontal and vertical ruler guides.
+  - Equal spacing distribution detection with live gap badges.
+  - **Alt / Option Key Distance Measurement**: Hold `Alt`/`Option` to inspect pixel distances between elements or to canvas boundaries in real time.
+- **Marquee Multi-Selection & Batch Operations**:
+  - Drag-to-select rubberband marquee box.
+  - Batch alignment: Left, Center, Right, Top, Middle, Bottom.
+  - Batch distribution: Distribute horizontally and vertically.
+  - Container Grouping (`Cmd/Ctrl + G`) and Ungrouping (`Cmd/Ctrl + Shift + G`).
+- **Semantic Role & Behavior Layer**:
+  - Visual rectangles carry true semantic roles (`button`, `heading-h1..h3`, `card`, `navigation`, `form`, `dialog`, `input`, `badge`, `blockquote`, etc.).
+  - Over 25 triggerable actions: URL navigation, page transition, smooth scroll to section, modal trigger, alert toast, copy to clipboard, sound effects, confetti burst, dark mode toggle, WhatsApp chat, and Stripe checkout.
+- **Interactive Element States**:
+  - Live editing and styling of `:hover`, `:active`, and `:focus` states.
+  - Preview state changes in real time and automatically export them as native CSS pseudo-classes.
+- **Motion, Physics & Scrollytelling Engine**:
+  - 16 motion animation presets (Fade In, Slide Up/Down/Left/Right, Zoom In/Out, Pop In, Bounce, Flip Up, Float, Pulse, Shimmer, Spin, Blur In).
+  - Physics easing curves including spring overshoot and snappy cubic bezier profiles.
+  - Scroll-triggered animations with configurable trigger thresholds and cascade delay staggering for child elements.
+  - Sticky pinning sections for cinematic scrollytelling experiences.
+- **Interactive Forms & Lead Management**:
+  - Semantic inputs, textareas, dropdowns, and checkboxes with client validation.
+  - Built-in lead capture engine backed by local and cloud databases.
+  - Leads management modal with 1-click CSV export.
+- **E-Commerce & Mini-Storefront Engine**:
+  - Ready-to-use product card widgets with price, compare-at pricing, badges, and variant selectors.
+  - Slide-over Cart Drawer with real-time state management, quantity updates, subtotal, and tax calculation.
+  - Stripe checkout integration and dispatch triggers.
+- **Rich Interactive Widgets**:
+  - Embedded Video Player (YouTube, Vimeo, and MP4 HTML5 video) with automatic URL parsing.
+  - Animated Number Counters with easing, custom prefixes, and suffixes.
+  - Collapsible FAQ Accordion widget.
+  - Responsive Carousel / Image Slider with autoplay and navigation indicators.
+  - Vector Lottie Animation widget with autoplay, loop, hover, and scroll triggers.
+  - Page Reading Progress Bar.
+- **Real-Time SEO Audit & Analytics Command Center**:
+  - Automated 8-point SEO audit scoring (meta title, description, OpenGraph tags, heading hierarchy, image alt attributes, viewport, favicon, performance).
+  - 1-Click automated SEO auto-fixer boosting scores to 90+ (Grade A).
+  - Analytics dashboard tracking page views, unique visitors, form leads, and GMV revenue.
+- **Dual-Layer Cloud Persistence & Version History**:
+  - Debounced local persistence via `localStorage` paired with an SQLite / Supabase cloud backend.
+  - Multi-page project manager with point-in-time revision snapshots and 1-click restore/rollback.
+- **1-Click Publishing Pipeline**:
+  - Slug generation and live availability validation.
+  - Deterministic vector SVG QR Code generation for instant mobile previews.
+  - OpenGraph social media sharing cards and responsive embed snippets.
+- **Clean Production Code Export**:
+  - Generates standalone, clean semantic HTML5 and vanilla CSS with embedded keyframes, responsive `@media` queries, and zero external dependencies.
+  - Full Next.js 15 & React Tailwind ZIP export for production developer workflows.
+- **Anti-Slop Design Compliance**:
+  - Evaluated against the `pols.dev` anti-slop design law with zero generic AI purple gradient soup, no fake window chrome decorations, bespoke workbench chassis, calibrated typography, and high-density dark UI.
 
 ---
 
-## Device Layouts
+## Device Viewports & Responsive Behavior
 
 | Viewport | Target Width | Layout Behavior |
 | :--- | :--- | :--- |
@@ -34,69 +80,129 @@ A modern, web-based visual website builder where visual canvas elements carry tr
 
 ---
 
-## Milestone 1 Workflow Verification
+## Keyboard Shortcuts Reference
 
-Follow this workflow to test the editor:
+Craft Studio features professional keyboard shortcuts to maximize design velocity:
 
-1. **Launch the application**: Open [http://localhost:5174/](http://localhost:5174/).
-2. **Start with a blank canvas**: Click the **Blank** button in the top header (or explore the rich starter template).
-3. **Add a container**: In the left sidebar under **Elements**, click **Container**.
-4. **Move and resize**: Drag the container to reposition it, and drag any of the 8 resize handles to adjust dimensions.
-5. **Change its appearance**: In the right sidebar:
-   - Pick a background color (e.g. Blue `#2563eb`).
-   - Adjust border radius (e.g. `8px` or `pill`).
-   - Customize border, opacity, or shadow.
-6. **Define Semantic Role**:
-   - In the **Semantics** section of the right sidebar, change Role to **Button**.
-7. **Add button text**:
-   - In **Appearance**, set button label (or double-click the element directly on the canvas).
-8. **Configure Click Action**:
-   - In **Behaviour**, choose **Trigger Alert / Toast** and input your custom message: `Button successfully clicked!`.
-   - Optionally set hover scale to `1.02x` or customize hover background color.
-9. **Lock the element**:
-   - Click **Lock** (either on the floating selection badge or in the right sidebar under **Advanced**).
-   - Verify the lock indicator appears (`🔒 Locked`), handles hide, and properties become protected.
-10. **Test Device Viewports**:
-    - Click **Laptop (1024px)**, **Tablet (768px)**, or **Phone (390px)** in the top header bar.
-    - Notice how the layout automatically adjusts its widths, columns, and typography!
-11. **Enter Preview mode**:
-    - Click **Preview** in the top header.
-    - Sidebars and editor controls hide; the page renders as a real interactive website.
-12. **Interact with the button**:
-    - Hover over the button to see hover effects.
-    - Click the button to see the configured alert toast trigger.
-13. **Refresh the browser**:
-    - Reload the page (`Cmd+R` / `F5`).
-    - The project and your locked button remain intact, loaded seamlessly from local storage.
+| Shortcut | Action | Description |
+| :--- | :--- | :--- |
+| `Cmd / Ctrl + Z` | **Undo** | Revert the last canvas action. |
+| `Cmd / Ctrl + Shift + Z` | **Redo** | Redo the previously undone action. |
+| `Cmd / Ctrl + C` | **Copy** | Copy selected element(s) to clipboard. |
+| `Cmd / Ctrl + V` | **Paste** | Paste copied element(s) onto active canvas with offset. |
+| `Cmd / Ctrl + D` | **Duplicate** | Duplicate selected element(s) in place. |
+| `Cmd / Ctrl + G` | **Group** | Wrap selected elements into a flex/absolute Container. |
+| `Cmd / Ctrl + Shift + G` | **Ungroup** | Dissolve container and retain child positions. |
+| `Delete` / `Backspace` | **Delete** | Remove selected element(s) from canvas. |
+| `Arrow Keys` | **Nudge (1px)** | Nudge selected element(s) by 1 pixel. |
+| `Shift + Arrow Keys` | **Nudge (10px)** | Nudge selected element(s) by 10 pixels. |
+| `Alt / Option (Hold)` | **Inspect Distances** | Display Figma-style pixel distance guides to other elements and canvas edges. |
+| `Space (Hold) + Drag` | **Pan Canvas** | Grab and pan the infinite visual canvas. |
+| `Cmd / Ctrl + K` | **Command Palette** | Open quick command palette to search tools, actions, and templates. |
+| `Cmd / Ctrl + E` | **Export Code** | Open the code export modal. |
+| `Cmd / Ctrl + P` | **Publish Site** | Open the 1-click publishing modal. |
+| `P` | **Toggle Preview** | Toggle between Design Mode and Interactive Preview Mode. |
+| `?` | **Shortcuts Modal** | Open the keyboard shortcuts cheat sheet. |
+| `Escape` | **Deselect All** | Clear active selection and close open context menus. |
+
+---
+
+## Project Structure
+
+```text
+design/
+├── src/
+│   ├── components/
+│   │   ├── Canvas/               # Visual canvas, smart guides, rulers, floating badges, resize handles
+│   │   ├── Header/               # Viewport switchers, mode toggles, project title, export/publish CTAs
+│   │   ├── Landing/              # Marketing presentation and onboarding flow
+│   │   ├── Modals/               # Publish, Export, SEO Audit, Analytics, Leads, History, Database, Auth
+│   │   ├── Navigation/           # Top navigation bar and command bar
+│   │   ├── Preview/              # Real-time full-screen interactive preview engine
+│   │   ├── SidebarLeft/          # Elements catalog, templates, layer tree, page navigator, quick dock
+│   │   ├── SidebarRight/         # Properties panel, element states, motion physics, semantic role, behaviors
+│   │   ├── Toast/                # Custom notification and feedback toasts
+│   │   └── Widgets/              # Product cards, cart drawer, Lottie, video players, reading progress
+│   ├── constants/                # Preset templates, color palettes, motion keyframes, design tokens
+│   ├── context/                  # Editor context, state reducer, action dispatchers, persistence hooks
+│   ├── services/                 # Supabase client, local SQLite bridge, lead capture, SEO analyzer
+│   ├── types/                    # TypeScript interfaces for elements, styles, actions, animations, plans
+│   ├── utils/                    # Export HTML/CSS generator, QR generator, geometry, snapping math
+│   ├── App.tsx                   # Main studio chassis and error boundaries
+│   ├── index.css                 # Studio design system tokens, typography, and dark-mode styles
+│   └── main.tsx                  # Application mount point
+├── public/                       # Static public assets, favicon, SVGs
+├── server/                       # SQLite backend server and persistence handlers
+├── docs/                         # Static build output for GitHub Pages
+└── package.json                  # Dependencies, build scripts, and test runner
+```
 
 ---
 
 ## Tech Stack
 
 - **Framework**: React 19 + TypeScript
-- **Bundler & Dev Server**: Vite
-- **Styling**: Modern Vanilla CSS with customized design tokens and smooth animations
+- **Bundler & Dev Server**: Vite 8
+- **Styling**: Modern Vanilla CSS with customized design tokens, glassmorphism, and hardware-accelerated animations
 - **Icons**: Lucide React
-- **Storage**: Browser LocalStorage with automatic debounced sync
+- **Storage**: Dual-layer debounced `localStorage` + SQLite / Supabase backend
 - **Linting**: Oxlint
+- **Testing**: Automated end-to-end node/tsx test suite across all 20 subsystems
 
 ---
 
 ## Getting Started
 
-### Development
+### Prerequisites
+
+- Node.js (v18 or higher recommended)
+- npm or pnpm
+
+### Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/azanabdullah2752012-ui/builder.git
+cd builder
+
+# Install dependencies
 npm install
+```
+
+### Running Locally
+
+```bash
+# Start Vite development server
 npm run dev
 ```
 
-### Production Build
+The application will be accessible at [http://localhost:5174/](http://localhost:5174/) (or the port specified in terminal output).
+
+### Building for Production
+
 ```bash
+# Build the production bundle
 npm run build
 ```
 
-### Run Automated Workflow & Responsive Tests
+This compiles TypeScript, bundles the assets with Vite, and updates the `dist/` and `docs/` directories for deployment.
+
+### Running Test Suite
+
+Craft Studio includes 20 automated test suites verifying responsive reflow, hierarchy, snapping geometry, element states, motion physics, functional form submission, lead capture, cart drawer state machines, and code export fidelity:
+
 ```bash
 npm test
 ```
-# builder
+
+To run only the responsive engine tests:
+
+```bash
+npm run test:responsive
+```
+
+---
+
+## License
+
+Craft Studio is proprietary software. All rights reserved.

@@ -11,6 +11,7 @@ import { LivePublicView } from './components/Preview/LivePublicView';
 import { ProductLandingPage } from './components/Landing/ProductLandingPage';
 import { ToastContainer } from './components/Toast/ToastContainer';
 import { ShortcutsModal } from './components/Modals/ShortcutsModal';
+import { PricingUpgradeModal } from './components/Modals/PricingUpgradeModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const EditorLayout: React.FC = () => {
@@ -130,6 +131,7 @@ const EditorLayout: React.FC = () => {
 
       <ToastContainer />
       <ShortcutsModal />
+      <PricingUpgradeModal />
     </div>
   );
 };

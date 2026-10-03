@@ -63,6 +63,14 @@ export interface EditorContextType {
   setCurrentUser: (user: { name: string; email: string; plan?: string; role?: string } | null) => void;
   logout: () => void;
 
+  // Subscription & Billing
+  userPlanTier: import('../types/subscription').SubscriptionTier;
+  isUpgradeModalOpen: boolean;
+  setIsUpgradeModalOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  upgradeModalReason: string | null;
+  openUpgradeModal: (reason?: string) => void;
+  upgradeUserPlan: (tier: import('../types/subscription').SubscriptionTier) => Promise<boolean>;
+
   // Sidebar Visibility
   leftSidebarOpen: boolean;
   rightSidebarOpen: boolean;

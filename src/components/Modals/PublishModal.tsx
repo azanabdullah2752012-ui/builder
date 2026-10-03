@@ -28,7 +28,7 @@ interface PublishModalProps {
 }
 
 export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) => {
-  const { project, updateProjectSettings, activePage, showToast } = useEditor();
+  const { project, updateProjectSettings, activePage, showToast, userPlanTier, openUpgradeModal } = useEditor();
 
   const [activeTab, setActiveTab] = useState<'url' | 'qr' | 'social' | 'embed'>('url');
   const [customSlug, setCustomSlug] = useState<string>(project.slug || slugify(project.name) || 'my-site');
@@ -673,15 +673,32 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                 {/* Watermark toggle */}
                 <div className="pt-2 flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-zinc-200">White-label: Remove Studio Branding</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-medium text-zinc-200">White-label: Remove Studio Branding</p>
+                      {userPlanTier === 'free' && (
+                        <button
+                          type="button"
+                          onClick={() => openUpgradeModal('White-label watermark removal requires a Pro Studio or Enterprise subscription.')}
+                          className="px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[9px] font-bold hover:bg-indigo-500/30 transition-colors"
+                        >
+                          PRO FEATURE
+                        </button>
+                      )}
+                    </div>
                     <p className="text-[11px] text-zinc-400">
                       Hide the "Made with Craft Studio" footer pill on your public site.
                     </p>
                   </div>
                   <input
                     type="checkbox"
-                    checked={removeBranding}
-                    onChange={(e) => setRemoveBranding(e.target.checked)}
+                    checked={userPlanTier === 'free' ? false : removeBranding}
+                    onChange={(e) => {
+                      if (userPlanTier === 'free') {
+                        openUpgradeModal('White-label watermark removal requires a Pro Studio or Enterprise subscription.');
+                        return;
+                      }
+                      setRemoveBranding(e.target.checked);
+                    }}
                     className="w-4 h-4 rounded cursor-pointer accent-indigo-500"
                   />
                 </div>

@@ -5,7 +5,7 @@ import {
   Monitor, Tablet, Smartphone, Sliders, FileText, Copy,
   LogOut, User, Sparkles, Zap, Cloud, Loader2,
   FolderOpen, History, LogIn, MoreHorizontal, Keyboard, Globe,
-  Inbox, SearchCheck, BarChart2,
+  Inbox, SearchCheck, BarChart2, Crown, Star,
 } from 'lucide-react';
 import { ExportModal } from '../Modals/ExportModal';
 import { PublishModal } from '../Modals/PublishModal';
@@ -146,6 +146,7 @@ export const EditorHeader: React.FC = () => {
     isProjectManagerOpen, setIsProjectManagerOpen,
     isVersionHistoryOpen, setIsVersionHistoryOpen,
     isAuthModalOpen, setIsAuthModalOpen, setShowShortcutsModal,
+    userPlanTier, openUpgradeModal,
   } = useEditor();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -411,7 +412,81 @@ export const EditorHeader: React.FC = () => {
 
           {/* Account */}
           {currentUser ? (
-            <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
+              {/* Plan Tier Badge / Upgrade Button */}
+              {userPlanTier === 'free' ? (
+                <button
+                  type="button"
+                  onClick={() => openUpgradeModal('Upgrade your workspace for unlimited projects and Next.js code export.')}
+                  title="On Free Plan — Click to Upgrade"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    height: 28,
+                    padding: '0 9px',
+                    borderRadius: 7,
+                    background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                    border: '1px solid #6366f1',
+                    color: '#ffffff',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 0 10px rgba(99, 102, 241, 0.3)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Zap size={11} fill="#ffffff" />
+                  <span>Upgrade</span>
+                </button>
+              ) : userPlanTier === 'pro' ? (
+                <button
+                  type="button"
+                  onClick={() => openUpgradeModal()}
+                  title="Pro Studio Plan Active — Click to manage"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    height: 28,
+                    padding: '0 8px',
+                    borderRadius: 7,
+                    background: 'rgba(99, 102, 241, 0.12)',
+                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                    color: '#818cf8',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Star size={11} fill="#818cf8" />
+                  <span>PRO</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openUpgradeModal()}
+                  title="Enterprise Plan Active — Click to manage"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    height: 28,
+                    padding: '0 8px',
+                    borderRadius: 7,
+                    background: 'rgba(168, 85, 247, 0.12)',
+                    border: '1px solid rgba(168, 85, 247, 0.35)',
+                    color: '#c084fc',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Crown size={11} fill="#c084fc" />
+                  <span>ENTERPRISE</span>
+                </button>
+              )}
+
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, height: 28, padding: '0 8px', borderRadius: 7, background: '#141414', border: '1px solid #222', cursor: 'pointer' }}
@@ -425,9 +500,15 @@ export const EditorHeader: React.FC = () => {
               {isUserMenuOpen && (
                 <div style={S.dropdownR}>
                   <div style={{ padding: '8px 10px 10px', borderBottom: '1px solid #1e1e1e', marginBottom: 4 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#e8e8e8' }}>{currentUser.name}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#e8e8e8' }}>{currentUser.name}</div>
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: '#25293d', color: '#818cf8', border: '1px solid #363d59' }}>
+                        {userPlanTier.toUpperCase()}
+                      </span>
+                    </div>
                     <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>{currentUser.email}</div>
                   </div>
+                  <DropRow icon={<Zap size={13} style={{ color: '#818cf8' }} />} label="Subscription & Pricing" onClick={() => { setIsUserMenuOpen(false); openUpgradeModal(); }} />
                   <DropRow icon={<FolderOpen size={13} />} label="My Projects" onClick={() => { setIsUserMenuOpen(false); setIsProjectManagerOpen(true); }} />
                   <DropRow icon={<History size={13} />} label="Version History" onClick={() => { setIsUserMenuOpen(false); setIsVersionHistoryOpen(true); }} />
                   <DropRow icon={<User size={13} />} label="Edit Profile" onClick={() => { setIsUserMenuOpen(false); setIsProfileOpen(true); }} />

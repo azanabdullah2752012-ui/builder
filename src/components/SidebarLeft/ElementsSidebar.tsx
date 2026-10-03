@@ -72,6 +72,8 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
     updatePageSettings,
     setLeftSidebarOpen,
     showToast,
+    userPlanTier,
+    openUpgradeModal,
   } = useEditor();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -718,6 +720,10 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (userPlanTier === 'free' && project.pages.length >= 1) {
+                openUpgradeModal('Multi-page websites require a Pro Studio or Enterprise subscription. Upgrade to create unlimited pages.');
+                return;
+              }
               if (newPageName.trim()) {
                 addPage(newPageName.trim());
                 setNewPageName('');
@@ -790,15 +796,19 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                     <span style={{ fontSize: 11, fontWeight: isActive ? 600 : 400 }}>{p.name}</span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (userPlanTier === 'free' && project.pages.length >= 1) {
+                          openUpgradeModal('Multi-page websites require a Pro Studio or Enterprise subscription. Upgrade to duplicate and create unlimited pages.');
+                          return;
+                        }
                         duplicatePage(p.id);
                       }}
                       style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', padding: 2 }}
-                      title="Duplicate"
+                      title="Duplicate Page"
                     >
                       <Copy size={11} />
                     </button>
