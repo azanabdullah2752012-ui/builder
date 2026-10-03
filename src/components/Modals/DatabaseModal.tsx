@@ -152,7 +152,7 @@ export const DatabaseModal: React.FC<DatabaseModalProps> = ({ isOpen, onClose })
 
   const copySupabaseSql = () => {
     const sql = `-- ==============================================================================
--- Craft Studio & Supabase Schema
+-- Pickle Studio & Supabase Schema
 -- Project: https://${supaInfo.projectRef}.supabase.co
 -- Run this in your Supabase SQL Editor:
 -- https://supabase.com/dashboard/project/${supaInfo.projectRef}/sql/new

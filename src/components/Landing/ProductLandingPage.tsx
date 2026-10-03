@@ -207,7 +207,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
 
   const getDynamicWorkbenchCode = () => {
     if (workbenchTemplate === 'fintech') {
-      return `<!-- Standalone Fintech Card Compiled by Craft Studio -->
+      return `<!-- Standalone Fintech Card Compiled by Pickle Studio -->
 <article class="fintech-card" style="border-radius: ${borderRadius}px; border-color: ${accentColor}44;">
   <div class="card-chip"></div>
   <div class="card-balance">${fintechRevealed ? '$48,290.40 USD' : '••••••••••••'}</div>
@@ -232,7 +232,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
 </style>`;
     }
     if (workbenchTemplate === 'storefront') {
-      return `<!-- Standalone E-Commerce Storefront Card Compiled by Craft Studio -->
+      return `<!-- Standalone E-Commerce Storefront Card Compiled by Pickle Studio -->
 <article class="product-card" style="border-radius: ${borderRadius}px;">
   <div class="product-badge" style="background: ${accentColor};">LIMITED RELEASE</div>
   <h3 class="product-title">Hyper-Frequency Mechanical Keyboard</h3>
@@ -255,7 +255,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
 }
 </style>`;
     }
-    return `<!-- Standalone SaaS Kinetic Architecture Compiled by Craft Studio -->
+    return `<!-- Standalone SaaS Kinetic Architecture Compiled by Pickle Studio -->
 <section class="kinetic-hero" id="hero-banner">
   <div class="hero-badge" style="color: ${accentColor}; border-color: ${accentColor}40;">
     ● KINETIC ARCHITECTURE v4.2
@@ -405,19 +405,19 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
             <div className="craft-hero-eyebrow">
               <span className="craft-eyebrow-pulse" />
               <span className="craft-eyebrow-text">
-                PICKLE STUDIO 2.0 // ZERO RUNTIME BLOAT • UNLOCKED ($0.00)
+                PICKLE STUDIO // NO AI • NO CODE • NO SLOP • $0.00 UNLOCKED
               </span>
             </div>
 
             {/* Product Headline */}
             <h1 className="craft-hero-title">
-              Visual web engineering.
-              <span className="craft-hero-title-accent">Zero framework debt.</span>
+              No AI. No Code.
+              <span className="craft-hero-title-accent">No Slop.</span>
             </h1>
 
             {/* Product Subtitle */}
             <p className="craft-hero-subtitle">
-              Every canvas element maps directly to semantic HTML5, responsive CSS cascades, and client-side database persistence. Design with micro-precision, lock with strict Cmd+L safety, and export standalone production code. <strong>Completely unlocked — $0.00 invoices.</strong>
+              The visual web design and 1-click publishing platform for people who refuse generic AI sludge. Design with authentic human taste, snap with sub-pixel precision, and publish live to the edge without writing a single line of code. <strong>Completely unlocked — $0.00 invoices.</strong>
             </p>
 
             {/* Action CTAs */}
@@ -443,7 +443,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
               </button>
 
               <a href="#features" className="craft-btn-hero-tertiary">
-                <span>View Architecture</span>
+                <span>View Anti-Slop Specs</span>
                 <ArrowRight size={14} />
               </a>
             </div>
@@ -452,19 +452,19 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
             <div className="craft-spec-dock">
               <div className="craft-spec-pill">
                 <span className="craft-spec-dot green" />
-                <span>0ms Runtime Overhead</span>
+                <span>Zero AI Slop</span>
               </div>
               <div className="craft-spec-pill">
                 <span className="craft-spec-dot emerald" />
-                <span>100% Standalone HTML/CSS</span>
+                <span>100% No-Code Canvas</span>
               </div>
               <div className="craft-spec-pill">
                 <span className="craft-spec-dot amber" />
-                <span>4-Breakpoint Auto-Reflow</span>
+                <span>1-Click Edge Publish</span>
               </div>
               <div className="craft-spec-pill">
                 <span className="craft-spec-dot cyan" />
-                <span>Strict Cmd+L Canvas Lock</span>
+                <span>Pure Semantic HTML5</span>
               </div>
               <div className="craft-spec-pill">
                 <span className="craft-spec-dot mint" />
@@ -959,7 +959,7 @@ export const ProductLandingPage: React.FC<ProductLandingPageProps> = ({ onLaunch
             <span className="craft-section-tag">ENGINE SHOWCASE</span>
             <h2 className="craft-section-title">Play with the Core Studio Engines</h2>
             <p className="craft-section-desc">
-              Interact directly with the real algorithms powering Craft Studio: spring-mass motion physics, magnetic snapping geometry, one-click publishing, and automated SEO auditing.
+              Interact directly with the real algorithms powering Pickle Studio: spring-mass motion physics, magnetic snapping geometry, one-click publishing, and automated SEO auditing.
             </p>
           </div>
 

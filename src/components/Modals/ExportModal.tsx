@@ -96,7 +96,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
         filename: 'README.md',
         content: `# ${project.name}
 
-Exported from Craft Studio Website Builder.
+Exported from Pickle Studio by Pickle Corp™ — No AI. No Code. No Slop.
 
 ## Included Pages (${project.pages.length}):
 ${project.pages.map((p, i) => `- **${p.name}**: \`${i === 0 ? 'index.html' : `${(p.slug || p.name).replace(/^\//, '')}.html`}\``).join('\n')}

@@ -1,8 +1,8 @@
-# Pickle Studio — Visual Website Builder
+# Pickle Studio — No AI. No Code. No Slop.
 
-> **The high-precision visual web compiler by Pickle Corp™**
+> **The anti-slop, no-code visual web design and publishing platform by Pickle Corp™**
 
-**Pickle Studio** is the flagship web-based visual website builder engineered by **Pickle Corp™** (founded by **Kaiser & Thanvi**). Built strictly for human-controlled, code-free visual design where visual canvas elements carry authentic semantic HTML meaning, Pickle Studio combines Figma-grade spatial manipulation with Webflow-grade production code generation — completely free of AI fluff, vendor lock-in, or subscription paywalls. Cash declined. Zero fiat. $0.00 invoices. Studio Mascot: **Gummy** (a flat mint gumdrop appointed to management).
+**Pickle Studio** is the flagship web-based visual website builder and one-click publishing platform engineered by **Pickle Corp™** (founded by **Kaiser & Thanvi**). Built strictly for human-controlled, code-free visual design for people who refuse generic AI sludge, Pickle Studio combines sub-pixel spatial canvas manipulation with semantic HTML5 production code generation — completely free of AI fluff, vendor lock-in, or subscription paywalls. Cash declined. Zero fiat. $0.00 invoices. Studio Mascot: **Gummy** (a flat mint gumdrop appointed to management).
 
 ---
 
@@ -82,7 +82,7 @@
 
 ## Keyboard Shortcuts Reference
 
-Craft Studio features professional keyboard shortcuts to maximize design velocity:
+Pickle Studio features professional keyboard shortcuts to maximize design velocity:
 
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
@@ -189,7 +189,7 @@ This compiles TypeScript, bundles the assets with Vite, and updates the `dist/` 
 
 ### Running Test Suite
 
-Craft Studio includes 20 automated test suites verifying responsive reflow, hierarchy, snapping geometry, element states, motion physics, functional form submission, lead capture, cart drawer state machines, and code export fidelity:
+Pickle Studio includes 21 automated test suites verifying responsive reflow, hierarchy, snapping geometry, element states, motion physics, functional form submission, lead capture, cart drawer state machines, and code export fidelity:
 
 ```bash
 npm test

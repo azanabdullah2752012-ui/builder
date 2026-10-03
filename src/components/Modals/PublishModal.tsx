@@ -34,7 +34,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
   const [customSlug, setCustomSlug] = useState<string>(project.slug || slugify(project.name) || 'my-site');
   const [seoTitle, setSeoTitle] = useState<string>(project.publishConfig?.seoTitle || project.name);
   const [seoDesc, setSeoDesc] = useState<string>(
-    project.publishConfig?.seoDescription || `Welcome to ${project.name}, designed and built visually with Craft Studio.`
+    project.publishConfig?.seoDescription || `Welcome to ${project.name}, designed and built visually with Pickle Studio by Pickle Corp.`
   );
   const [webhookUrl, setWebhookUrl] = useState<string>(project.publishConfig?.webhookUrl || '');
   const [removeBranding, setRemoveBranding] = useState<boolean>(project.publishConfig?.removeBranding ?? false);
@@ -45,7 +45,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
   const [copiedEmbed, setCopiedEmbed] = useState<boolean>(false);
   const [slugStatus, setSlugStatus] = useState<'checking' | 'available' | 'taken'>('available');
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://craftstudio.dev';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://picklestudio.dev';
   const liveUrl = `${origin}/?p=${customSlug}`;
 
   // Sync state when project updates
@@ -625,7 +625,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                   </div>
 
                   <div className="space-y-0.5 pt-1">
-                    <p className="text-[10px] font-mono text-zinc-500 uppercase">craftstudio.dev</p>
+                    <p className="text-[10px] font-mono text-zinc-500 uppercase">picklestudio.dev</p>
                     <p className="text-xs font-semibold text-zinc-100">{seoTitle || project.name}</p>
                     <p className="text-[11px] text-zinc-400 line-clamp-2">{seoDesc}</p>
                   </div>
@@ -675,7 +675,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                   <div className="space-y-0.5">
                     <p className="text-xs font-medium text-zinc-200">White-label: Remove Studio Branding</p>
                     <p className="text-[11px] text-zinc-400">
-                      Hide the "Made with Craft Studio" footer pill on your public site.
+                      Hide the "Made with Pickle Studio" footer pill on your public site.
                     </p>
                   </div>
                   <input

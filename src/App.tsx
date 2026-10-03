@@ -136,9 +136,9 @@ const EditorLayout: React.FC = () => {
 
 export default function App() {
   return (
-    <ErrorBoundary fallbackTitle="Craft Studio Error">
+    <ErrorBoundary fallbackTitle="Pickle Studio Error">
       <EditorProvider>
-        <ErrorBoundary fallbackTitle="Craft Studio Error">
+        <ErrorBoundary fallbackTitle="Pickle Studio Error">
           <EditorLayout />
         </ErrorBoundary>
       </EditorProvider>

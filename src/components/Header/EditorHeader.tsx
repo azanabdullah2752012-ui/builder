@@ -203,8 +203,9 @@ export const EditorHeader: React.FC = () => {
 
           {/* Brand */}
           <div style={S.brand}>
-            <span style={S.brandStar}>✦</span>
-            <span>Craft</span>
+            <span style={{ fontSize: 15, marginRight: 2 }}>🥒</span>
+            <span style={{ fontWeight: 800, letterSpacing: '-0.02em', color: '#10b981' }}>Pickle</span>
+            <span style={{ fontWeight: 500, color: '#888', marginLeft: 3 }}>Studio</span>
           </div>
 
           <div style={S.sep} />

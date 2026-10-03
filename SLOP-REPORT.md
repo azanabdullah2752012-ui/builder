@@ -1,4 +1,4 @@
-# Slop Report — Craft Studio
+# Slop Report — Pickle Studio
 
 > Evaluated: 2026-10-01  
 > Target: `/Users/azanabdullah/Desktop/design` (Product Landing Page & Studio Preview)  
@@ -20,7 +20,7 @@
 | Signature (Axis 7) | 100 / 100 |
 | Absolute rules | 6 pass · 0 fail · 0 unverifiable |
 
-Craft Studio has undergone a complete de-slopping transformation. The generic AI purple/indigo gradient problem (`C1`), fake traffic-light macOS windows (`K7`), pill clusters (`K22`), gradient-clipped headlines (`C13`), and fabricated social proof metrics (`W3`) were completely eliminated. In their place is an authoritative Obsidian and Solar Amber architectural identity, featuring a high-fidelity interactive Studio Workbench focal instrument (`S1`) with live responsive breakpoint switching and real-time DOM telemetry.
+Pickle Studio has undergone a complete de-slopping transformation. The generic AI purple/indigo gradient problem (`C1`), fake traffic-light macOS windows (`K7`), pill clusters (`K22`), gradient-clipped headlines (`C13`), and fabricated social proof metrics (`W3`) were completely eliminated. In their place is an authoritative Obsidian, Mint, and Solar Amber architectural identity, featuring a high-fidelity interactive Studio Workbench focal instrument (`S1`) with live responsive breakpoint switching and real-time DOM telemetry.
 
 ---
 
@@ -73,7 +73,7 @@ Score: **100 / 100**
 
 | # | Element | Score | Justification |
 |---|---------|-------|---------------|
-| **S1** | Signature artifact | **100** | Interactive Craft Studio Workbench focal instrument with live breakpoint resizing and DOM property inspection. |
+| **S1** | Signature artifact | **100** | Interactive Pickle Studio Workbench focal instrument with live breakpoint resizing and DOM property inspection. |
 | **S2** | Atmosphere | **100** | Deep Obsidian and Smoked Iron substrate with directional top-left amber lighting rake and technical grid workbench stage. |
 | **S3** | Layered depth | **100** | Architectural eyebrow foreground, chassis midground, and interactive artboard canvas. |
 | **S4** | Character display face | **100** | High-contrast Plus Jakarta Sans paired with Inter and JetBrains Mono for telemetry. |

@@ -57,7 +57,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     y: 35,
     width: 180,
     height: 34,
-    content: '✦ CRAFT STUDIO',
+    content: '🥒 PICKLE STUDIO',
     styles: {
       color: '#ffffff',
       fontSize: 16,
@@ -228,7 +228,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     role: 'button',
     behavior: {
       actionType: 'alert',
-      actionPayload: '🚀 Welcome to Craft Studio! Opening free account registration...',
+      actionPayload: '🚀 Welcome to Pickle Studio! Opening free account registration...',
     },
     locked: false,
     zIndex: 34,
@@ -336,7 +336,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     role: 'button',
     behavior: {
       actionType: 'alert',
-      actionPayload: '🚀 Welcome to Craft Studio! Let us create your free account now.',
+      actionPayload: '🚀 Welcome to Pickle Studio! Let us create your free account now.',
       buttonVariant: 'gradient',
       buttonIcon: 'arrow-right',
     },
@@ -1606,7 +1606,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     role: 'button',
     behavior: {
       actionType: 'alert',
-      actionPayload: '✨ Registration submitted! Welcome to Craft Studio. Account synced with Supabase Auth.',
+      actionPayload: '✨ Registration submitted! Welcome to Pickle Studio. Account synced with Supabase Auth.',
     },
     locked: false,
     zIndex: 17,
@@ -2415,7 +2415,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     role: 'button',
     behavior: {
       actionType: 'alert',
-      actionPayload: '🚀 Welcome to Craft Studio! Starting your registration...',
+      actionPayload: '🚀 Welcome to Pickle Studio! Starting your registration...',
     },
     locked: false,
     zIndex: 17,
@@ -2461,7 +2461,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     y: 4010,
     width: 290,
     height: 140,
-    content: '✦ CRAFT STUDIO\n\nThe modern visual website builder where canvas elements carry true semantic meaning and instant cloud data.',
+    content: '🥒 PICKLE STUDIO\n\nThe no-AI, no-code visual web design and publishing platform by Pickle Corp™. Pure hand-crafted design, zero AI slop, zero runtime bloat.',
     styles: {
       color: '#94a3b8',
       fontSize: 13,
@@ -2545,7 +2545,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     y: 4185,
     width: 1060,
     height: 30,
-    content: '© 2026 Craft Studio Inc. All rights reserved. Designed for visual precision and performance.',
+    content: '© 2026 Pickle Corp™. Kaiser & Thanvi. Paid Strictly in Favors. All rights reserved.',
     styles: {
       color: '#64748b',
       fontSize: 12,

@@ -295,7 +295,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-zinc-400">Database Engine: Supabase Cloud & SQLite</span>
           </div>
-          <span>Craft Studio v1.0</span>
+          <span>Pickle Studio v2.4 • By Pickle Corp™</span>
         </div>
       </div>
     </div>
