@@ -645,7 +645,7 @@ export function createElement(
           opacity: 1,
         },
         videoConfig: {
-          url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          url: 'https://www.youtube.com/watch?v=LXb3EKWsInQ',
           videoType: 'youtube',
           autoplay: false,
           controls: true,
@@ -929,6 +929,179 @@ export function createElement(
           desktop: { mode: 'auto' },
           tablet: { mode: 'auto', visible: true },
           mobile: { mode: 'auto', visible: true },
+          locked: false,
+        },
+      };
+
+    case 'countdown': {
+      // 7 days in the future by default
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 7);
+      futureDate.setHours(23, 59, 59, 0);
+
+      return {
+        id,
+        name: 'Countdown Timer',
+        type: 'countdown',
+        x,
+        y,
+        width: 440,
+        height: 110,
+        styles: {
+          backgroundColor: '#121522',
+          borderRadius: 16,
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderColor: '#262f46',
+          color: '#ffffff',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.35)',
+          opacity: 1,
+        },
+        countdownConfig: {
+          targetDate: futureDate.toISOString(),
+          labelDays: 'Days',
+          labelHours: 'Hours',
+          labelMinutes: 'Mins',
+          labelSeconds: 'Secs',
+          expiredMessage: '🎉 Special Launch Event Started!',
+          showDays: true,
+          showSeconds: true,
+          themeColor: '#6366f1',
+          cardStyle: 'glass',
+        },
+        role: 'none',
+        behavior: { actionType: 'none' },
+        locked: false,
+        zIndex,
+        parentId: parentId ?? null,
+        responsive: {
+          desktop: { mode: 'auto' },
+          tablet: { mode: 'auto', visible: true },
+          mobile: { mode: 'full-width', visible: true },
+          locked: false,
+        },
+      };
+    }
+
+    case 'audio':
+      return {
+        id,
+        name: 'Audio Player',
+        type: 'audio',
+        x,
+        y,
+        width: 400,
+        height: 120,
+        styles: {
+          backgroundColor: '#131625',
+          borderRadius: 16,
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderColor: '#27314d',
+          color: '#ffffff',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.35)',
+          opacity: 1,
+        },
+        audioConfig: {
+          url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3',
+          title: 'Midnight Chill Lofi',
+          artist: 'Craft Studio Radio',
+          coverUrl: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=400&q=80',
+          autoplay: false,
+          loop: true,
+          showWaveform: true,
+          themeColor: '#818cf8',
+        },
+        role: 'none',
+        behavior: { actionType: 'none' },
+        locked: false,
+        zIndex,
+        parentId: parentId ?? null,
+        responsive: {
+          desktop: { mode: 'auto' },
+          tablet: { mode: 'auto', visible: true },
+          mobile: { mode: 'full-width', visible: true },
+          locked: false,
+        },
+      };
+
+    case 'before-after':
+      return {
+        id,
+        name: 'Before/After Slider',
+        type: 'before-after',
+        x,
+        y,
+        width: 480,
+        height: 320,
+        styles: {
+          backgroundColor: '#0a0a0f',
+          borderRadius: 16,
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderColor: '#262f46',
+          boxShadow: '0 16px 40px rgba(0, 0, 0, 0.4)',
+          opacity: 1,
+        },
+        beforeAfterConfig: {
+          beforeImageUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1000&q=80',
+          afterImageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80',
+          beforeLabel: 'Before',
+          afterLabel: 'After',
+          initialSliderPos: 50,
+          showLabels: true,
+        },
+        role: 'none',
+        behavior: { actionType: 'none' },
+        locked: false,
+        zIndex,
+        parentId: parentId ?? null,
+        responsive: {
+          desktop: { mode: 'auto' },
+          tablet: { mode: 'auto', visible: true },
+          mobile: { mode: 'full-width', visible: true },
+          locked: false,
+        },
+      };
+
+    case 'testimonial':
+      return {
+        id,
+        name: 'Testimonial Card',
+        type: 'testimonial',
+        x,
+        y,
+        width: 380,
+        height: 200,
+        styles: {
+          backgroundColor: '#121522',
+          borderRadius: 16,
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderColor: '#262f46',
+          color: '#ffffff',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.35)',
+          opacity: 1,
+        },
+        testimonialConfig: {
+          quote: 'Craft Studio allowed our team to design, iterate, and publish clean client websites 10x faster than traditional tools.',
+          author: 'Elena Rostova',
+          role: 'Head of Product',
+          company: 'Nexus Creative',
+          avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+          rating: 5,
+          verified: true,
+          platform: 'trustpilot',
+        },
+        role: 'none',
+        behavior: { actionType: 'none' },
+        locked: false,
+        zIndex,
+        parentId: parentId ?? null,
+        responsive: {
+          desktop: { mode: 'auto' },
+          tablet: { mode: 'auto', visible: true },
+          mobile: { mode: 'full-width', visible: true },
           locked: false,
         },
       };

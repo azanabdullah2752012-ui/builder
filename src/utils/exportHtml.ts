@@ -405,18 +405,24 @@ ${indent}  <button type="button" onclick="stepCarouselSlide('${el.id}', 1)" styl
     }
 
     if (el.type === 'video') {
-      const rawUrl = el.videoConfig?.url || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+      const rawUrl = el.videoConfig?.url || 'https://www.youtube.com/watch?v=LXb3EKWsInQ';
       const autoplay = el.videoConfig?.autoplay ?? false;
       const controls = el.videoConfig?.controls ?? true;
       const loop = el.videoConfig?.loop ?? false;
       const muted = el.videoConfig?.muted ?? false;
       
-      const ytMatch = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      const ytMatch = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
       if (ytMatch && ytMatch[1]) {
-        const embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=${autoplay ? 1 : 0}&controls=${controls ? 1 : 0}&loop=${loop ? 1 : 0}&mute=${muted ? 1 : 0}&rel=0`;
-        return `${indent}<div class="el-${el.id}" id="${el.id}" style="overflow: hidden;"${clickAttr}><iframe src="${embedUrl}" style="width:100%;height:100%;border:0;" allowfullscreen></iframe></div>`;
+        const loopParam = loop ? `&loop=1&playlist=${ytMatch[1]}` : '';
+        const embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=${autoplay ? 1 : 0}&controls=${controls ? 1 : 0}&mute=${muted ? 1 : 0}&rel=0&playsinline=1${loopParam}`;
+        return `${indent}<div class="el-${el.id}" id="${el.id}" style="overflow: hidden; border-radius: inherit;"${clickAttr}><iframe src="${embedUrl}" style="width:100%;height:100%;border:0;" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
       }
-      return `${indent}<div class="el-${el.id}" id="${el.id}" style="overflow: hidden;"${clickAttr}><video src="${rawUrl}" style="width:100%;height:100%;object-fit:cover;"${controls ? ' controls' : ''}${autoplay ? ' autoplay' : ''}${loop ? ' loop' : ''}${muted ? ' muted' : ''}></video></div>`;
+      const vimeoMatch = rawUrl.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)/);
+      if (vimeoMatch && vimeoMatch[1]) {
+        const embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=${autoplay ? 1 : 0}&loop=${loop ? 1 : 0}&muted=${muted ? 1 : 0}&controls=${controls ? 1 : 0}`;
+        return `${indent}<div class="el-${el.id}" id="${el.id}" style="overflow: hidden; border-radius: inherit;"${clickAttr}><iframe src="${embedUrl}" style="width:100%;height:100%;border:0;" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`;
+      }
+      return `${indent}<div class="el-${el.id}" id="${el.id}" style="overflow: hidden; border-radius: inherit;"${clickAttr}><video src="${rawUrl}" style="width:100%;height:100%;object-fit:cover;"${controls ? ' controls' : ''}${autoplay ? ' autoplay' : ''}${loop ? ' loop' : ''}${muted ? ' muted' : ''} playsinline></video></div>`;
     }
 
     if (el.type === 'counter') {
@@ -581,6 +587,88 @@ ${indent}  <span style="font-size: 18px;">${emoji}</span>
 ${indent}  <span style="font-size: 13px; font-weight: 700;">${label}</span>
 ${indent}  <span class="reaction-count" style="font-size: 12px; font-weight: 800; background: rgba(255,255,255,0.12); padding: 2px 8px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.15);">${count}</span>
 ${indent}</button>`;
+    }
+
+    if (el.type === 'countdown') {
+      const targetDate = el.countdownConfig?.targetDate || new Date(Date.now() + 7 * 86400000).toISOString();
+      const themeColor = el.countdownConfig?.themeColor || '#6366f1';
+      const labelDays = (el.countdownConfig?.labelDays || 'Days').replace(/"/g, '&quot;');
+      const labelHours = (el.countdownConfig?.labelHours || 'Hours').replace(/"/g, '&quot;');
+      const labelMins = (el.countdownConfig?.labelMinutes || 'Mins').replace(/"/g, '&quot;');
+      const labelSecs = (el.countdownConfig?.labelSeconds || 'Secs').replace(/"/g, '&quot;');
+      const expiredMsg = (el.countdownConfig?.expiredMessage || 'Special Event Started!').replace(/"/g, '&quot;');
+
+      return `${indent}<div class="el-${el.id} studio-countdown-widget" id="${el.id}" data-target="${targetDate}" data-expired="${expiredMsg}" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: 16px; background: #121522; border: 1px solid #262e46; color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,0.35);"${clickAttr}>
+${indent}  <div class="cd-box" style="flex: 1; max-width: 80px; text-align: center; padding: 8px; border-radius: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);"><div class="cd-val cd-days" style="font-size: 22px; font-weight: 900; font-family: monospace; color: ${themeColor};">00</div><div style="font-size: 9px; text-transform: uppercase; color: #94a3b8; font-weight: 600; margin-top: 2px;">${labelDays}</div></div>
+${indent}  <span style="font-weight: 700; color: #64748b; font-size: 18px;">:</span>
+${indent}  <div class="cd-box" style="flex: 1; max-width: 80px; text-align: center; padding: 8px; border-radius: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);"><div class="cd-val cd-hours" style="font-size: 22px; font-weight: 900; font-family: monospace; color: ${themeColor};">00</div><div style="font-size: 9px; text-transform: uppercase; color: #94a3b8; font-weight: 600; margin-top: 2px;">${labelHours}</div></div>
+${indent}  <span style="font-weight: 700; color: #64748b; font-size: 18px;">:</span>
+${indent}  <div class="cd-box" style="flex: 1; max-width: 80px; text-align: center; padding: 8px; border-radius: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);"><div class="cd-val cd-minutes" style="font-size: 22px; font-weight: 900; font-family: monospace; color: ${themeColor};">00</div><div style="font-size: 9px; text-transform: uppercase; color: #94a3b8; font-weight: 600; margin-top: 2px;">${labelMins}</div></div>
+${indent}  <span style="font-weight: 700; color: #64748b; font-size: 18px;">:</span>
+${indent}  <div class="cd-box" style="flex: 1; max-width: 80px; text-align: center; padding: 8px; border-radius: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);"><div class="cd-val cd-seconds" style="font-size: 22px; font-weight: 900; font-family: monospace; color: ${themeColor};">00</div><div style="font-size: 9px; text-transform: uppercase; color: #94a3b8; font-weight: 600; margin-top: 2px;">${labelSecs}</div></div>
+${indent}</div>`;
+    }
+
+    if (el.type === 'audio') {
+      const url = el.audioConfig?.url || 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3';
+      const title = (el.audioConfig?.title || 'Midnight Chill Lofi').replace(/"/g, '&quot;');
+      const artist = (el.audioConfig?.artist || 'Craft Studio Radio').replace(/"/g, '&quot;');
+      const cover = el.audioConfig?.coverUrl || 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=400&q=80';
+
+      return `${indent}<div class="el-${el.id} studio-audio-widget" id="${el.id}" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: #131625; border: 1px solid #27314d; color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,0.35);"${clickAttr}>
+${indent}  <audio id="audio-${el.id}" src="${url}" preload="metadata"${el.audioConfig?.loop ? ' loop' : ''}></audio>
+${indent}  <div style="position: relative; width: 52px; height: 52px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: #000;">
+${indent}    <img src="${cover}" alt="${title}" style="width: 100%; height: 100%; object-fit: cover;" />
+${indent}    <button type="button" onclick="toggleStudioAudio('${el.id}')" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); border: none; color: #fff; cursor: pointer; font-size: 16px;">▶</button>
+${indent}  </div>
+${indent}  <div style="flex: 1; min-width: 0;">
+${indent}    <div style="font-weight: 700; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</div>
+${indent}    <div style="font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px;">${artist}</div>
+${indent}    <div onclick="seekStudioAudio(event, '${el.id}')" style="height: 5px; border-radius: 9999px; background: #262e44; cursor: pointer; position: relative; overflow: hidden;">
+${indent}      <div class="audio-progress" style="height: 100%; width: 0%; background: #818cf8; border-radius: 9999px;"></div>
+${indent}    </div>
+${indent}  </div>
+${indent}</div>`;
+    }
+
+    if (el.type === 'before-after') {
+      const beforeImg = el.beforeAfterConfig?.beforeImageUrl || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1000&q=80';
+      const afterImg = el.beforeAfterConfig?.afterImageUrl || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80';
+      const beforeLabel = (el.beforeAfterConfig?.beforeLabel || 'Before').replace(/"/g, '&quot;');
+      const afterLabel = (el.beforeAfterConfig?.afterLabel || 'After').replace(/"/g, '&quot;');
+      const initPos = el.beforeAfterConfig?.initialSliderPos ?? 50;
+
+      return `${indent}<div class="el-${el.id} studio-before-after" id="${el.id}" data-pos="${initPos}" onmousedown="initStudioDragBeforeAfter(event, '${el.id}')" ontouchstart="initStudioDragBeforeAfter(event, '${el.id}')" style="position: relative; overflow: hidden; border-radius: 16px; background: #000; cursor: ew-resize; user-select: none;"${clickAttr}>
+${indent}  <img src="${afterImg}" alt="${afterLabel}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; user-select: none;" />
+${indent}  <img class="ba-before-img" src="${beforeImg}" alt="${beforeLabel}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; user-select: none; clip-path: polygon(0 0, ${initPos}% 0, ${initPos}% 100%, 0 100%); -webkit-clip-path: polygon(0 0, ${initPos}% 0, ${initPos}% 100%, 0 100%);" />
+${indent}  <div class="ba-divider" style="position: absolute; top: 0; bottom: 0; left: ${initPos}%; width: 2px; background: #fff; box-shadow: 0 0 12px rgba(0,0,0,0.65); pointer-events: none; transform: translateX(-50%); z-index: 20;">
+${indent}    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: #fff; color: #18181b; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; box-shadow: 0 4px 14px rgba(0,0,0,0.45); border: 2px solid rgba(255,255,255,0.95); pointer-events: none; user-select: none;">⇄</div>
+${indent}  </div>
+${indent}  <div style="position: absolute; top: 12px; left: 12px; z-index: 25; padding: 3px 10px; border-radius: 9999px; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; font-size: 11px; font-weight: 700; border: 1px solid rgba(255,255,255,0.25); pointer-events: none; user-select: none;">${beforeLabel}</div>
+${indent}  <div style="position: absolute; top: 12px; right: 12px; z-index: 25; padding: 3px 10px; border-radius: 9999px; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; font-size: 11px; font-weight: 700; border: 1px solid rgba(255,255,255,0.25); pointer-events: none; user-select: none;">${afterLabel}</div>
+${indent}</div>`;
+    }
+
+    if (el.type === 'testimonial') {
+      const quote = (el.testimonialConfig?.quote || 'Craft Studio allowed our team to design, iterate, and publish clean client websites 10x faster.').replace(/"/g, '&quot;');
+      const author = (el.testimonialConfig?.author || 'Elena Rostova').replace(/"/g, '&quot;');
+      const role = (el.testimonialConfig?.role || 'Head of Product').replace(/"/g, '&quot;');
+      const company = (el.testimonialConfig?.company || 'Nexus Creative').replace(/"/g, '&quot;');
+      const avatar = el.testimonialConfig?.avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80';
+      const rating = Math.max(1, Math.min(5, el.testimonialConfig?.rating ?? 5));
+      const starsHtml = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+
+      return `${indent}<div class="el-${el.id} studio-testimonial-card" id="${el.id}" style="display: flex; flex-direction: column; justify-content: space-between; padding: 20px; border-radius: 16px; background: #121522; border: 1px solid #262e46; color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,0.35); text-align: left;"${clickAttr}>
+${indent}  <div style="color: #f59e0b; font-size: 15px; letter-spacing: 2px; margin-bottom: 8px;">${starsHtml}</div>
+${indent}  <p style="margin: 0; font-size: 13px; color: #e2e8f0; font-style: italic; line-height: 1.6; flex: 1;">"${quote}"</p>
+${indent}  <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; margin-top: 12px;">
+${indent}    <img src="${avatar}" alt="${author}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(99,102,241,0.4);" />
+${indent}    <div>
+${indent}      <div style="font-weight: 700; font-size: 13px; color: #fff;">${author} <span style="color: #34d399; font-size: 11px;">✓</span></div>
+${indent}      <div style="font-size: 11px; color: #94a3b8;">${role}${company ? ` at ${company}` : ''}</div>
+${indent}    </div>
+${indent}  </div>
+${indent}</div>`;
     }
 
     if (el.type === 'button' || role === 'button') {
@@ -1103,7 +1191,111 @@ ${generateScrollObserverScript()}
       setTimeout(function() { btn.style.transform = 'scale(1)'; }, 200);
     }
 
+    // ── Countdown Timer Runtime ──
+    function initStudioCountdowns() {
+      var widgets = document.querySelectorAll('.studio-countdown-widget');
+      widgets.forEach(function(widget) {
+        var targetStr = widget.getAttribute('data-target');
+        var expiredMsg = widget.getAttribute('data-expired') || 'Event Started!';
+        var targetTime = new Date(targetStr).getTime();
+
+        function update() {
+          var now = new Date().getTime();
+          var diff = targetTime - now;
+          if (diff <= 0) {
+            widget.innerHTML = '<div style="font-weight: 700; font-size: 14px; text-align: center; width: 100%;">🎉 ' + expiredMsg + '</div>';
+            return;
+          }
+          var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          var hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+          var minutes = Math.floor((diff / 1000 / 60) % 60);
+          var seconds = Math.floor((diff / 1000) % 60);
+
+          var dEl = widget.querySelector('.cd-days');
+          var hEl = widget.querySelector('.cd-hours');
+          var mEl = widget.querySelector('.cd-minutes');
+          var sEl = widget.querySelector('.cd-seconds');
+
+          if (dEl) dEl.textContent = (days < 10 ? '0' : '') + days;
+          if (hEl) hEl.textContent = (hours < 10 ? '0' : '') + hours;
+          if (mEl) mEl.textContent = (minutes < 10 ? '0' : '') + minutes;
+          if (sEl) sEl.textContent = (seconds < 10 ? '0' : '') + seconds;
+        }
+        update();
+        setInterval(update, 1000);
+      });
+    }
+
+    // ── Audio Player Runtime ──
+    function toggleStudioAudio(elId) {
+      var audio = document.getElementById('audio-' + elId);
+      var widget = document.getElementById(elId);
+      if (!audio || !widget) return;
+      var btn = widget.querySelector('button');
+      if (audio.paused) {
+        audio.play();
+        if (btn) btn.textContent = '⏸';
+      } else {
+        audio.pause();
+        if (btn) btn.textContent = '▶';
+      }
+      audio.ontimeupdate = function() {
+        var prog = widget.querySelector('.audio-progress');
+        if (prog && audio.duration) {
+          prog.style.width = ((audio.currentTime / audio.duration) * 100) + '%';
+        }
+      };
+      audio.onended = function() {
+        if (btn) btn.textContent = '▶';
+      };
+    }
+
+    function seekStudioAudio(e, elId) {
+      var audio = document.getElementById('audio-' + elId);
+      if (!audio || !audio.duration) return;
+      var rect = e.currentTarget.getBoundingClientRect();
+      var ratio = (e.clientX - rect.left) / rect.width;
+      audio.currentTime = ratio * audio.duration;
+    }
+
+    // ── Before/After Comparison Runtime ──
+    function initStudioDragBeforeAfter(e, elId) {
+      var widget = document.getElementById(elId);
+      if (!widget) return;
+      var beforeImg = widget.querySelector('.ba-before-img');
+      var divider = widget.querySelector('.ba-divider');
+
+      function onMove(moveEvent) {
+        var rect = widget.getBoundingClientRect();
+        var clientX = moveEvent.clientX;
+        if (clientX === undefined && moveEvent.touches && moveEvent.touches.length > 0) {
+          clientX = moveEvent.touches[0].clientX;
+        }
+        if (clientX === undefined) return;
+        var percent = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+        if (beforeImg) {
+          beforeImg.style.clipPath = 'polygon(0 0, ' + percent + '% 0, ' + percent + '% 100%, 0 100%)';
+          beforeImg.style.webkitClipPath = 'polygon(0 0, ' + percent + '% 0, ' + percent + '% 100%, 0 100%)';
+        }
+        if (divider) divider.style.left = percent + '%';
+      }
+
+      function onUp() {
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('touchend', onUp);
+      }
+
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      window.addEventListener('touchmove', onMove, { passive: true });
+      window.addEventListener('touchend', onUp);
+      onMove(e);
+    }
+
     renderStudioCart();
+    initStudioCountdowns();
   </script>
 </body>
 </html>`;

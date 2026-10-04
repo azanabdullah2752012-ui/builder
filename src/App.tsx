@@ -13,11 +13,35 @@ import { ToastContainer } from './components/Toast/ToastContainer';
 import { ShortcutsModal } from './components/Modals/ShortcutsModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { KidFriendlyDock } from './components/SimpleMode/KidFriendlyDock';
+import { CommandPalette } from './components/CommandPalette/CommandPalette';
 
 const EditorLayout: React.FC = () => {
   const { editorMode, setEditorMode, leftSidebarOpen, rightSidebarOpen } = useEditor();
 
   const [leftSidebarTab, setLeftSidebarTab] = React.useState<'elements' | 'layers' | 'pages' | 'theme'>('elements');
+  const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false);
+
+  // Cmd+K or / to open command palette
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(prev => !prev);
+      } else if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+    };
+    const openHandler = () => setCommandPaletteOpen(true);
+    window.addEventListener('keydown', handler);
+    window.addEventListener('editor:open-command-palette', openHandler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+      window.removeEventListener('editor:open-command-palette', openHandler);
+    };
+  }, []);
 
   const [publicSlug, setPublicSlug] = React.useState<string | null>(() => {
     if (typeof window !== 'undefined') {
@@ -143,6 +167,7 @@ const EditorLayout: React.FC = () => {
 
       <ToastContainer />
       <ShortcutsModal />
+      <CommandPalette isOpen={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
     </div>
   );
 };

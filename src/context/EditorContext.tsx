@@ -445,7 +445,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Record state to history before making modifications
   const pushHistory = useCallback((currentProject: ProjectState) => {
-    setHistoryPast((prev) => [...prev.slice(-30), currentProject]);
+    setHistoryPast((prev) => [...prev.slice(-100), currentProject]);
     setHistoryFuture([]);
     setIsSaved(false);
   }, []);
@@ -2373,7 +2373,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setHistoryFuture((prev) => [project, ...prev]);
     setProject(previous);
     setSelectedElementId(null);
-    showToast('Reversed (Undo Cmd+Z)', 'info');
+    // Subtle indicator without disruptive toast
+    const remaining = historyPast.length - 1;
+    if (remaining === 0) showToast('↩️ Nothing more to undo', 'info');
   }, [historyPast, project, showToast]);
 
   const redo = useCallback(() => {
@@ -2383,7 +2385,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setHistoryPast((prev) => [...prev, project]);
     setProject(next);
     setSelectedElementId(null);
-    showToast('Redo (Cmd+Shift+Z)', 'info');
+    if (historyFuture.length === 1) showToast('↪️ Nothing more to redo', 'info');
   }, [historyFuture, project, showToast]);
 
   // Keyboard Shortcuts (Delete, Undo, Redo, Copy, Paste, Cut, Duplicate, Save, Lock, Layers, Nudge, Page Nav)
@@ -2578,6 +2580,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             x: Math.max(0, selectedElement.x + deltaX),
             y: Math.max(0, selectedElement.y + deltaY),
           }, false);
+          window.dispatchEvent(new CustomEvent('canvas:nudge', { detail: { id: selectedElement.id } }));
         }
       }
 
@@ -2769,6 +2772,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     lastSavedText,
     canUndo: historyPast.length > 0,
     canRedo: historyFuture.length > 0,
+    historyCount: historyPast.length,
+    futureCount: historyFuture.length,
     toasts,
 
     currentUser,

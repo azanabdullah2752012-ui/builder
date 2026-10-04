@@ -21,6 +21,7 @@ import {
   Keyboard,
   Ruler,
   Magnet,
+  Search,
 } from 'lucide-react';
 
 const SWATCHES = ['#ffffff', '#0f172a', '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -42,6 +43,8 @@ export const ContextBar: React.FC = () => {
     redo,
     canUndo,
     canRedo,
+    historyCount,
+    futureCount,
     zoom,
     setZoom,
     zoomToFit,
@@ -315,18 +318,24 @@ export const ContextBar: React.FC = () => {
           <button
             onClick={undo}
             disabled={!canUndo}
-            className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 transition-colors"
-            title="Reverse / Undo (Cmd+Z)"
+            className="flex items-center gap-0.5 px-1.5 py-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 transition-colors relative group"
+            title={canUndo ? `Undo (⌘Z) — ${historyCount} state${historyCount > 1 ? 's' : ''} in history` : 'Nothing to undo (⌘Z)'}
           >
             <Undo2 className="w-3.5 h-3.5" />
+            {canUndo && historyCount > 0 && (
+              <span className="text-[9px] font-mono text-zinc-400 font-semibold">{historyCount}</span>
+            )}
           </button>
           <button
             onClick={redo}
             disabled={!canRedo}
-            className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 transition-colors"
-            title="Redo (Cmd+Shift+Z)"
+            className="flex items-center gap-0.5 px-1.5 py-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 transition-colors"
+            title={canRedo ? `Redo (⌘⇧Z) — ${futureCount} state${futureCount > 1 ? 's' : ''}` : 'Nothing to redo (⌘⇧Z)'}
           >
             <Redo2 className="w-3.5 h-3.5" />
+            {canRedo && futureCount > 0 && (
+              <span className="text-[9px] font-mono text-zinc-400 font-semibold">{futureCount}</span>
+            )}
           </button>
           {hasClipboard && (
             <button
@@ -338,6 +347,19 @@ export const ContextBar: React.FC = () => {
             </button>
           )}
         </div>
+
+        <span className="w-px h-4 bg-zinc-800" />
+
+        {/* Cmd+K Command Palette shortcut pill */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('editor:open-command-palette'))}
+          className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 bg-zinc-800/70 hover:bg-zinc-700/60 border border-zinc-700/50 transition-colors"
+          title="Open Command Palette (Cmd+K or /)"
+        >
+          <Search className="w-3 h-3 text-indigo-400" />
+          <span>Commands</span>
+          <kbd className="text-[9px] bg-zinc-700 text-zinc-300 px-1 py-0.5 rounded ml-0.5 font-mono">⌘K</kbd>
+        </button>
 
         <span className="w-px h-4 bg-zinc-800" />
 

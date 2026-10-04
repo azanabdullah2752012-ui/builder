@@ -53,7 +53,11 @@ export type ElementType =
   | 'lottie'
   | 'poll'
   | 'guestbook'
-  | 'reaction';
+  | 'reaction'
+  | 'countdown'
+  | 'audio'
+  | 'before-after'
+  | 'testimonial';
 
 export interface ElementStyles {
   // Fill & Colors
@@ -414,6 +418,50 @@ export interface ReactionWidgetConfig {
   soundEffect?: 'pop' | 'bell' | 'chime' | 'none';
 }
 
+export interface CountdownWidgetConfig {
+  targetDate: string; // ISO date string, e.g. 2026-12-31T23:59:59
+  labelDays?: string;
+  labelHours?: string;
+  labelMinutes?: string;
+  labelSeconds?: string;
+  expiredMessage?: string;
+  showDays?: boolean;
+  showSeconds?: boolean;
+  themeColor?: string;
+  cardStyle?: 'glass' | 'solid' | 'minimal';
+}
+
+export interface AudioWidgetConfig {
+  url: string;
+  title: string;
+  artist?: string;
+  coverUrl?: string;
+  autoplay?: boolean;
+  loop?: boolean;
+  showWaveform?: boolean;
+  themeColor?: string;
+}
+
+export interface BeforeAfterWidgetConfig {
+  beforeImageUrl: string;
+  afterImageUrl: string;
+  beforeLabel?: string;
+  afterLabel?: string;
+  initialSliderPos?: number; // 0 to 100 percentage
+  showLabels?: boolean;
+}
+
+export interface TestimonialWidgetConfig {
+  quote: string;
+  author: string;
+  role?: string;
+  company?: string;
+  avatarUrl?: string;
+  rating: number; // 1 to 5
+  verified?: boolean;
+  platform?: 'google' | 'twitter' | 'trustpilot' | 'producthunt' | 'none';
+}
+
 export interface CanvasElement {
   id: string;
   name: string;
@@ -447,6 +495,10 @@ export interface CanvasElement {
   pollConfig?: PollWidgetConfig;
   guestbookConfig?: GuestbookWidgetConfig;
   reactionConfig?: ReactionWidgetConfig;
+  countdownConfig?: CountdownWidgetConfig;
+  audioConfig?: AudioWidgetConfig;
+  beforeAfterConfig?: BeforeAfterWidgetConfig;
+  testimonialConfig?: TestimonialWidgetConfig;
 }
 
 export interface Page {

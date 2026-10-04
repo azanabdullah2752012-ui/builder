@@ -48,6 +48,8 @@ function getSafeFallbackContext(): EditorContextType {
     lastSavedText: 'Saved locally',
     canUndo: false,
     canRedo: false,
+    historyCount: 0,
+    futureCount: 0,
     toasts: [],
     currentUser: null,
     setCurrentUser: noop,

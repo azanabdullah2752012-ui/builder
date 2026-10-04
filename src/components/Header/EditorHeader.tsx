@@ -5,7 +5,7 @@ import {
   Monitor, Tablet, Smartphone, Sliders, FileText, Copy,
   LogOut, User, Sparkles, Zap, Cloud, Loader2,
   FolderOpen, History, LogIn, MoreHorizontal, Keyboard, Globe,
-  Inbox, SearchCheck, BarChart2,
+  Inbox, SearchCheck, BarChart2, LayoutTemplate,
 } from 'lucide-react';
 import { ExportModal } from '../Modals/ExportModal';
 import { PublishModal } from '../Modals/PublishModal';
@@ -17,6 +17,7 @@ import { OnboardingModal } from '../Modals/OnboardingModal';
 import { AuthModal } from '../Modals/AuthModal';
 import { ProjectManagerModal } from '../Modals/ProjectManagerModal';
 import { VersionHistoryModal } from '../Modals/VersionHistoryModal';
+import { TemplateLibraryModal } from '../Modals/TemplateLibraryModal';
 
 const S = {
   header: {
@@ -160,6 +161,14 @@ export const EditorHeader: React.FC = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+
+  // Trigger command palette via custom event from App.tsx
+  useEffect(() => {
+    const handler = () => setIsTemplatesOpen(true);
+    window.addEventListener('header:open-templates', handler);
+    return () => window.removeEventListener('header:open-templates', handler);
+  }, []);
 
   useEffect(() => {
     if (!isMoreOpen && !isPageDropOpen && !isUserMenuOpen) return;
@@ -413,6 +422,7 @@ export const EditorHeader: React.FC = () => {
 
           <div style={S.sep} />
 
+          <TextBtn icon={<LayoutTemplate size={13} />} label="Templates" onClick={() => setIsTemplatesOpen(true)} />
           <TextBtn icon={<Eye size={13} />} label="Preview" onClick={() => setEditorMode(editorMode === 'preview' ? 'design' : 'preview')} active={editorMode === 'preview'} />
           <TextBtn icon={<Code2 size={13} />} label="Export" onClick={() => setIsExportOpen(true)} />
           <button
@@ -536,6 +546,7 @@ export const EditorHeader: React.FC = () => {
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       <ProjectManagerModal isOpen={isProjectManagerOpen} onClose={() => setIsProjectManagerOpen(false)} />
       <VersionHistoryModal isOpen={isVersionHistoryOpen} onClose={() => setIsVersionHistoryOpen(false)} />
+      <TemplateLibraryModal isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
     </>
   );
 };

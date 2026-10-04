@@ -23,6 +23,10 @@ import {
   PollWidget,
   GuestbookWidget,
   ReactionWidget,
+  CountdownWidget,
+  AudioWidget,
+  BeforeAfterWidget,
+  TestimonialWidget,
 } from '../Widgets/InteractiveWidgets';
 import { ProductCardWidget } from '../Widgets/ProductCardWidget';
 import { CartDrawer } from '../Widgets/CartDrawer';
@@ -518,6 +522,38 @@ export const PreviewView: React.FC = () => {
       return (
         <div {...commonProps}>
           <ReactionWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'countdown') {
+      return (
+        <div {...commonProps}>
+          <CountdownWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'audio') {
+      return (
+        <div {...commonProps}>
+          <AudioWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'before-after') {
+      return (
+        <div {...commonProps}>
+          <BeforeAfterWidget element={element} isInteractive={true} />
+        </div>
+      );
+    }
+
+    if (element.type === 'testimonial') {
+      return (
+        <div {...commonProps}>
+          <TestimonialWidget element={element} isInteractive={true} />
         </div>
       );
     }

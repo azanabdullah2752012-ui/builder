@@ -14,6 +14,10 @@ import {
   PollWidget,
   GuestbookWidget,
   ReactionWidget,
+  CountdownWidget,
+  AudioWidget,
+  BeforeAfterWidget,
+  TestimonialWidget,
 } from '../Widgets/InteractiveWidgets';
 import { ProductCardWidget } from '../Widgets/ProductCardWidget';
 import { CartDrawer } from '../Widgets/CartDrawer';
@@ -436,6 +440,14 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
           <GuestbookWidget element={element} isInteractive={true} />
         ) : element.type === 'reaction' ? (
           <ReactionWidget element={element} isInteractive={true} />
+        ) : element.type === 'countdown' ? (
+          <CountdownWidget element={element} isInteractive={true} />
+        ) : element.type === 'audio' ? (
+          <AudioWidget element={element} isInteractive={true} />
+        ) : element.type === 'before-after' ? (
+          <BeforeAfterWidget element={element} isInteractive={true} />
+        ) : element.type === 'testimonial' ? (
+          <TestimonialWidget element={element} isInteractive={true} />
         ) : (element.role === 'input' || (element.type === 'container' && element.name.toLowerCase().includes('input'))) ? (
           <input
             id={`input-${element.id}`}

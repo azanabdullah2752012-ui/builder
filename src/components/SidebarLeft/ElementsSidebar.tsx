@@ -32,6 +32,11 @@ import {
   PlaySquare,
   Activity,
   ShoppingBag,
+  Sparkles,
+  Timer,
+  Headphones,
+  SplitSquareVertical,
+  Star,
 } from 'lucide-react';
 import { SECTION_TEMPLATES, getSmartSectionOffsetY } from '../../constants/templates';
 import { SHAPE_DEFINITIONS } from '../../utils/shapeDefinitions';
@@ -65,6 +70,11 @@ const INTERACTIVE_WIDGETS: { type: ElementType; label: string; icon: React.React
   { type: 'video', label: 'Video Player', icon: <PlaySquare size={16} /> },
   { type: 'counter', label: 'Counter', icon: <Activity size={16} /> },
   { type: 'product-card', label: 'Store Card', icon: <ShoppingBag size={16} />, badge: 'SHOP' },
+  { type: 'lottie', label: 'Lottie FX', icon: <Sparkles size={16} />, badge: 'ANIM' },
+  { type: 'countdown', label: 'Countdown', icon: <Timer size={16} />, badge: 'TIME' },
+  { type: 'audio', label: 'Audio Player', icon: <Headphones size={16} />, badge: 'PLAY' },
+  { type: 'before-after', label: 'Before/After', icon: <SplitSquareVertical size={16} />, badge: 'DIFF' },
+  { type: 'testimonial', label: 'Review Card', icon: <Star size={16} />, badge: 'STAR' },
 ];
 
 export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({

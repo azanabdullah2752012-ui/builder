@@ -18,13 +18,21 @@ import {
   Play,
   Sparkles,
   RotateCcw,
+  Type,
+  MousePointerClick,
+  Layout,
+  Image as ImageIcon,
+  Box,
+  Plus,
 } from 'lucide-react';
 import { FONT_FAMILIES } from '../../constants/defaults';
 import { triggerConfetti, playSound } from '../../utils/interactiveEffects';
 import { executeElementAction } from '../../utils/actionExecutor';
 import { MOTION_PRESETS } from '../../utils/motionAnimations';
+import { getSmartSectionOffsetY } from '../../constants/templates';
 import type { ActionType, StateVariant } from '../../types/editor';
 import { SimplePropertiesPanel } from './SimplePropertiesPanel';
+import { WidgetPropertiesEditor } from './WidgetPropertiesEditor';
 
 const S = {
   panel: {
@@ -176,6 +184,7 @@ export const PropertiesPanel: React.FC = () => {
     selectedElementIds,
     selectedElements,
     selectElements,
+    addElement,
     updateElement,
     updateElementStyles,
     updateElementBehavior,
@@ -352,10 +361,15 @@ export const PropertiesPanel: React.FC = () => {
 
   // 2. Page Settings (when no element is selected)
   if (!selectedElement) {
+    const elementCount = activePage.elements.length;
+    const sectionCount = activePage.elements.filter((e) => e.type === 'section').length;
+    const textCount = activePage.elements.filter((e) => e.type === 'text').length;
+    const buttonCount = activePage.elements.filter((e) => e.type === 'button').length;
+
     return (
       <aside style={S.panel}>
         <div style={S.header}>
-          <span style={{ fontWeight: 600, color: '#f4f4f5' }}>Page Settings</span>
+          <span style={{ fontWeight: 600, color: '#f4f4f5' }}>Canvas</span>
           <button
             type="button"
             onClick={toggleRightSidebar}
@@ -367,9 +381,93 @@ export const PropertiesPanel: React.FC = () => {
         </div>
 
         <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Quick hint */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(147,51,234,0.08))',
+            border: '1px solid rgba(99,102,241,0.2)',
+            borderRadius: 8, padding: '10px 12px',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#a5b4fc', marginBottom: 4 }}>Nothing selected</div>
+            <div style={{ fontSize: 10.5, color: '#71717a', lineHeight: 1.5 }}>
+              Click any element to inspect it, or press{' '}
+              <kbd style={{ fontSize: 9, background: '#1c1c28', border: '1px solid #2a2a3a', borderRadius: 3, padding: '1px 5px', color: '#a5b4fc' }}>⌘K</kbd>
+              {' '}to add elements fast.
+            </div>
+          </div>
+
+          {/* Page stats */}
+          <div>
+            <div style={S.sectionTitle}>Structure</div>
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6,
+            }}>
+              {[
+                { label: 'Elements', value: elementCount },
+                { label: 'Sections', value: sectionCount },
+                { label: 'Texts', value: textCount },
+                { label: 'Buttons', value: buttonCount },
+              ].map(stat => (
+                <div key={stat.label} style={{
+                  background: '#121216', border: '1px solid #1c1c24',
+                  borderRadius: 6, padding: '6px 8px', textAlign: 'center',
+                }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#e4e4e7', fontFamily: 'monospace' }}>{stat.value}</div>
+                  <div style={{ fontSize: 9.5, color: '#71717a', marginTop: 2 }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Insert Elements */}
+          <div>
+            <div style={S.sectionTitle}>Quick Insert</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
+              {[
+                { type: 'text' as const, label: 'Text', icon: <Type size={12} /> },
+                { type: 'button' as const, label: 'Button', icon: <MousePointerClick size={12} /> },
+                { type: 'section' as const, label: 'Section', icon: <Layout size={12} /> },
+                { type: 'image' as const, label: 'Image', icon: <ImageIcon size={12} /> },
+                { type: 'container' as const, label: 'Box', icon: <Box size={12} /> },
+                { type: 'input' as const, label: 'Input', icon: <Plus size={12} /> },
+              ].map(item => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    const offsetY = getSmartSectionOffsetY(activePage.elements, 80);
+                    const centerX = Math.round((activePage.canvasWidth || 1200) / 2 - 120);
+                    addElement(item.type, centerX, offsetY);
+                    playSound('pop');
+                    showToast(`✨ Added ${item.label}`, 'success');
+                  }}
+                  style={{
+                    background: '#121218', border: '1px solid #1e1e28',
+                    borderRadius: 6, padding: '7px 4px',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                    cursor: 'pointer', color: '#a1a1aa', fontSize: 10,
+                    transition: 'all 0.12s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = '#6366f1';
+                    e.currentTarget.style.color = '#fff';
+                    e.currentTarget.style.background = '#1a1a26';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = '#1e1e28';
+                    e.currentTarget.style.color = '#a1a1aa';
+                    e.currentTarget.style.background = '#121218';
+                  }}
+                >
+                  <span style={{ color: '#818cf8' }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Page Name */}
           <div>
-            <div style={S.sectionTitle}>General</div>
+            <div style={S.sectionTitle}>Page</div>
             <div style={S.row}>
               <span style={S.label}>Name</span>
               <input
@@ -436,35 +534,6 @@ export const PropertiesPanel: React.FC = () => {
                 style={{ cursor: 'pointer' }}
               />
             </label>
-          </div>
-
-          {/* Page Stats */}
-          <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
-            <div style={S.sectionTitle}>Structure</div>
-            <div
-              style={{
-                backgroundColor: '#121216',
-                border: '1px solid #1c1c24',
-                borderRadius: 6,
-                padding: '8px 10px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-                fontSize: 10.5,
-                color: '#a1a1aa',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Elements</span>
-                <span style={{ fontFamily: 'monospace', color: '#e4e4e7' }}>{activePage.elements.length}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Sections</span>
-                <span style={{ fontFamily: 'monospace', color: '#e4e4e7' }}>
-                  {activePage.elements.filter((e) => e.type === 'section').length}
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </aside>
@@ -556,6 +625,9 @@ export const PropertiesPanel: React.FC = () => {
       </div>
 
       <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Dedicated Interactive Widget & Form Editor (Front & Center) */}
+        <WidgetPropertiesEditor element={el} updateElement={updateElement} />
+
         {/* State Variant Segmented Control */}
         <div style={{ padding: '0 0 10px', borderBottom: '1px solid #1a1a20' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -750,213 +822,7 @@ export const PropertiesPanel: React.FC = () => {
           </div>
         )}
 
-        {/* Section: Poll Settings */}
-        {el.type === 'poll' && (
-          <div>
-            <div style={S.sectionTitle}>Poll Configuration</div>
-            <div style={S.row}>
-              <span style={S.label}>Question</span>
-              <input
-                type="text"
-                value={el.pollConfig?.question || ''}
-                onChange={(e) => updateElement(el.id, {
-                  pollConfig: {
-                    ...(el.pollConfig || { question: '', options: [] }),
-                    question: e.target.value,
-                  },
-                })}
-                style={S.input}
-              />
-            </div>
-            <div style={S.row}>
-              <span style={S.label}>Theme</span>
-              <input
-                type="color"
-                value={el.pollConfig?.themeColor || '#6366f1'}
-                onChange={(e) => updateElement(el.id, {
-                  pollConfig: {
-                    ...(el.pollConfig || { question: '', options: [] }),
-                    themeColor: e.target.value,
-                  },
-                })}
-                style={{ ...S.input, width: 36, height: 24, padding: 0, cursor: 'pointer' }}
-              />
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <span style={{ ...S.label, display: 'block', marginBottom: 4 }}>Poll Options</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {(el.pollConfig?.options || []).map((opt, idx) => (
-                  <div key={opt.id || idx} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                    <input
-                      type="text"
-                      value={opt.label}
-                      onChange={(e) => {
-                        const newOpts = [...(el.pollConfig?.options || [])];
-                        newOpts[idx] = { ...newOpts[idx], label: e.target.value };
-                        updateElement(el.id, {
-                          pollConfig: {
-                            ...(el.pollConfig || { question: '', options: [] }),
-                            options: newOpts,
-                          },
-                        });
-                      }}
-                      style={{ ...S.input, flex: 1 }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newOpts = (el.pollConfig?.options || []).filter((_, i) => i !== idx);
-                        updateElement(el.id, {
-                          pollConfig: {
-                            ...(el.pollConfig || { question: '', options: [] }),
-                            options: newOpts,
-                          },
-                        });
-                      }}
-                      style={{ ...S.iconBtn, width: 22, height: 22, color: '#ef4444' }}
-                      title="Remove Option"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const currentOpts = el.pollConfig?.options || [];
-                    const newOpt = {
-                      id: `opt_${Date.now()}`,
-                      label: `Option ${currentOpts.length + 1}`,
-                      votes: 0,
-                    };
-                    updateElement(el.id, {
-                      pollConfig: {
-                        ...(el.pollConfig || { question: '', options: [] }),
-                        options: [...currentOpts, newOpt],
-                      },
-                    });
-                  }}
-                  style={{
-                    ...S.input,
-                    height: 24,
-                    marginTop: 4,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    background: '#1a1a24',
-                    color: '#818cf8',
-                    border: '1px dashed #313952',
-                  }}
-                >
-                  + Add Option
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Section: Guestbook Settings */}
-        {el.type === 'guestbook' && (
-          <div>
-            <div style={S.sectionTitle}>Guestbook Wall</div>
-            <div style={S.row}>
-              <span style={S.label}>Title</span>
-              <input
-                type="text"
-                value={el.guestbookConfig?.title || ''}
-                onChange={(e) => updateElement(el.id, {
-                  guestbookConfig: {
-                    ...(el.guestbookConfig || { title: '', entries: [] }),
-                    title: e.target.value,
-                  },
-                })}
-                style={S.input}
-              />
-            </div>
-            <div style={S.row}>
-              <span style={S.label}>Subtitle</span>
-              <input
-                type="text"
-                value={el.guestbookConfig?.subtitle || ''}
-                onChange={(e) => updateElement(el.id, {
-                  guestbookConfig: {
-                    ...(el.guestbookConfig || { title: '', entries: [] }),
-                    subtitle: e.target.value,
-                  },
-                })}
-                style={S.input}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Section: Reaction Settings */}
-        {el.type === 'reaction' && (
-          <div>
-            <div style={S.sectionTitle}>Reaction Counter</div>
-            <div style={S.row}>
-              <span style={S.label}>Emoji</span>
-              <input
-                type="text"
-                value={el.reactionConfig?.emoji || '🔥'}
-                onChange={(e) => updateElement(el.id, {
-                  reactionConfig: {
-                    ...(el.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
-                    emoji: e.target.value,
-                  },
-                })}
-                style={{ ...S.input, width: 44, textAlign: 'center' }}
-              />
-            </div>
-            <div style={S.row}>
-              <span style={S.label}>Label</span>
-              <input
-                type="text"
-                value={el.reactionConfig?.label || ''}
-                onChange={(e) => updateElement(el.id, {
-                  reactionConfig: {
-                    ...(el.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
-                    label: e.target.value,
-                  },
-                })}
-                style={S.input}
-              />
-            </div>
-            <div style={S.row}>
-              <span style={S.label}>Base Count</span>
-              <input
-                type="number"
-                value={el.reactionConfig?.count ?? 0}
-                onChange={(e) => updateElement(el.id, {
-                  reactionConfig: {
-                    ...(el.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
-                    count: parseInt(e.target.value, 10) || 0,
-                  },
-                })}
-                style={S.input}
-              />
-            </div>
-            <div style={S.row}>
-              <span style={S.label}>Sound</span>
-              <select
-                value={el.reactionConfig?.soundEffect || 'pop'}
-                onChange={(e) => updateElement(el.id, {
-                  reactionConfig: {
-                    ...(el.reactionConfig || { emoji: '🔥', label: '', count: 0 }),
-                    soundEffect: e.target.value as any,
-                  },
-                })}
-                style={S.input}
-              >
-                <option value="pop">Pop</option>
-                <option value="bell">Bell</option>
-                <option value="chime">Chime</option>
-                <option value="none">None</option>
-              </select>
-            </div>
-          </div>
-        )}
+        {/* End of content & widget sections */}
 
         {/* Section: Typography (if text or button) */}
         {hasText && (

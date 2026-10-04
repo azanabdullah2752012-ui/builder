@@ -56,6 +56,8 @@ export interface EditorContextType {
   lastSavedText: string;
   canUndo: boolean;
   canRedo: boolean;
+  historyCount: number;
+  futureCount: number;
   toasts: Toast[];
 
   // Auth User

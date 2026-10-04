@@ -14,9 +14,15 @@ import {
   PollWidget,
   GuestbookWidget,
   ReactionWidget,
+  CountdownWidget,
+  AudioWidget,
+  BeforeAfterWidget,
+  TestimonialWidget,
 } from '../Widgets/InteractiveWidgets';
 import { ProductCardWidget } from '../Widgets/ProductCardWidget';
 import { LottieWidget } from '../Widgets/LottieWidget';
+import { ChevronUp, ChevronDown, Copy, Trash2 } from 'lucide-react';
+import { playSound } from '../../utils/interactiveEffects';
 
 interface CanvasElementComponentProps {
   element: CanvasElement;
@@ -49,6 +55,9 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
     snapToGuides,
     userGuides,
     previewStateVariant,
+    reorderElement,
+    duplicateElement,
+    deleteElement,
   } = useEditor();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -57,6 +66,10 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
   const [inlineText, setInlineText] = useState(element.content || '');
   const [isHovered, setIsHovered] = useState(false);
   const [forceHover, setForceHover] = useState(false);
+
+  const [isNudging, setIsNudging] = useState(false);
+  const nudgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSnapCountRef = useRef(0);
 
   React.useEffect(() => {
     const handler = (e: Event) => {
@@ -67,8 +80,23 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         setForceHover(false);
       }
     };
+    const nudgeHandler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.id === element.id) {
+        setIsNudging(true);
+        if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current);
+        nudgeTimerRef.current = setTimeout(() => {
+          setIsNudging(false);
+        }, 850);
+      }
+    };
     window.addEventListener('canvas:force-hover', handler);
-    return () => window.removeEventListener('canvas:force-hover', handler);
+    window.addEventListener('canvas:nudge', nudgeHandler);
+    return () => {
+      window.removeEventListener('canvas:force-hover', handler);
+      window.removeEventListener('canvas:nudge', nudgeHandler);
+      if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current);
+    };
   }, [element.id]);
 
   const elementRef = useRef<HTMLDivElement>(null);
@@ -193,6 +221,11 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         newY = snapRes.snappedY;
         snapLines = snapRes.snapLines;
         equalSpacings = snapRes.equalSpacings;
+
+        if (snapLines.length > 0 && lastSnapCountRef.current === 0) {
+          playSound('click');
+        }
+        lastSnapCountRef.current = snapLines.length;
       }
 
       // Broadcast active alignment guides and equal spacings to canvas
@@ -221,6 +254,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      lastSnapCountRef.current = 0;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
       window.dispatchEvent(
@@ -947,6 +981,22 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         return <ReactionWidget element={element} isInteractive={editorMode === 'preview'} />;
       }
 
+      case 'countdown': {
+        return <CountdownWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'audio': {
+        return <AudioWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'before-after': {
+        return <BeforeAfterWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
+      case 'testimonial': {
+        return <TestimonialWidget element={element} isInteractive={editorMode === 'preview'} />;
+      }
+
       case 'container': {
         // Smart input detection: if role is 'input' or name contains 'input', render an interactive input inside
         const isInputField =
@@ -1037,15 +1087,84 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
             <ResizeHandles onResizeStart={handleResizeStart} />
           )}
           {/* Subtle real-time dimension & position HUD indicator */}
-          {isDragging && (
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-zinc-950/95 text-indigo-300 text-[10px] font-mono border border-indigo-500/50 shadow-2xl pointer-events-none select-none z-50 whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md">
+          {(isDragging || isNudging) && (
+            <div
+              style={{
+                position: 'absolute',
+                top: element.y < 40 ? 'calc(100% + 8px)' : -36,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 65,
+              }}
+              className="px-2.5 py-0.5 rounded-full bg-zinc-950/95 text-indigo-300 text-[10px] font-mono border border-indigo-500/50 shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
+            >
               <span>X: <strong className="text-white font-semibold">{Math.round(element.x)}</strong></span>
               <span className="opacity-30 text-indigo-300">|</span>
               <span>Y: <strong className="text-white font-semibold">{Math.round(element.y)}</strong></span>
             </div>
           )}
+          {/* On-canvas quick floating toolbar for selected element */}
+          {!isDragging && !isResizing && !isNudging && selectedElementIds.length === 1 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: element.y < 35 ? 'calc(100% + 6px)' : -32,
+                left: 0,
+                zIndex: 60,
+              }}
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zinc-900/95 border border-zinc-700/80 shadow-2xl backdrop-blur-md pointer-events-auto select-none"
+            >
+              <span className="text-[9.5px] font-semibold text-zinc-300 px-1 max-w-[90px] truncate">{element.name}</span>
+              <span className="w-px h-3 bg-zinc-700" />
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); reorderElement(element.id, 'forward'); }}
+                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700/60 rounded transition-colors"
+                title="Bring Forward (⌘])"
+              >
+                <ChevronUp size={11} />
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); reorderElement(element.id, 'backward'); }}
+                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700/60 rounded transition-colors"
+                title="Send Backward (⌘[)"
+              >
+                <ChevronDown size={11} />
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); duplicateElement(); }}
+                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700/60 rounded transition-colors"
+                title="Duplicate (⌘D)"
+              >
+                <Copy size={10} />
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); deleteElement(element.id); }}
+                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
+                title="Delete (Backspace)"
+              >
+                <Trash2 size={10} />
+              </button>
+            </div>
+          )}
           {isResizing && (
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-zinc-950/95 text-indigo-300 text-[10px] font-mono border border-indigo-500/50 shadow-2xl pointer-events-none select-none z-50 whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md">
+            <div
+              style={{
+                position: 'absolute',
+                top: element.y < 40 ? 'calc(100% + 8px)' : -36,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 65,
+              }}
+              className="px-2.5 py-0.5 rounded-full bg-zinc-950/95 text-indigo-300 text-[10px] font-mono border border-indigo-500/50 shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
+            >
               <span>W: <strong className="text-white font-semibold">{Math.round(element.width)}</strong></span>
               <span className="opacity-30 text-indigo-300">×</span>
               <span>H: <strong className="text-white font-semibold">{Math.round(element.height)}</strong></span>
@@ -1053,7 +1172,15 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
           )}
           {/* Quick Action Test button on canvas for interactive elements */}
           {(element.type === 'button' || (b?.actionType && b.actionType !== 'none')) && !isDragging && !isResizing && (
-            <div className="absolute -top-7 right-0 flex items-center gap-1 z-50 pointer-events-auto">
+            <div
+              style={{
+                position: 'absolute',
+                top: element.y < 35 ? 'calc(100% + 6px)' : -32,
+                right: 0,
+                zIndex: 60,
+              }}
+              className="flex items-center gap-1 pointer-events-auto"
+            >
               <button
                 type="button"
                 onMouseDown={(e) => e.stopPropagation()}
