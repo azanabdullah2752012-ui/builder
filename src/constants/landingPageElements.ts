@@ -57,7 +57,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     y: 35,
     width: 180,
     height: 34,
-    content: '🥒 PICKLE STUDIO',
+    content: 'PICKLE STUDIO',
     styles: {
       color: '#ffffff',
       fontSize: 16,
@@ -2461,7 +2461,7 @@ export const LANDING_PAGE_ELEMENTS: CanvasElement[] = [
     y: 4010,
     width: 290,
     height: 140,
-    content: '🥒 PICKLE STUDIO\n\nThe no-AI, no-code visual web design and publishing platform by Pickle Corp™. Pure hand-crafted design, zero AI slop, zero runtime bloat.',
+    content: 'PICKLE STUDIO\n\nThe no-AI, no-code visual web design and publishing platform by Pickle Corp™. Pure hand-crafted design, zero AI slop, zero runtime bloat.',
     styles: {
       color: '#94a3b8',
       fontSize: 13,

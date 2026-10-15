@@ -26,6 +26,7 @@ import {
 } from '../../constants/templates';
 import { KID_STARTER_SITES, KID_LEGO_BLOCKS } from '../../constants/kidTemplates';
 import { playSound, triggerConfetti } from '../../utils/interactiveEffects';
+import { PickleTorchSvg } from '../Brand/PickleCorpLogo';
 import { CanvasContextMenu } from './CanvasContextMenu';
 import { CanvasFloatingControls } from './CanvasFloatingControls';
 import { CanvasRulers } from './CanvasRulers';
@@ -683,8 +684,8 @@ export const Canvas: React.FC = () => {
             >
               {editorComplexity === 'simple' ? (
                 <div className="max-w-xl w-full bg-[#12141c]/95 border border-[#262c3f] rounded-3xl p-8 shadow-2xl backdrop-blur-md animate-scale-in">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center mx-auto mb-4 shadow-lg text-3xl">
-                    🥒
+                  <div className="w-16 h-16 rounded-2xl bg-[#151926] border border-[#273248] flex items-center justify-center mx-auto mb-4 shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
+                    <PickleTorchSvg size={42} theme="dark" />
                   </div>
                   <h3 className="text-xl font-black text-white mb-2 tracking-tight">
                     Welcome to Pickle Studio!

@@ -1301,7 +1301,7 @@ export const INITIAL_PROJECT: ProjectState = {
           y: 40,
           width: 200,
           height: 32,
-          content: '🥒 PICKLE CORP',
+          content: 'PICKLE CORP',
           styles: {
             fontSize: 15,
             fontWeight: 800,

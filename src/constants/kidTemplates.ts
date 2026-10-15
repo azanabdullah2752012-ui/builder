@@ -735,7 +735,7 @@ export function createKidFooter(offsetY = 600): CanvasElement[] {
 
   const seal = createElement('text', 70, offsetY + 26, 1, footer.id);
   seal.name = 'Pickle Guarantee Seal';
-  seal.content = '🥒 Built with Pickle Studio — 100% Handcrafted • 0% AI Slop';
+  seal.content = 'Built with Pickle Studio — 100% Handcrafted • 0% AI Slop';
   seal.width = 560;
   seal.height = 28;
   seal.styles = { ...seal.styles, fontSize: 13, fontWeight: 700, color: '#10b981' };

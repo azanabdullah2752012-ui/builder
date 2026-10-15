@@ -179,8 +179,8 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
   if (error || !project || !activePage) {
     return (
       <div className="w-full min-h-screen bg-[#101510] flex flex-col items-center justify-center text-[#F4F5EF] p-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#1C241B] border border-[#354331] flex items-center justify-center text-2xl mb-4">
-          🥒
+        <div className="w-16 h-16 rounded-2xl bg-[#1C241B] border border-[#354331] flex items-center justify-center mb-4 shadow-lg">
+          <PickleTorchSvg size={38} theme="dark" />
         </div>
         <h1 className="text-2xl font-bold text-[#F4F5EF] mb-2" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>Website Not Found</h1>
         <p className="text-sm text-[#A0A99A] max-w-md mb-6 leading-relaxed">
