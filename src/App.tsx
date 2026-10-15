@@ -51,6 +51,27 @@ const EditorLayout: React.FC = () => {
     return null;
   });
 
+  const [dismissedMobileNotice, setDismissedMobileNotice] = React.useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('pickle_dismissed_mobile_notice') === 'true';
+    }
+    return false;
+  });
+  const [isSmallScreen, setIsSmallScreen] = React.useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   React.useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
@@ -82,7 +103,7 @@ const EditorLayout: React.FC = () => {
   // 1. Landing page
   if (editorMode === 'landing') {
     return (
-      <div className="w-full h-full min-h-screen bg-[#090a0f] flex flex-col">
+      <div className="w-full h-full min-h-screen bg-[#101510] flex flex-col">
         <ErrorBoundary fallbackTitle="Landing Page Error">
           <ProductLandingPage onLaunchEditor={() => setEditorMode('design')} />
         </ErrorBoundary>
@@ -94,7 +115,7 @@ const EditorLayout: React.FC = () => {
   // 2. Preview mode
   if (editorMode === 'preview') {
     return (
-      <div className="w-full h-full min-h-screen bg-[#0c0c0e] overflow-hidden flex flex-col">
+      <div className="w-full h-full min-h-screen bg-[#101510] overflow-hidden flex flex-col">
         <ErrorBoundary fallbackTitle="Preview Error">
           <PreviewView />
         </ErrorBoundary>
@@ -108,8 +129,55 @@ const EditorLayout: React.FC = () => {
   return (
     <div
       className="w-full h-full min-h-screen overflow-hidden flex flex-col relative text-zinc-100 font-sans"
-      style={{ background: '#0c0c0e' }}
+      style={{ background: '#101510' }}
     >
+      {/* ── Mobile Screen Guidance Banner ─────────────────────────────── */}
+      {isSmallScreen && !dismissedMobileNotice && (
+        <aside
+          aria-label="Desktop screen notice"
+          style={{
+            backgroundColor: '#1C241B',
+            borderBottom: '1px solid #354331',
+            color: '#B8F36B',
+            padding: '8px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            fontSize: 12,
+            zIndex: 60,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 14 }}>💻</span>
+            <span style={{ lineHeight: 1.4 }}>
+              <strong>Desktop Notice:</strong> Pickle Studio's visual editor canvas is optimized for a keyboard and mouse. You can preview published sites on mobile, but switch to a laptop or computer to design smoothly!
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              setDismissedMobileNotice(true);
+              try {
+                sessionStorage.setItem('pickle_dismissed_mobile_notice', 'true');
+              } catch {}
+            }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#A0A99A',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: 4,
+            }}
+            title="Dismiss notice"
+          >
+            ✕
+          </button>
+        </aside>
+      )}
+
       {/* ── Row 1: Top Header Bar ─────────────────────────────────────── */}
       <ErrorBoundary fallbackTitle="Header Error">
         <EditorHeader />
@@ -128,7 +196,7 @@ const EditorLayout: React.FC = () => {
             width: leftSidebarOpen ? 260 : 0,
             transition: 'width 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
-          className="shrink-0 z-10 border-r border-[#1a1a20] bg-[#0d0d10] overflow-hidden"
+          className="shrink-0 z-10 border-r border-[#354331] bg-[#101510] overflow-hidden"
           aria-hidden={!leftSidebarOpen}
         >
           <div className="w-[260px] h-full">
@@ -154,7 +222,7 @@ const EditorLayout: React.FC = () => {
             width: rightSidebarOpen ? 270 : 0,
             transition: 'width 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
-          className="shrink-0 z-10 border-l border-[#1a1a20] bg-[#0d0d10] overflow-hidden"
+          className="shrink-0 z-10 border-l border-[#354331] bg-[#101510] overflow-hidden"
           aria-hidden={!rightSidebarOpen}
         >
           <div className="w-[270px] h-full">

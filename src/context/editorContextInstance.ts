@@ -116,9 +116,16 @@ export interface EditorContextType {
   cutElement: (id?: string) => void;
   pasteElement: (targetParentId?: string | null) => CanvasElement | null;
   hasClipboard: boolean;
+  copyElementStyle: (id?: string) => void;
+  pasteElementStyle: (targetId?: string) => void;
+  hasStyleClipboard: boolean;
   toggleLock: (id?: string) => void;
   reorderElement: (id: string, direction: 'front' | 'back' | 'forward' | 'backward') => void;
   alignElement: (id: string, alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => void;
+
+  // Find & Replace
+  isFindReplaceOpen: boolean;
+  setIsFindReplaceOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
 
   // Shortcuts Modal
   showShortcutsModal: boolean;

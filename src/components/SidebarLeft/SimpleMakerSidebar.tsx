@@ -148,37 +148,37 @@ export const SimpleMakerSidebar: React.FC = () => {
       style={{
         width: '100%',
         height: '100%',
-        backgroundColor: '#0d0d10',
-        color: '#d4d4d8',
+        backgroundColor: '#101510',
+        color: '#F4F5EF',
         display: 'flex',
         flexDirection: 'column',
         userSelect: 'none',
         overflow: 'hidden',
-        borderRight: '1px solid #1a1a20',
+        borderRight: '1px solid #354331',
       }}
     >
       {/* ── Top Header ── */}
       <div
         style={{
           padding: '12px 14px',
-          borderBottom: '1px solid #1a1a20',
+          borderBottom: '1px solid #354331',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: '#12141c',
+          background: '#1C241B',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 16 }}>🧒</span>
-          <span style={{ fontWeight: 800, fontSize: 13, color: '#ffffff', letterSpacing: '-0.01em' }}>
+          <span style={{ fontWeight: 800, fontSize: 13, color: '#F4F5EF', letterSpacing: '-0.01em' }}>
             Simple Maker
           </span>
           <span
             style={{
               fontSize: 9,
               fontWeight: 800,
-              background: 'rgba(16, 185, 129, 0.2)',
-              color: '#34d399',
+              background: 'rgba(184, 243, 107, 0.15)',
+              color: '#B8F36B',
               padding: '2px 6px',
               borderRadius: 6,
               textTransform: 'uppercase',
@@ -198,7 +198,7 @@ export const SimpleMakerSidebar: React.FC = () => {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#71717a',
+            color: '#A0A99A',
             fontSize: 10,
             cursor: 'pointer',
             display: 'flex',
@@ -206,7 +206,7 @@ export const SimpleMakerSidebar: React.FC = () => {
             gap: 3,
           }}
         >
-          <Zap size={11} className="text-amber-400" />
+          <Zap size={11} style={{ color: '#B8F36B' }} />
           <span>Pro</span>
         </button>
       </div>
@@ -218,8 +218,8 @@ export const SimpleMakerSidebar: React.FC = () => {
           gridTemplateColumns: 'repeat(5, 1fr)',
           gap: 4,
           padding: '8px 10px',
-          background: '#0f1118',
-          borderBottom: '1px solid #1a1a20',
+          background: '#101510',
+          borderBottom: '1px solid #354331',
         }}
       >
         {[
@@ -245,8 +245,8 @@ export const SimpleMakerSidebar: React.FC = () => {
                 padding: '6px 2px',
                 borderRadius: 8,
                 border: 'none',
-                background: on ? '#1e2438' : 'transparent',
-                color: on ? '#38bdf8' : '#71717a',
+                background: on ? '#252F23' : 'transparent',
+                color: on ? '#B8F36B' : '#A0A99A',
                 cursor: 'pointer',
                 transition: 'all 0.12s ease',
               }}

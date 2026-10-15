@@ -32,6 +32,10 @@ import { ProductCardWidget } from '../Widgets/ProductCardWidget';
 import { CartDrawer } from '../Widgets/CartDrawer';
 import { LottieWidget } from '../Widgets/LottieWidget';
 import { ReadingProgressBar } from '../Widgets/ReadingProgressBar';
+import {
+  getCanvasSurfaceStyles,
+  getCanvasPatternOverlayStyle,
+} from '../../utils/canvasBackground';
 
 export const PreviewView: React.FC = () => {
   const {
@@ -91,6 +95,15 @@ export const PreviewView: React.FC = () => {
   const displayWidth = responsiveLayout.canvasWidth;
   const displayHeight = responsiveLayout.canvasHeight;
   const elementsToRender = responsiveLayout.elements;
+
+  const surfaceBgStyles = useMemo(
+    () => getCanvasSurfaceStyles(activePage),
+    [activePage.backgroundColor, activePage.backgroundGradient, activePage.backgroundImage]
+  );
+  const patternOverlayStyle = useMemo(
+    () => getCanvasPatternOverlayStyle(activePage),
+    [activePage.backgroundPattern, activePage.patternOpacity]
+  );
 
   const handleElementClick = (element: CanvasElement, e: React.MouseEvent) => {
     executeElementAction(
@@ -847,15 +860,24 @@ export const PreviewView: React.FC = () => {
           style={{
             width: `${displayWidth}px`,
             minHeight: `${displayHeight}px`,
-            backgroundColor: activePage.backgroundColor || '#ffffff',
+            ...surfaceBgStyles,
+            borderRadius:
+              viewportMode === 'mobile'
+                ? 24
+                : activePage.canvasBorderRadius !== undefined
+                ? activePage.canvasBorderRadius
+                : 16,
             boxShadow:
               viewportMode === 'mobile'
                 ? '0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 8px #0f172a, 0 0 0 9px #334155'
-                : '0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+                : activePage.canvasShadow ||
+                  '0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)',
             transition: 'width 0.28s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
           className={`relative overflow-hidden self-start ${viewportMode === 'mobile' ? 'rounded-3xl' : 'rounded-2xl'}`}
         >
+          {/* Pattern Texture Overlay if active */}
+          {patternOverlayStyle && <div style={patternOverlayStyle} />}
           {/* Phone Top Speaker/Camera notch simulation when in phone mode */}
           {viewportMode === 'mobile' && (
             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-40 flex items-center justify-center opacity-80 pointer-events-none">

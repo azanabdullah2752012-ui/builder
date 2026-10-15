@@ -756,7 +756,7 @@ export const databaseService = {
   async publishProject(
     project: ProjectState,
     config?: Partial<ProjectPublishConfig>
-  ): Promise<{ success: boolean; url: string; publishedAt: string; error?: string }> {
+  ): Promise<{ success: boolean; cloudSynced: boolean; url: string; publishedAt: string; error?: string }> {
     const publishedAt = new Date().toISOString();
     const slug = (config?.customDomain || project.slug || project.name.toLowerCase().replace(/[^a-z0-9]/g, '-') || project.id).replace(/^-+|-+$/g, '');
     const updatedProject: ProjectState = {
@@ -776,7 +776,34 @@ export const databaseService = {
     // Save project with isPublic = true
     const saveRes = await this.saveProject(updatedProject, { isPublic: true });
     if (!saveRes.success && saveRes.error) {
-      return { success: false, url: '', publishedAt: '', error: saveRes.error };
+      return { success: false, cloudSynced: false, url: '', publishedAt: '', error: saveRes.error };
+    }
+
+    // Verify whether Supabase actually received and persisted the record
+    let cloudSynced = false;
+    let cloudError: string | undefined = undefined;
+
+    if (saveRes.cloud) {
+      const sb = getSupabase();
+      if (sb) {
+        try {
+          const { data, error } = await sb
+            .from('projects')
+            .select('id, slug, is_public')
+            .eq('id', project.id)
+            .maybeSingle();
+
+          if (!error && data && data.is_public) {
+            cloudSynced = true;
+          } else {
+            cloudError = error?.message || 'Published record could not be verified on Supabase.';
+          }
+        } catch (err: any) {
+          cloudError = err?.message || 'Network verification failed while checking Supabase publish status.';
+        }
+      }
+    } else {
+      cloudError = saveRes.error || 'Cloud synchronization failed. Project was saved to local browser cache only.';
     }
 
     // Create a publication snapshot in version history
@@ -790,8 +817,10 @@ export const databaseService = {
 
     return {
       success: true,
+      cloudSynced,
       url: liveUrl,
       publishedAt,
+      error: cloudSynced ? undefined : cloudError,
     };
   },
 

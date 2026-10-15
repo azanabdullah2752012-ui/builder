@@ -17,8 +17,11 @@ export const COLOR_PALETTES = [
 ];
 
 export const FONT_FAMILIES = [
+  { label: 'Plus Jakarta Sans (UI)', value: "'Plus Jakarta Sans', sans-serif" },
+  { label: 'Cabinet Grotesk (Brand)', value: "'Cabinet Grotesk', sans-serif" },
+  { label: 'Space Grotesk (Display)', value: "'Space Grotesk', sans-serif" },
+  { label: 'Instrument Serif (Editorial)', value: "'Instrument Serif', Georgia, serif" },
   { label: 'Inter (Sans)', value: 'Inter, -apple-system, sans-serif' },
-  { label: 'Plus Jakarta Sans', value: "'Plus Jakarta Sans', sans-serif" },
   { label: 'System Sans', value: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
   { label: 'JetBrains Mono', value: "'JetBrains Mono', monospace" },
   { label: 'Serif Classic', value: "Georgia, Cambria, 'Times New Roman', serif" },

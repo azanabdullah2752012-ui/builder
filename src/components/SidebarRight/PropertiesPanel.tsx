@@ -33,34 +33,35 @@ import { getSmartSectionOffsetY } from '../../constants/templates';
 import type { ActionType, StateVariant } from '../../types/editor';
 import { SimplePropertiesPanel } from './SimplePropertiesPanel';
 import { WidgetPropertiesEditor } from './WidgetPropertiesEditor';
+import { CanvasPropertiesEditor } from './CanvasPropertiesEditor';
 
 const S = {
   panel: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#0d0d10',
-    color: '#d4d4d8',
+    backgroundColor: '#101510',
+    color: '#F4F5EF',
     display: 'flex',
     flexDirection: 'column' as const,
     userSelect: 'none' as const,
     fontSize: 11,
     overflowY: 'auto' as const,
-    borderLeft: '1px solid #1a1a20',
+    borderLeft: '1px solid #354331',
   },
   header: {
     height: 42,
     padding: '0 14px',
-    borderBottom: '1px solid #1a1a20',
+    borderBottom: '1px solid #354331',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     flexShrink: 0,
-    backgroundColor: '#0d0d10',
+    backgroundColor: '#101510',
   },
   sectionTitle: {
     fontSize: 10,
     fontWeight: 600,
-    color: '#71717a',
+    color: '#A0A99A',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.06em',
     marginBottom: 8,
@@ -70,11 +71,11 @@ const S = {
   },
   input: {
     height: 26,
-    backgroundColor: '#141418',
-    border: '1px solid #222228',
+    backgroundColor: '#1C241B',
+    border: '1px solid #354331',
     borderRadius: 6,
     padding: '0 8px',
-    color: '#f4f4f5',
+    color: '#F4F5EF',
     fontSize: 11,
     outline: 'none',
     width: '100%',
@@ -88,7 +89,7 @@ const S = {
   },
   label: {
     fontSize: 11,
-    color: '#8e8e98',
+    color: '#A0A99A',
     flexShrink: 0,
     width: 60,
   },
@@ -105,9 +106,9 @@ const S = {
     width: 26,
     height: 26,
     borderRadius: 5,
-    border: '1px solid #222228',
-    backgroundColor: '#141418',
-    color: '#a1a1aa',
+    border: '1px solid #354331',
+    backgroundColor: '#1C241B',
+    color: '#A0A99A',
     cursor: 'pointer',
     transition: 'all 0.12s ease',
   },
@@ -327,7 +328,7 @@ export const PropertiesPanel: React.FC = () => {
           </div>
 
           {/* Batch Actions */}
-          <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+          <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
             <button
               type="button"
               onClick={() => {
@@ -441,21 +442,21 @@ export const PropertiesPanel: React.FC = () => {
                     showToast(`✨ Added ${item.label}`, 'success');
                   }}
                   style={{
-                    background: '#121218', border: '1px solid #1e1e28',
+                    background: '#1C241B', border: '1px solid #354331',
                     borderRadius: 6, padding: '7px 4px',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    cursor: 'pointer', color: '#a1a1aa', fontSize: 10,
+                    cursor: 'pointer', color: '#A0A99A', fontSize: 10,
                     transition: 'all 0.12s',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = '#6366f1';
-                    e.currentTarget.style.color = '#fff';
-                    e.currentTarget.style.background = '#1a1a26';
+                    e.currentTarget.style.borderColor = '#B8F36B';
+                    e.currentTarget.style.color = '#F4F5EF';
+                    e.currentTarget.style.background = '#252F23';
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = '#1e1e28';
-                    e.currentTarget.style.color = '#a1a1aa';
-                    e.currentTarget.style.background = '#121218';
+                    e.currentTarget.style.borderColor = '#354331';
+                    e.currentTarget.style.color = '#A0A99A';
+                    e.currentTarget.style.background = '#1C241B';
                   }}
                 >
                   <span style={{ color: '#818cf8' }}>{item.icon}</span>
@@ -465,76 +466,8 @@ export const PropertiesPanel: React.FC = () => {
             </div>
           </div>
 
-          {/* Page Name */}
-          <div>
-            <div style={S.sectionTitle}>Page</div>
-            <div style={S.row}>
-              <span style={S.label}>Name</span>
-              <input
-                type="text"
-                value={activePage.name}
-                onChange={(e) => updatePageSettings(activePage.id, { name: e.target.value })}
-                style={S.input}
-              />
-            </div>
-          </div>
-
-          {/* Canvas Background */}
-          <div>
-            <div style={S.sectionTitle}>Canvas Surface</div>
-            <ColorPickerRow
-              label="Fill"
-              value={activePage.backgroundColor || '#ffffff'}
-              onChange={(val) => updatePageSettings(activePage.id, { backgroundColor: val })}
-            />
-          </div>
-
-          {/* Canvas Dimensions */}
-          <div>
-            <div style={S.sectionTitle}>Dimensions (Desktop)</div>
-            <div style={S.grid2}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 10, color: '#71717a', width: 14 }}>W</span>
-                <input
-                  type="number"
-                  value={activePage.canvasWidth}
-                  onChange={(e) => updatePageSettings(activePage.id, { canvasWidth: Number(e.target.value) || 1200 })}
-                  style={S.input}
-                />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 10, color: '#71717a', width: 14 }}>H</span>
-                <input
-                  type="number"
-                  value={activePage.canvasHeight}
-                  onChange={(e) => updatePageSettings(activePage.id, { canvasHeight: Number(e.target.value) || 800 })}
-                  style={S.input}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Scroll Progress Bar */}
-          <div>
-            <div style={S.sectionTitle}>Features</div>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '6px 0',
-                cursor: 'pointer',
-              }}
-            >
-              <span style={{ fontSize: 11, color: '#d4d4d8' }}>Reading Progress Bar</span>
-              <input
-                type="checkbox"
-                checked={activePage.showScrollProgress ?? false}
-                onChange={(e) => updatePageSettings(activePage.id, { showScrollProgress: e.target.checked })}
-                style={{ cursor: 'pointer' }}
-              />
-            </label>
-          </div>
+          {/* Comprehensive Canvas Properties & Styling Editor */}
+          <CanvasPropertiesEditor />
         </div>
       </aside>
     );
@@ -629,7 +562,7 @@ export const PropertiesPanel: React.FC = () => {
         <WidgetPropertiesEditor element={el} updateElement={updateElement} />
 
         {/* State Variant Segmented Control */}
-        <div style={{ padding: '0 0 10px', borderBottom: '1px solid #1a1a20' }}>
+        <div style={{ padding: '0 0 10px', borderBottom: '1px solid #354331' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <Sparkles size={11} color="#818cf8" />
@@ -638,14 +571,14 @@ export const PropertiesPanel: React.FC = () => {
               </span>
             </div>
             {activeStateVariant !== 'default' && (
-              <span style={{ fontSize: 9.5, color: '#818cf8', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#818cf8', display: 'inline-block' }} />
+              <span style={{ fontSize: 9.5, color: '#B8F36B', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#B8F36B', display: 'inline-block' }} />
                 Canvas Preview
               </span>
             )}
           </div>
 
-          <div style={{ display: 'flex', backgroundColor: '#141418', border: '1px solid #1f1f28', borderRadius: 6, padding: 2, gap: 2 }}>
+          <div style={{ display: 'flex', backgroundColor: '#1C241B', border: '1px solid #354331', borderRadius: 6, padding: 2, gap: 2 }}>
             {(['default', 'hover', 'active', 'focus'] as const).map((variant) => {
               const isSelected = activeStateVariant === variant;
               const label = variant === 'default' ? 'Normal' : `:${variant}`;
@@ -664,8 +597,8 @@ export const PropertiesPanel: React.FC = () => {
                     height: 23,
                     borderRadius: 4,
                     border: 'none',
-                    backgroundColor: isSelected ? '#252532' : 'transparent',
-                    color: isSelected ? '#ffffff' : '#71717a',
+                    backgroundColor: isSelected ? '#252F23' : 'transparent',
+                    color: isSelected ? '#B8F36B' : '#A0A99A',
                     fontSize: 10,
                     fontWeight: isSelected ? 600 : 400,
                     cursor: 'pointer',
@@ -892,9 +825,9 @@ export const PropertiesPanel: React.FC = () => {
                   style={{
                     ...S.iconBtn,
                     flex: 1,
-                    backgroundColor: s.textAlign === item.align ? '#22222e' : '#141418',
-                    color: s.textAlign === item.align ? '#ffffff' : '#71717a',
-                    border: s.textAlign === item.align ? '1px solid #383848' : '1px solid #222228',
+                    backgroundColor: s.textAlign === item.align ? '#252F23' : '#1C241B',
+                    color: s.textAlign === item.align ? '#B8F36B' : '#A0A99A',
+                    border: s.textAlign === item.align ? '1px solid #B8F36B' : '1px solid #354331',
                   }}
                 >
                   {item.icon}
@@ -973,9 +906,9 @@ export const PropertiesPanel: React.FC = () => {
                   flex: 1,
                   height: 24,
                   fontSize: 10,
-                  backgroundColor: el.layout?.direction === 'row' ? '#22222e' : '#141418',
-                  color: el.layout?.direction === 'row' ? '#fff' : '#71717a',
-                  border: el.layout?.direction === 'row' ? '1px solid #383848' : '1px solid #222228',
+                  backgroundColor: el.layout?.direction === 'row' ? '#252F23' : '#1C241B',
+                  color: el.layout?.direction === 'row' ? '#B8F36B' : '#A0A99A',
+                  border: el.layout?.direction === 'row' ? '1px solid #B8F36B' : '1px solid #354331',
                 }}
               >
                 Horizontal (Row)
@@ -988,9 +921,9 @@ export const PropertiesPanel: React.FC = () => {
                   flex: 1,
                   height: 24,
                   fontSize: 10,
-                  backgroundColor: el.layout?.direction !== 'row' ? '#22222e' : '#141418',
-                  color: el.layout?.direction !== 'row' ? '#fff' : '#71717a',
-                  border: el.layout?.direction !== 'row' ? '1px solid #383848' : '1px solid #222228',
+                  backgroundColor: el.layout?.direction !== 'row' ? '#252F23' : '#1C241B',
+                  color: el.layout?.direction !== 'row' ? '#B8F36B' : '#A0A99A',
+                  border: el.layout?.direction !== 'row' ? '1px solid #B8F36B' : '1px solid #354331',
                 }}
               >
                 Vertical (Column)
@@ -1000,7 +933,7 @@ export const PropertiesPanel: React.FC = () => {
         )}
 
         {/* Interactive States Trigger Card in Appearance */}
-        <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 10 }}>
+        <div style={{ borderTop: '1px solid #354331', paddingTop: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 10.5, fontWeight: 500, color: '#f4f4f5' }}>State Overrides</span>
             <span style={{ fontSize: 9.5, color: '#71717a' }}>hover &bull; active &bull; focus</span>
@@ -1019,9 +952,9 @@ export const PropertiesPanel: React.FC = () => {
                   style={{
                     padding: '6px 4px',
                     borderRadius: 5,
-                    border: hasSt ? '1px solid #6366f1' : '1px solid #22222a',
-                    backgroundColor: hasSt ? 'rgba(99, 102, 241, 0.12)' : '#141418',
-                    color: hasSt ? '#c7d2fe' : '#a1a1aa',
+                    border: hasSt ? '1px solid #B8F36B' : '1px solid #354331',
+                    backgroundColor: hasSt ? 'rgba(184, 243, 107, 0.15)' : '#1C241B',
+                    color: hasSt ? '#B8F36B' : '#A0A99A',
                     fontSize: 10,
                     fontWeight: 500,
                     cursor: 'pointer',
@@ -1032,7 +965,7 @@ export const PropertiesPanel: React.FC = () => {
                   }}
                 >
                   <span>:{st}</span>
-                  {hasSt && <span style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: '#818cf8' }} />}
+                  {hasSt && <span style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: '#B8F36B' }} />}
                 </button>
               );
             })}
@@ -1040,7 +973,7 @@ export const PropertiesPanel: React.FC = () => {
         </div>
 
         {/* Section: Interactivity & Click Action */}
-        <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+        <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
           <div style={S.sectionTitle}>
             <span>Interactivity</span>
             {b.actionType && b.actionType !== 'none' && (
@@ -1221,9 +1154,9 @@ export const PropertiesPanel: React.FC = () => {
                   type="checkbox"
                   checked={b.targetBlank ?? true}
                   onChange={(e) => updateElementBehavior(el.id, { targetBlank: e.target.checked })}
-                  style={{ accentColor: '#6366f1' }}
+                  style={{ accentColor: '#B8F36B' }}
                 />
-                <span style={{ fontSize: 10.5, color: '#a1a1aa' }}>Open link in new tab</span>
+                <span style={{ fontSize: 10.5, color: '#A0A99A' }}>Open link in new tab</span>
               </label>
             </div>
           )}
@@ -1285,23 +1218,23 @@ export const PropertiesPanel: React.FC = () => {
                 height: 28,
                 marginTop: 6,
                 borderRadius: 6,
-                backgroundColor: 'rgba(99,102,241,0.12)',
-                border: '1px solid rgba(99,102,241,0.3)',
-                color: '#a5b4fc',
+                backgroundColor: 'rgba(184,243,107,0.12)',
+                border: '1px solid rgba(184,243,107,0.3)',
+                color: '#B8F36B',
                 cursor: 'pointer',
                 fontSize: 11,
                 fontWeight: 600,
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(99,102,241,0.22)';
-                e.currentTarget.style.borderColor = '#6366f1';
-                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.backgroundColor = 'rgba(184,243,107,0.22)';
+                e.currentTarget.style.borderColor = '#B8F36B';
+                e.currentTarget.style.color = '#B8F36B';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(99,102,241,0.12)';
-                e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)';
-                e.currentTarget.style.color = '#a5b4fc';
+                e.currentTarget.style.backgroundColor = 'rgba(184,243,107,0.12)';
+                e.currentTarget.style.borderColor = 'rgba(184,243,107,0.3)';
+                e.currentTarget.style.color = '#B8F36B';
               }}
               title="Click to test this action immediately"
             >
@@ -1312,7 +1245,7 @@ export const PropertiesPanel: React.FC = () => {
         </div>
 
         {/* Section: Motion & Animation */}
-        <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+        <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
           <div style={S.sectionTitle}>
             <span>Motion & Animation</span>
             {s.animationName && s.animationName !== 'none' && (
@@ -1416,9 +1349,9 @@ export const PropertiesPanel: React.FC = () => {
                     borderRadius: 4,
                     fontSize: 10.5,
                     fontWeight: 600,
-                    border: s.animationIterationCount === 'infinite' ? '1px solid #6366f1' : '1px solid #27272a',
-                    backgroundColor: s.animationIterationCount === 'infinite' ? 'rgba(99,102,241,0.2)' : '#18181b',
-                    color: s.animationIterationCount === 'infinite' ? '#a5b4fc' : '#71717a',
+                    border: s.animationIterationCount === 'infinite' ? '1px solid #B8F36B' : '1px solid #354331',
+                    backgroundColor: s.animationIterationCount === 'infinite' ? 'rgba(184,243,107,0.18)' : '#1C241B',
+                    color: s.animationIterationCount === 'infinite' ? '#B8F36B' : '#A0A99A',
                     cursor: 'pointer',
                   }}
                 >
@@ -1455,7 +1388,7 @@ export const PropertiesPanel: React.FC = () => {
         </div>
 
         {/* Section: Layer Arrange & Actions */}
-        <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+        <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
           <div style={S.sectionTitle}>Arrange</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
             <button
@@ -1515,10 +1448,10 @@ export const PropertiesPanel: React.FC = () => {
         {activeStateVariant === 'hover' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Header & Reset */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', backgroundColor: '#141418', border: '1px solid #1f1f28', borderRadius: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', backgroundColor: '#1C241B', border: '1px solid #354331', borderRadius: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#818cf8', backgroundColor: '#1c1c28', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>:hover</span>
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#f4f4f5' }}>Hover State</span>
+                <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#B8F36B', backgroundColor: '#252F23', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>:hover</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#F4F5EF' }}>Hover State</span>
               </div>
               <button
                 type="button"
@@ -1526,7 +1459,7 @@ export const PropertiesPanel: React.FC = () => {
                   updateElementBehavior(el.id, { hoverStyles: undefined });
                   showToast('Cleared hover overrides', 'info');
                 }}
-                style={{ background: 'none', border: 'none', color: '#71717a', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
+                style={{ background: 'none', border: 'none', color: '#A0A99A', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
                 title="Reset to Normal State"
               >
                 <RotateCcw size={10} />
@@ -1541,7 +1474,7 @@ export const PropertiesPanel: React.FC = () => {
                 {[
                   { label: 'Subtle Lift', styles: { translateY: -4, boxShadow: '0 12px 24px -4px rgba(0,0,0,0.5)' } },
                   { label: 'Scale Pop', styles: { scale: 1.05, translateY: 0 } },
-                  { label: 'Indigo Glow', styles: { borderColor: '#6366f1', boxShadow: '0 0 20px rgba(99,102,241,0.5)' } },
+                  { label: 'Lime Glow', styles: { borderColor: '#B8F36B', boxShadow: '0 0 16px rgba(184,243,107,0.35)' } },
                   { label: 'Glass Glaze', styles: { backgroundColor: 'rgba(255,255,255,0.08)', boxShadow: '0 8px 16px rgba(0,0,0,0.3)' } },
                   { label: 'Emerald Glow', styles: { borderColor: '#10b981', boxShadow: '0 0 18px rgba(16,185,129,0.4)' } },
                   { label: 'Floating High', styles: { translateY: -6, scale: 1.02, boxShadow: '0 20px 30px -8px rgba(0,0,0,0.7)' } },
@@ -1561,9 +1494,9 @@ export const PropertiesPanel: React.FC = () => {
                     style={{
                       padding: '6px 8px',
                       borderRadius: 6,
-                      backgroundColor: '#141418',
-                      border: '1px solid #1f1f28',
-                      color: '#d4d4d8',
+                      backgroundColor: '#1C241B',
+                      border: '1px solid #354331',
+                      color: '#F4F5EF',
                       fontSize: 10,
                       cursor: 'pointer',
                       textAlign: 'left',
@@ -1577,7 +1510,7 @@ export const PropertiesPanel: React.FC = () => {
             </div>
 
             {/* Colors */}
-            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
               <div style={S.sectionTitle}>Colors</div>
               <ColorPickerRow
                 label="Hover Fill"
@@ -1620,7 +1553,7 @@ export const PropertiesPanel: React.FC = () => {
             </div>
 
             {/* Transforms */}
-            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
               <div style={S.sectionTitle}>Transforms & Lift</div>
               <div style={S.row}>
                 <span style={S.label}>Scale Zoom</span>
@@ -1680,7 +1613,7 @@ export const PropertiesPanel: React.FC = () => {
             </div>
 
             {/* Effects */}
-            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
               <div style={S.sectionTitle}>Effects</div>
               <div style={S.row}>
                 <span style={S.label}>Shadow Preset</span>
@@ -1754,10 +1687,10 @@ export const PropertiesPanel: React.FC = () => {
         {activeStateVariant === 'active' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Header & Reset */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', backgroundColor: '#141418', border: '1px solid #1f1f28', borderRadius: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', backgroundColor: '#1C241B', border: '1px solid #354331', borderRadius: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#c084fc', backgroundColor: '#201828', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>:active</span>
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#f4f4f5' }}>Pressed State</span>
+                <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#F2B84B', backgroundColor: '#252F23', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>:active</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#F4F5EF' }}>Pressed State</span>
               </div>
               <button
                 type="button"
@@ -1765,7 +1698,7 @@ export const PropertiesPanel: React.FC = () => {
                   updateElementBehavior(el.id, { activeStyles: undefined });
                   showToast('Cleared active overrides', 'info');
                 }}
-                style={{ background: 'none', border: 'none', color: '#71717a', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
+                style={{ background: 'none', border: 'none', color: '#A0A99A', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
                 title="Reset to Normal State"
               >
                 <RotateCcw size={10} />
@@ -1780,7 +1713,7 @@ export const PropertiesPanel: React.FC = () => {
                 {[
                   { label: 'Push Down', styles: { scale: 0.96, translateY: 2, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)' } },
                   { label: 'Subtle Click', styles: { scale: 0.98, translateY: 1 } },
-                  { label: 'Color Flash', styles: { backgroundColor: '#4f46e5', scale: 0.97 } },
+                  { label: 'Color Flash', styles: { backgroundColor: '#42C98A', scale: 0.98 } },
                   { label: 'Deep Depress', styles: { scale: 0.94, translateY: 3, boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.6)' } },
                 ].map((preset) => (
                   <button
@@ -1798,9 +1731,9 @@ export const PropertiesPanel: React.FC = () => {
                     style={{
                       padding: '6px 8px',
                       borderRadius: 6,
-                      backgroundColor: '#141418',
-                      border: '1px solid #1f1f28',
-                      color: '#d4d4d8',
+                      backgroundColor: '#1C241B',
+                      border: '1px solid #354331',
+                      color: '#F4F5EF',
                       fontSize: 10,
                       cursor: 'pointer',
                       textAlign: 'left',
@@ -1814,7 +1747,7 @@ export const PropertiesPanel: React.FC = () => {
             </div>
 
             {/* Colors */}
-            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
               <div style={S.sectionTitle}>Colors</div>
               <ColorPickerRow
                 label="Active Fill"
@@ -1857,7 +1790,7 @@ export const PropertiesPanel: React.FC = () => {
             </div>
 
             {/* Transforms */}
-            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
               <div style={S.sectionTitle}>Press Dynamics</div>
               <div style={S.row}>
                 <span style={S.label}>Pressed Scale</span>
@@ -1909,7 +1842,7 @@ export const PropertiesPanel: React.FC = () => {
             </div>
 
             {/* Effects */}
-            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
               <div style={S.sectionTitle}>Effects</div>
               <div style={S.row}>
                 <span style={S.label}>Pressed Shadow</span>
@@ -1959,10 +1892,10 @@ export const PropertiesPanel: React.FC = () => {
         {activeStateVariant === 'focus' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Header & Reset */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', backgroundColor: '#141418', border: '1px solid #1f1f28', borderRadius: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', backgroundColor: '#1C241B', border: '1px solid #354331', borderRadius: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#38bdf8', backgroundColor: '#13202d', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>:focus</span>
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#f4f4f5' }}>Focus State</span>
+                <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#70B8FF', backgroundColor: '#252F23', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>:focus</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#F4F5EF' }}>Focus State</span>
               </div>
               <button
                 type="button"
@@ -1970,7 +1903,7 @@ export const PropertiesPanel: React.FC = () => {
                   updateElementBehavior(el.id, { focusStyles: undefined });
                   showToast('Cleared focus overrides', 'info');
                 }}
-                style={{ background: 'none', border: 'none', color: '#71717a', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
+                style={{ background: 'none', border: 'none', color: '#A0A99A', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
                 title="Reset to Normal State"
               >
                 <RotateCcw size={10} />
@@ -1983,10 +1916,10 @@ export const PropertiesPanel: React.FC = () => {
               <div style={S.sectionTitle}>Presets</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 5 }}>
                 {[
-                  { label: 'Indigo Ring', styles: { outlineColor: '#6366f1', outlineWidth: 2, boxShadow: '0 0 0 3px rgba(99,102,241,0.35)' } },
+                  { label: 'Pickle Lime Ring', styles: { outlineColor: '#B8F36B', outlineWidth: 2, boxShadow: '0 0 0 3px rgba(184,243,107,0.35)' } },
                   { label: 'High Contrast', styles: { outlineColor: '#ffffff', outlineWidth: 2, boxShadow: '0 0 0 3px rgba(0,0,0,0.8)' } },
                   { label: 'Emerald Ring', styles: { outlineColor: '#10b981', outlineWidth: 2, boxShadow: '0 0 0 3px rgba(16,185,129,0.35)' } },
-                  { label: 'Subtle Border', styles: { borderColor: '#818cf8', outlineWidth: 1, outlineColor: '#818cf8' } },
+                  { label: 'Subtle Border', styles: { borderColor: '#B8F36B', outlineWidth: 1, outlineColor: '#B8F36B' } },
                 ].map((preset) => (
                   <button
                     key={preset.label}
@@ -2003,9 +1936,9 @@ export const PropertiesPanel: React.FC = () => {
                     style={{
                       padding: '6px 8px',
                       borderRadius: 6,
-                      backgroundColor: '#141418',
-                      border: '1px solid #1f1f28',
-                      color: '#d4d4d8',
+                      backgroundColor: '#1C241B',
+                      border: '1px solid #354331',
+                      color: '#F4F5EF',
                       fontSize: 10,
                       cursor: 'pointer',
                       textAlign: 'left',
@@ -2019,11 +1952,11 @@ export const PropertiesPanel: React.FC = () => {
             </div>
 
             {/* Focus Ring & Outline */}
-            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
               <div style={S.sectionTitle}>Focus Ring & Outline</div>
               <ColorPickerRow
                 label="Ring Color"
-                value={b.focusStyles?.outlineColor || '#6366f1'}
+                value={b.focusStyles?.outlineColor || '#B8F36B'}
                 onChange={(val: string) => {
                   updateElementBehavior(el.id, {
                     focusStyles: {
@@ -2053,9 +1986,9 @@ export const PropertiesPanel: React.FC = () => {
                         flex: 1,
                         padding: '4px 0',
                         borderRadius: 4,
-                        border: (b.focusStyles?.outlineWidth || 2) === w ? '1px solid #6366f1' : '1px solid #242430',
-                        backgroundColor: (b.focusStyles?.outlineWidth || 2) === w ? '#222232' : '#141418',
-                        color: (b.focusStyles?.outlineWidth || 2) === w ? '#fff' : '#a1a1aa',
+                        border: (b.focusStyles?.outlineWidth || 2) === w ? '1px solid #B8F36B' : '1px solid #354331',
+                        backgroundColor: (b.focusStyles?.outlineWidth || 2) === w ? '#252F23' : '#1C241B',
+                        color: (b.focusStyles?.outlineWidth || 2) === w ? '#B8F36B' : '#A0A99A',
                         fontSize: 10,
                         cursor: 'pointer',
                         textAlign: 'center',
@@ -2069,7 +2002,7 @@ export const PropertiesPanel: React.FC = () => {
             </div>
 
             {/* Colors */}
-            <div style={{ borderTop: '1px solid #1a1a20', paddingTop: 12 }}>
+            <div style={{ borderTop: '1px solid #354331', paddingTop: 12 }}>
               <div style={S.sectionTitle}>Border & Fill Highlights</div>
               <ColorPickerRow
                 label="Focus Border"

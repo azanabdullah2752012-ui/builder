@@ -114,9 +114,9 @@ export const KidFriendlyDock: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          background: 'rgba(15, 17, 23, 0.94)',
-          border: '1px solid #2a3147',
-          boxShadow: '0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(16, 185, 129, 0.2)',
+          background: 'rgba(16, 21, 16, 0.94)',
+          border: '1px solid #354331',
+          boxShadow: '0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(184, 243, 107, 0.2)',
           borderRadius: 20,
           padding: '6px 10px',
           backdropFilter: 'blur(16px)',
@@ -131,9 +131,9 @@ export const KidFriendlyDock: React.FC = () => {
             gap: 6,
             padding: '4px 10px',
             borderRadius: 14,
-            background: 'rgba(16, 185, 129, 0.15)',
-            border: '1px solid rgba(16, 185, 129, 0.35)',
-            color: '#34d399',
+            background: 'rgba(184, 243, 107, 0.15)',
+            border: '1px solid rgba(184, 243, 107, 0.35)',
+            color: '#B8F36B',
             fontSize: 11,
             fontWeight: 800,
             letterSpacing: '0.02em',
@@ -144,7 +144,7 @@ export const KidFriendlyDock: React.FC = () => {
           <span>Simple Mode</span>
         </div>
 
-        <div style={{ width: 1, height: 18, background: '#272c3d' }} />
+        <div style={{ width: 1, height: 18, background: '#354331' }} />
 
         {/* 1. Starter Sites Button */}
         <button
@@ -158,9 +158,9 @@ export const KidFriendlyDock: React.FC = () => {
             gap: 6,
             padding: '6px 12px',
             borderRadius: 12,
-            background: activeModal === 'sites' ? '#6366f1' : 'rgba(99, 102, 241, 0.14)',
-            border: '1px solid rgba(99, 102, 241, 0.35)',
-            color: '#ffffff',
+            background: activeModal === 'sites' ? '#B8F36B' : 'rgba(184, 243, 107, 0.14)',
+            border: '1px solid rgba(184, 243, 107, 0.35)',
+            color: activeModal === 'sites' ? '#101510' : '#F4F5EF',
             fontSize: 12,
             fontWeight: 700,
             cursor: 'pointer',

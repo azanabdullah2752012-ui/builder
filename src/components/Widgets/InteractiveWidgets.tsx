@@ -1220,7 +1220,7 @@ export const BeforeAfterWidget: React.FC<BeforeAfterWidgetProps> = ({ element, i
         userSelect: 'none',
         borderRadius: 'inherit',
         cursor: isInteractive ? 'ew-resize' : 'default',
-        backgroundColor: '#090b10',
+        backgroundColor: '#101510',
       }}
     >
       {/* After Image (Full background) */}

@@ -15,6 +15,10 @@ import {
   Layers,
   Save,
   HelpCircle,
+  Search,
+  Paintbrush,
+  Palette,
+  Hand,
 } from 'lucide-react';
 
 interface ShortcutRowProps {
@@ -141,6 +145,24 @@ export const ShortcutsModal: React.FC = () => {
                 label="Quick Save"
                 description="Persist project to Local Storage"
                 keys={[cmd, 'S']}
+              />
+              <ShortcutRow
+                icon={<Search className="w-3.5 h-3.5 text-[#B8F36B]" />}
+                label="Find & Replace"
+                description="Search text, layer names, types, and replace copy"
+                keys={[cmd, 'F']}
+              />
+              <ShortcutRow
+                icon={<Paintbrush className="w-3.5 h-3.5 text-zinc-300" />}
+                label="Copy Element Style"
+                description="Copy colors, gradients, typography, and borders"
+                keys={[alt, cmd, 'C']}
+              />
+              <ShortcutRow
+                icon={<Palette className="w-3.5 h-3.5 text-[#B8F36B]" />}
+                label="Paste Element Style"
+                description="Apply copied visual styles to selected elements"
+                keys={[alt, cmd, 'V']}
               />
             </div>
           </div>
@@ -285,6 +307,12 @@ export const ShortcutsModal: React.FC = () => {
                 label="Ungroup Container"
                 description="Dissolve container and restore items to canvas"
                 keys={[cmd, shift, 'G']}
+              />
+              <ShortcutRow
+                icon={<Hand className="w-3.5 h-3.5 text-[#B8F36B]" />}
+                label="Hand Tool / Pan Canvas"
+                description="Hold Spacebar and drag mouse to pan canvas freely"
+                keys={['Space', 'Drag']}
               />
             </div>
           </div>

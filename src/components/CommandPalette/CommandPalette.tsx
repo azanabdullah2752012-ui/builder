@@ -7,7 +7,7 @@ import {
   ChevronDown, Sliders, PlaySquare, Activity, ShoppingBag,
   LayoutTemplate, Trash2, Copy, Undo2, Redo2, Eye,
   Plus, Zap, Command, Star, Sparkles, ArrowRight,
-  Timer, Headphones, SplitSquareVertical,
+  Timer, Headphones, SplitSquareVertical, Layers,
 } from 'lucide-react';
 import {
   SECTION_TEMPLATES,
@@ -32,9 +32,10 @@ interface CommandPaletteProps {
   onClose: () => void;
 }
 
-const CATEGORY_ORDER = ['Quick Actions', 'Add Element', 'Add Section', 'Pages', 'View'];
+const CATEGORY_ORDER = ['Quick Actions', 'Canvas Elements', 'Add Element', 'Add Section', 'Pages', 'View'];
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   'Quick Actions': <Zap size={11} />,
+  'Canvas Elements': <Layers size={11} />,
   'Add Element': <Plus size={11} />,
   'Add Section': <LayoutTemplate size={11} />,
   'Pages': <FileText size={11} />,
@@ -57,6 +58,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     project,
     setActivePage,
     addPage,
+    selectElement,
   } = useEditor();
 
   const [query, setQuery] = useState('');
@@ -125,6 +127,57 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         badge: '⌘P', badgeColor: '#3f3f46',
         action: () => { setEditorMode('preview'); onClose(); },
       },
+      {
+        id: 'find-replace', label: 'Find & Replace', description: 'Search and replace text in canvas elements',
+        icon: <Search size={15} />, category: 'Quick Actions',
+        keywords: ['find', 'search', 'replace', 'lookup', 'text'],
+        badge: '⌘F', badgeColor: '#252F23',
+        action: () => {
+          onClose();
+          window.dispatchEvent(new CustomEvent('editor:open-find-replace'));
+        },
+      },
+      // ── Canvas Elements (Dynamic Canvas Index) ──────────────────────────
+      ...activePage.elements.map((el) => {
+        const title = el.name || (el.content ? (el.content.length > 32 ? el.content.slice(0, 32) + '…' : el.content) : el.type);
+        const sub = `${el.type.toUpperCase()} • ${Math.round(el.width)}×${Math.round(el.height)} at (${Math.round(el.x)}, ${Math.round(el.y)})`;
+        const keywords = [
+          el.name?.toLowerCase() || '',
+          el.type.toLowerCase(),
+          el.id.toLowerCase(),
+          ...(el.content ? [el.content.toLowerCase()] : []),
+        ].filter(Boolean);
+
+        return {
+          id: `canvas-el-${el.id}`,
+          label: title,
+          description: sub,
+          icon: el.type === 'text' ? <Type size={14} /> :
+                el.type === 'button' ? <MousePointerClick size={14} /> :
+                el.type === 'image' ? <Image size={14} /> :
+                el.type === 'container' || el.type === 'section' ? <Layout size={14} /> :
+                <Box size={14} />,
+          category: 'Canvas Elements',
+          keywords,
+          badge: el.type.slice(0, 4).toUpperCase(),
+          badgeColor: '#1C241B',
+          action: () => {
+            selectElement(el.id);
+            onClose();
+            setTimeout(() => {
+              const node =
+                document.getElementById(`canvas-element-${el.id}`) ||
+                document.querySelector(`[data-element-id="${el.id}"]`);
+              if (node) {
+                node.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                node.classList.add('search-highlight-pulse');
+                setTimeout(() => node.classList.remove('search-highlight-pulse'), 1400);
+              }
+            }, 60);
+            showToast(`Selected "${el.name || el.type}" on canvas`, 'info');
+          },
+        };
+      }),
       // ── Add Element ─────────────────────────────────────────────────────
       {
         id: 'el-text', label: 'Text', description: 'Add a text block',
@@ -310,7 +363,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   }, [
     canUndo, canRedo, undo, redo, duplicateElement, deleteElement,
     setEditorMode, handleAddElement, addElements, activePage, project.pages,
-    setActivePage, addPage, showToast, onClose,
+    setActivePage, addPage, selectElement, showToast, onClose,
   ]);
 
   const filtered = useMemo(() => {
@@ -388,16 +441,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         @keyframes paletteBackdropIn { from { opacity:0 } to { opacity:1 } }
         @keyframes paletteSlideIn { from { opacity:0; transform:scale(0.96) translateY(-8px) } to { opacity:1; transform:scale(1) translateY(0) } }
         .palette-item { transition: background 0.08s, color 0.08s; }
-        .palette-item:hover { background: rgba(99,102,241,0.12) !important; }
+        .palette-item:hover { background: rgba(184,243,107,0.12) !important; }
       `}</style>
 
       <div
         style={{
           width: '100%', maxWidth: 620,
-          backgroundColor: '#111115',
-          border: '1px solid #2a2a35',
+          backgroundColor: '#101510',
+          border: '1px solid #354331',
           borderRadius: 14,
-          boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(99,102,241,0.15)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(184,243,107,0.15)',
           overflow: 'hidden',
           animation: 'paletteSlideIn 0.15s cubic-bezier(0.16,1,0.3,1)',
         }}
@@ -406,9 +459,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '12px 16px',
-          borderBottom: '1px solid #1e1e28',
+          borderBottom: '1px solid #354331',
         }}>
-          <Search size={16} color="#6366f1" style={{ flexShrink: 0 }} />
+          <Search size={16} color="#B8F36B" style={{ flexShrink: 0 }} />
           <input
             ref={inputRef}
             value={query}
@@ -416,7 +469,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
             placeholder="Type a command, element, or section…"
             style={{
               flex: 1, background: 'transparent', border: 'none', outline: 'none',
-              color: '#f4f4f5', fontSize: 15, fontFamily: 'inherit',
+              color: '#F4F5EF', fontSize: 15, fontFamily: 'inherit',
             }}
           />
           {query && (
@@ -476,12 +529,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                           style={{
                             display: 'flex', alignItems: 'center', gap: 10,
                             padding: '7px 16px', cursor: 'pointer',
-                            background: isSelected ? 'rgba(99,102,241,0.12)' : 'transparent',
-                            borderLeft: isSelected ? '2px solid #6366f1' : '2px solid transparent',
+                            background: isSelected ? 'rgba(184,243,107,0.12)' : 'transparent',
+                            borderLeft: isSelected ? '2px solid #B8F36B' : '2px solid transparent',
                           }}
                         >
                           <span style={{
-                            color: isSelected ? '#a5b4fc' : '#71717a',
+                            color: isSelected ? '#B8F36B' : '#A0A99A',
                             flexShrink: 0, display: 'flex', alignItems: 'center',
                           }}>
                             {cmd.icon}
@@ -489,12 +542,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                           <span style={{ flex: 1, minWidth: 0 }}>
                             <span style={{
                               fontSize: 13, fontWeight: 500,
-                              color: isSelected ? '#f4f4f5' : '#d4d4d8',
+                              color: isSelected ? '#F4F5EF' : '#A0A99A',
                             }}>
                               {cmd.label}
                             </span>
                             {cmd.description && (
-                              <span style={{ fontSize: 11, color: '#52525b', marginLeft: 8 }}>
+                              <span style={{ fontSize: 11, color: '#A0A99A', marginLeft: 8 }}>
                                 {cmd.description}
                               </span>
                             )}
@@ -503,14 +556,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                             <span style={{
                               fontSize: 9, fontWeight: 700, letterSpacing: '0.06em',
                               padding: '2px 6px', borderRadius: 4,
-                              background: cmd.badgeColor || '#1e2840',
-                              color: '#93c5fd',
+                              background: cmd.badgeColor || '#252F23',
+                              color: '#B8F36B',
                             }}>
                               {cmd.badge}
                             </span>
                           )}
                           {isSelected && (
-                            <ArrowRight size={12} color="#6366f1" style={{ flexShrink: 0 }} />
+                            <ArrowRight size={12} color="#B8F36B" style={{ flexShrink: 0 }} />
                           )}
                         </div>
                       );

@@ -30,6 +30,7 @@ import type { Toast, EditorContextType } from './editorContextInstance';
 
 import { normalizeProjectState } from '../utils/projectNormalization';
 import { databaseService } from '../services/databaseService';
+import { playSound } from '../utils/interactiveEffects';
 
 
 export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -291,6 +292,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Studio Clipboard for Copy & Paste
   const [clipboard, setClipboard] = useState<{ root: CanvasElement; descendants: CanvasElement[] } | null>(null);
+  const [styleClipboard, setStyleClipboard] = useState<ElementStyles | null>(null);
+  const [isFindReplaceOpen, setIsFindReplaceOpen] = useState<boolean>(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState<boolean>(false);
 
   // Editor Complexity: 'simple' (clean & uncluttered for new users) vs 'pro' (full advanced suite)
@@ -1516,6 +1519,107 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return pastedRoot;
   }, [clipboard, pushHistory, showToast]);
 
+  // Copy Element Style (⌥⌘C)
+  const copyElementStyle = useCallback((id?: string) => {
+    const targetId = id || selectedElementId;
+    if (!targetId) {
+      showToast('Select an element to copy style', 'warning');
+      return;
+    }
+    const active = project.pages.find((p) => p.id === project.activePageId);
+    const target = active?.elements.find((el) => el.id === targetId);
+    if (!target) return;
+
+    setStyleClipboard({ ...target.styles });
+    playSound('pop');
+    showToast(`Copied style from "${target.name || target.type}" 🎨 (⌥⌘C)`, 'info');
+  }, [project.pages, project.activePageId, selectedElementId, showToast]);
+
+  // Paste Element Style (⌥⌘V)
+  const pasteElementStyle = useCallback((targetId?: string) => {
+    if (!styleClipboard) {
+      showToast('No style copied. Press ⌥⌘C to copy a style first', 'warning');
+      return;
+    }
+
+    const idsToApply = targetId
+      ? [targetId]
+      : selectedElementIds.length > 0
+      ? selectedElementIds
+      : selectedElementId
+      ? [selectedElementId]
+      : [];
+
+    if (idsToApply.length === 0) {
+      showToast('Select one or more elements to paste style', 'warning');
+      return;
+    }
+
+    setProject((prev) => {
+      pushHistory(prev);
+      const active = prev.pages.find((p) => p.id === prev.activePageId);
+      if (!active) return prev;
+
+      const updatedElements = active.elements.map((el) => {
+        if (!idsToApply.includes(el.id)) return el;
+
+        const newStyles: ElementStyles = {
+          ...el.styles,
+          // Color & fills
+          ...(styleClipboard.backgroundColor !== undefined && { backgroundColor: styleClipboard.backgroundColor }),
+          ...(styleClipboard.gradient !== undefined && { gradient: styleClipboard.gradient }),
+          ...(styleClipboard.color !== undefined && { color: styleClipboard.color }),
+          // Typography
+          ...(styleClipboard.fontSize !== undefined && { fontSize: styleClipboard.fontSize }),
+          ...(styleClipboard.fontWeight !== undefined && { fontWeight: styleClipboard.fontWeight }),
+          ...(styleClipboard.fontFamily !== undefined && { fontFamily: styleClipboard.fontFamily }),
+          ...(styleClipboard.textAlign !== undefined && { textAlign: styleClipboard.textAlign }),
+          ...(styleClipboard.lineHeight !== undefined && { lineHeight: styleClipboard.lineHeight }),
+          ...(styleClipboard.letterSpacing !== undefined && { letterSpacing: styleClipboard.letterSpacing }),
+          ...(styleClipboard.textTransform !== undefined && { textTransform: styleClipboard.textTransform }),
+          ...(styleClipboard.textDecoration !== undefined && { textDecoration: styleClipboard.textDecoration }),
+          ...(styleClipboard.fontStyle !== undefined && { fontStyle: styleClipboard.fontStyle }),
+          // Borders & Corners
+          ...(styleClipboard.borderRadius !== undefined && { borderRadius: styleClipboard.borderRadius }),
+          ...(styleClipboard.borderWidth !== undefined && { borderWidth: styleClipboard.borderWidth }),
+          ...(styleClipboard.borderStyle !== undefined && { borderStyle: styleClipboard.borderStyle }),
+          ...(styleClipboard.borderColor !== undefined && { borderColor: styleClipboard.borderColor }),
+          // Effects
+          ...(styleClipboard.opacity !== undefined && { opacity: styleClipboard.opacity }),
+          ...(styleClipboard.boxShadow !== undefined && { boxShadow: styleClipboard.boxShadow }),
+          ...(styleClipboard.backdropFilter !== undefined && { backdropFilter: styleClipboard.backdropFilter }),
+          ...(styleClipboard.filter !== undefined && { filter: styleClipboard.filter }),
+          ...(styleClipboard.mixBlendMode !== undefined && { mixBlendMode: styleClipboard.mixBlendMode }),
+          // Transitions & Animations
+          ...(styleClipboard.transitionDuration !== undefined && { transitionDuration: styleClipboard.transitionDuration }),
+          ...(styleClipboard.hoverEffect !== undefined && { hoverEffect: styleClipboard.hoverEffect }),
+          ...(styleClipboard.hoverScale !== undefined && { hoverScale: styleClipboard.hoverScale }),
+          ...(styleClipboard.hoverTranslateY !== undefined && { hoverTranslateY: styleClipboard.hoverTranslateY }),
+          ...(styleClipboard.hoverShadow !== undefined && { hoverShadow: styleClipboard.hoverShadow }),
+        };
+
+        return {
+          ...el,
+          styles: newStyles,
+        };
+      });
+
+      return {
+        ...prev,
+        pages: prev.pages.map((p) =>
+          p.id === prev.activePageId ? { ...p, elements: updatedElements } : p
+        ),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    playSound('pop');
+    showToast(
+      `Pasted style onto ${idsToApply.length} element${idsToApply.length > 1 ? 's' : ''} ✨ (⌥⌘V)`,
+      'success'
+    );
+  }, [styleClipboard, selectedElementIds, selectedElementId, pushHistory, showToast]);
+
   // Reorder Element (Z-Index / DOM Order)
   const reorderElement = useCallback((id: string, direction: 'front' | 'back' | 'forward' | 'backward') => {
     setProject((prev) => {
@@ -2419,8 +2523,34 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return;
       }
 
+      // Copy Style: ⌥⌘C
+      if ((e.metaKey || e.ctrlKey) && e.altKey && e.key.toLowerCase() === 'c') {
+        if (selectedElementId) {
+          e.preventDefault();
+          copyElementStyle();
+        }
+        return;
+      }
+
+      // Paste Style: ⌥⌘V
+      if ((e.metaKey || e.ctrlKey) && e.altKey && e.key.toLowerCase() === 'v') {
+        if (styleClipboard) {
+          e.preventDefault();
+          pasteElementStyle();
+        }
+        return;
+      }
+
+      // Find & Replace on Canvas: ⌘F
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setIsFindReplaceOpen((prev) => !prev);
+        window.dispatchEvent(new CustomEvent('editor:open-find-replace'));
+        return;
+      }
+
       // Copy: Cmd + C
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c') {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'c') {
         if (selectedElementId) {
           e.preventDefault();
           copyElement();
@@ -2429,7 +2559,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       // Paste: Cmd + V
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v') {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'v') {
         if (clipboard) {
           e.preventDefault();
           pasteElement();
@@ -2623,6 +2753,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     copyElement,
     cutElement,
     pasteElement,
+    copyElementStyle,
+    pasteElementStyle,
+    styleClipboard,
     duplicateElement,
     deleteElement,
     toggleLock,
@@ -2830,9 +2963,15 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     cutElement,
     pasteElement,
     hasClipboard: !!clipboard,
+    copyElementStyle,
+    pasteElementStyle,
+    hasStyleClipboard: !!styleClipboard,
     toggleLock,
     reorderElement,
     alignElement,
+
+    isFindReplaceOpen,
+    setIsFindReplaceOpen,
 
     showShortcutsModal,
     setShowShortcutsModal,

@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useEditor } from '../../context/useEditor';
 import { databaseService } from '../../services/databaseService';
-import { slugify, generateEmbedCode, generateQrCodeSvg, getAppBaseUrl, getLiveUrl } from '../../utils/publishUtils';
+import { slugify, generateEmbedCode, getAppBaseUrl, getLiveUrl } from '../../utils/publishUtils';
 import { generateExportHtml } from '../../utils/exportHtml';
 import { triggerConfetti, playSound } from '../../utils/interactiveEffects';
 import {
   X,
   Globe,
-  QrCode,
   Share2,
   Code,
   ExternalLink,
@@ -17,7 +16,6 @@ import {
   Sparkles,
   Download,
   RefreshCw,
-  Smartphone,
   ShieldCheck,
   Lock,
   AlertCircle,
@@ -31,7 +29,9 @@ interface PublishModalProps {
 export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) => {
   const { project, updateProjectSettings, activePage, showToast } = useEditor();
 
-  const [activeTab, setActiveTab] = useState<'url' | 'qr' | 'social' | 'embed'>('url');
+  const [activeTab, setActiveTab] = useState<'url' | 'social' | 'embed'>('url');
+  const [cloudVerified, setCloudVerified] = useState<boolean>(project.isPublic ?? false);
+  const [publishError, setPublishError] = useState<string | null>(null);
   const [customSlug, setCustomSlug] = useState<string>(project.slug || slugify(project.name) || 'my-site');
   const [seoTitle, setSeoTitle] = useState<string>(project.publishConfig?.seoTitle || project.name);
   const [seoDesc, setSeoDesc] = useState<string>(
@@ -73,10 +73,6 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
     return () => clearTimeout(timer);
   }, [customSlug, project.id]);
 
-  const qrCodeSvg = useMemo(() => {
-    return generateQrCodeSvg(liveUrl, 200);
-  }, [liveUrl]);
-
   const embedCodeSnippet = useMemo(() => {
     return generateEmbedCode(liveUrl, project.name);
   }, [liveUrl, project.name]);
@@ -111,13 +107,27 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
             publishedAt: res.publishedAt,
           },
         });
-        triggerConfetti();
-        playSound('success');
-        showToast('🚀 Hooray! Your site is live on the internet!', 'success');
+
+        if (res.cloudSynced) {
+          setCloudVerified(true);
+          setPublishError(null);
+          triggerConfetti();
+          playSound('success');
+          showToast('🚀 Verified on Cloud: Live and shareable worldwide!', 'success');
+        } else {
+          setCloudVerified(false);
+          setPublishError(res.error || 'Could not verify cloud availability. Saved locally to this browser only.');
+          playSound('pop');
+          showToast('⚠️ Saved locally to this browser only. Cloud sync offline.', 'warning');
+        }
       } else {
+        setCloudVerified(false);
+        setPublishError(res.error || 'Failed to publish site');
         showToast(res.error || 'Failed to publish site to cloud', 'warning');
       }
     } catch (err: any) {
+      setCloudVerified(false);
+      setPublishError(err.message || 'Error publishing site');
       showToast(err.message || 'Error publishing site', 'warning');
     } finally {
       setIsPublishing(false);
@@ -131,6 +141,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
       const res = await databaseService.unpublishProject(project);
       if (res.success) {
         updateProjectSettings({ isPublic: false });
+        setCloudVerified(false);
+        setPublishError(null);
         showToast('⚪ Site is now offline (Private Draft).', 'info');
       } else {
         showToast(res.error || 'Failed to unpublish site', 'warning');
@@ -154,19 +166,6 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
     setCopiedEmbed(true);
     showToast('Copied responsive iframe embed code! 📋', 'success');
     setTimeout(() => setCopiedEmbed(false), 2000);
-  };
-
-  const handleDownloadQr = () => {
-    const blob = new Blob([qrCodeSvg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${customSlug}-qr-code.svg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    showToast('Downloaded QR Code vector SVG! 📱', 'success');
   };
 
   const handleDownloadStandaloneBundle = () => {
@@ -198,8 +197,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
       <div
         className="w-full max-w-xl rounded-2xl flex flex-col overflow-hidden text-zinc-200 select-none animate-scale-in"
         style={{
-          backgroundColor: '#0d1017',
-          border: '1px solid #202738',
+          backgroundColor: '#1C241B',
+          border: '1px solid #354331',
           boxShadow: '0 30px 70px -15px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.06)',
           maxHeight: '88vh',
         }}
@@ -209,42 +208,56 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
         <div
           className="p-4 px-5 flex items-center justify-between shrink-0"
           style={{
-            backgroundColor: '#121622',
-            borderBottom: '1px solid #1e2434',
+            backgroundColor: '#101510',
+            borderBottom: '1px solid #354331',
           }}
         >
           <div className="flex items-center gap-3">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
               style={{
-                backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                border: '1px solid rgba(99, 102, 241, 0.28)',
+                backgroundColor: 'rgba(184, 243, 107, 0.12)',
+                border: '1px solid rgba(184, 243, 107, 0.28)',
               }}
             >
-              <Globe className="w-4 h-4 text-indigo-400" />
+              <Globe className="w-4 h-4 text-[#B8F36B]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-bold text-white tracking-tight">Publish to Web</h2>
                 {project.isPublic ? (
-                  <span
-                    className="flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                    style={{
-                      backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                      color: '#6ee7b7',
-                      border: '1px solid rgba(16, 185, 129, 0.3)',
-                    }}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    LIVE ONLINE
-                  </span>
+                  cloudVerified ? (
+                    <span
+                      className="flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                      style={{
+                        backgroundColor: 'rgba(184, 243, 107, 0.15)',
+                        color: '#B8F36B',
+                        border: '1px solid rgba(184, 243, 107, 0.3)',
+                      }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#B8F36B] animate-pulse" />
+                      LIVE ONLINE
+                    </span>
+                  ) : (
+                    <span
+                      className="flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                      style={{
+                        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                        color: '#fcd34d',
+                        border: '1px solid rgba(245, 158, 11, 0.35)',
+                      }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      SAVED LOCALLY
+                    </span>
+                  )
                 ) : (
                   <span
                     className="text-[10px] px-2 py-0.5 rounded-full font-medium"
                     style={{
-                      backgroundColor: '#1c2234',
-                      color: '#94a3b8',
-                      border: '1px solid #28334a',
+                      backgroundColor: '#252F23',
+                      color: '#A0A99A',
+                      border: '1px solid #354331',
                     }}
                   >
                     OFFLINE DRAFT
@@ -252,7 +265,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                 )}
               </div>
               <p className="text-[11px] text-zinc-400 mt-0.5">
-                Instant public web address, mobile QR testing, and social previews.
+                Instant public web address, social previews, and standalone code export.
               </p>
             </div>
           </div>
@@ -270,13 +283,12 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
         <div
           className="px-5 flex items-center gap-1 text-xs shrink-0"
           style={{
-            backgroundColor: '#0a0d14',
-            borderBottom: '1px solid #1a2030',
+            backgroundColor: '#101510',
+            borderBottom: '1px solid #354331',
           }}
         >
           {[
             { id: 'url', label: 'Live URL', icon: Globe },
-            { id: 'qr', label: 'Mobile QR', icon: QrCode },
             { id: 'social', label: 'Social & SEO', icon: Share2 },
             { id: 'embed', label: 'Embed & Deploy', icon: Code },
           ].map((tab) => {
@@ -288,13 +300,13 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                 onClick={() => setActiveTab(tab.id as any)}
                 className="py-2.5 px-3 font-medium flex items-center gap-1.5 transition-all text-xs"
                 style={{
-                  color: active ? '#ffffff' : '#8896ab',
-                  borderBottom: active ? '2px solid #6366f1' : '2px solid transparent',
-                  backgroundColor: active ? 'rgba(99, 102, 241, 0.08)' : 'transparent',
+                  color: active ? '#F4F5EF' : '#A0A99A',
+                  borderBottom: active ? '2px solid #B8F36B' : '2px solid transparent',
+                  backgroundColor: active ? 'rgba(184, 243, 107, 0.08)' : 'transparent',
                   fontWeight: active ? 600 : 500,
                 }}
               >
-                <Icon className="w-3.5 h-3.5" style={{ color: active ? '#818cf8' : '#64748b' }} />
+                <Icon className="w-3.5 h-3.5" style={{ color: active ? '#B8F36B' : '#A0A99A' }} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -310,13 +322,13 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
               <div
                 className="p-4 rounded-xl space-y-3"
                 style={{
-                  backgroundColor: '#131722',
-                  border: '1px solid #202738',
+                  backgroundColor: '#101510',
+                  border: '1px solid #354331',
                 }}
               >
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-indigo-400" />
+                    <Globe className="w-3.5 h-3.5 text-[#B8F36B]" />
                     <span>Public Web Address</span>
                   </label>
 
@@ -395,13 +407,33 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
 
                 {/* Status Notice */}
                 {project.isPublic ? (
-                  <p className="text-[11px] text-zinc-400 flex items-center gap-1.5 pt-0.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>
-                      Live release synced to Supabase Cloud
-                      {project.publishedAt && ` • ${new Date(project.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
-                    </span>
-                  </p>
+                  cloudVerified ? (
+                    <p className="text-[11px] text-zinc-400 flex items-center gap-1.5 pt-0.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>
+                        Live release verified on Supabase Cloud
+                        {project.publishedAt && ` • ${new Date(project.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                      </span>
+                    </p>
+                  ) : (
+                    <div className="p-3 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-200 text-xs flex items-start gap-2.5 mt-1.5">
+                      <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="font-semibold text-amber-300">Saved Locally Only (Cloud Sync Offline)</p>
+                        <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                          Your site is saved in this browser's local cache. Visitors on other phones or computers cannot open this link yet because cloud publishing was not verified.
+                        </p>
+                        {publishError && (
+                          <p className="text-[10px] text-amber-300/80 font-mono">
+                            Diagnostic: {publishError}
+                          </p>
+                        )}
+                        <p className="text-[11px] text-zinc-300 pt-0.5">
+                          💡 You can click <strong>"Update Live Website Changes"</strong> once reconnected, or use <strong>"Embed & Deploy"</strong> to export standalone HTML files.
+                        </p>
+                      </div>
+                    </div>
+                  )
                 ) : (
                   <p className="text-[11px] text-zinc-500 flex items-center gap-1.5 pt-0.5">
                     <AlertCircle className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
@@ -416,27 +448,28 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                   type="button"
                   onClick={handlePublish}
                   disabled={isPublishing || slugStatus === 'taken'}
-                  className="w-full py-2.5 px-4 rounded-xl text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                  className="w-full py-2.5 px-4 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   style={{
-                    backgroundColor: project.isPublic ? '#4f46e5' : '#10b981',
-                    boxShadow: project.isPublic
-                      ? '0 4px 14px rgba(79, 70, 229, 0.35)'
-                      : '0 4px 14px rgba(16, 185, 129, 0.35)',
+                    backgroundColor: '#B8F36B',
+                    color: '#101510',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
                   }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#cbf988'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#B8F36B'; }}
                 >
                   {isPublishing ? (
                     <>
-                      <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                      <RefreshCw className="w-4 h-4 animate-spin text-[#101510]" />
                       <span>Deploying Changes to Cloud...</span>
                     </>
                   ) : project.isPublic ? (
                     <>
-                      <Sparkles className="w-4 h-4 text-amber-300" />
+                      <Sparkles className="w-4 h-4 text-[#101510]" />
                       <span>Update Live Website Changes</span>
                     </>
                   ) : (
                     <>
-                      <Globe className="w-4 h-4 text-white" />
+                      <Globe className="w-4 h-4 text-[#101510]" />
                       <span>🚀 Publish Live to Web Now</span>
                     </>
                   )}
@@ -501,10 +534,10 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#10b981' }} />
                     </div>
                     <div
-                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono text-zinc-400 ml-2"
-                      style={{ backgroundColor: '#090b10', border: '1px solid #1a2030' }}
+                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono text-[#A0A99A] ml-2"
+                      style={{ backgroundColor: '#101510', border: '1px solid #354331' }}
                     >
-                      <Lock className="w-2.5 h-2.5 text-emerald-400" />
+                      <Lock className="w-2.5 h-2.5 text-[#B8F36B]" />
                       <span>{baseUrl}/?p={customSlug}</span>
                     </div>
                   </div>
@@ -513,7 +546,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                     href={liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-400 hover:text-indigo-300 text-[11px] font-medium flex items-center gap-1"
+                    className="text-[#B8F36B] hover:text-[#c4f780] text-[11px] font-medium flex items-center gap-1"
                   >
                     <span>Open in New Tab</span>
                     <ExternalLink className="w-3 h-3" />
@@ -533,63 +566,6 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
             </div>
           )}
 
-          {/* TAB 2: MOBILE QR CODE */}
-          {activeTab === 'qr' && (
-            <div className="space-y-4">
-              <div
-                className="p-5 rounded-xl flex flex-col sm:flex-row items-center gap-5"
-                style={{
-                  backgroundColor: '#131722',
-                  border: '1px solid #202738',
-                }}
-              >
-                <div
-                  className="shrink-0 p-3 rounded-xl flex items-center justify-center"
-                  style={{
-                    backgroundColor: '#06080d',
-                    border: '1px solid #28334a',
-                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
-                  }}
-                  dangerouslySetInnerHTML={{ __html: qrCodeSvg }}
-                />
-
-                <div className="space-y-3 text-center sm:text-left">
-                  <div>
-                    <h3 className="text-sm font-bold text-white flex items-center justify-center sm:justify-start gap-1.5">
-                      <Smartphone className="w-4 h-4 text-emerald-400" />
-                      <span>Instant Mobile Device Testing</span>
-                    </h3>
-                    <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                      Point your phone's camera at this QR code to immediately preview your responsive layout, touch interactions, and tactile audio on iOS or Android.
-                    </p>
-                  </div>
-
-                  <div
-                    className="p-2 px-3 rounded-lg font-mono text-[11px] text-zinc-300 break-all select-all"
-                    style={{
-                      backgroundColor: '#0a0d14',
-                      border: '1px solid #202738',
-                    }}
-                  >
-                    {liveUrl}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleDownloadQr}
-                    className="py-1.5 px-3.5 rounded-lg text-white font-medium text-xs inline-flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
-                    style={{
-                      backgroundColor: '#202738',
-                      border: '1px solid #2d3850',
-                    }}
-                  >
-                    <Download className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Download Vector QR (SVG)</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* TAB 3: SOCIAL PREVIEW & SEO */}
           {activeTab === 'social' && (

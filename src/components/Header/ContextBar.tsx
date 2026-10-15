@@ -22,6 +22,8 @@ import {
   Ruler,
   Magnet,
   Search,
+  Paintbrush,
+  Palette,
 } from 'lucide-react';
 
 const SWATCHES = ['#ffffff', '#0f172a', '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -36,6 +38,9 @@ export const ContextBar: React.FC = () => {
     cutElement,
     pasteElement,
     hasClipboard,
+    copyElementStyle,
+    pasteElementStyle,
+    hasStyleClipboard,
     deleteElement,
     toggleLock,
     alignElement,
@@ -58,8 +63,10 @@ export const ContextBar: React.FC = () => {
     toggleLeftSidebar,
     rightSidebarOpen,
     toggleRightSidebar,
+    setRightSidebarOpen,
     resetToDefaultDemo,
     setShowShortcutsModal,
+    setIsFindReplaceOpen,
   } = useEditor();
 
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -280,6 +287,21 @@ export const ContextBar: React.FC = () => {
                 <Files className="w-3.5 h-3.5" />
               </button>
               <button
+                onClick={() => copyElementStyle(el.id)}
+                className="p-1 rounded text-zinc-400 hover:text-[#B8F36B] hover:bg-zinc-800 transition-colors"
+                title="Copy Style (⌥⌘C)"
+              >
+                <Paintbrush className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => pasteElementStyle(el.id)}
+                disabled={!hasStyleClipboard}
+                className="p-1 rounded text-zinc-400 hover:text-[#B8F36B] hover:bg-zinc-800 disabled:opacity-30 transition-colors"
+                title="Paste Style (⌥⌘V)"
+              >
+                <Palette className="w-3.5 h-3.5" />
+              </button>
+              <button
                 onClick={() => toggleLock(el.id)}
                 className={`p-1 rounded transition-colors ${
                   isLocked ? 'text-amber-400 bg-amber-500/10' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
@@ -302,11 +324,30 @@ export const ContextBar: React.FC = () => {
           <div className="flex items-center gap-2 text-zinc-400 text-[11px]">
             <span className="font-medium text-zinc-300">{activePage.name}</span>
             <span>&bull;</span>
-            <span className="font-mono text-zinc-400">
-              {activePage.canvasWidth} × {activePage.canvasHeight} px
-            </span>
+            <button
+              type="button"
+              onClick={() => setRightSidebarOpen(true)}
+              className="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 hover:text-white text-zinc-300 font-mono text-[10px] flex items-center gap-1 transition-colors cursor-pointer"
+              title="Click to change canvas size & dimensions"
+            >
+              <span>{activePage.canvasWidth} × {activePage.canvasHeight} px</span>
+            </button>
             <span>&bull;</span>
-            <span className="text-zinc-500">Click any element or drag to customize</span>
+            <button
+              type="button"
+              onClick={() => setRightSidebarOpen(true)}
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-[#B8F36B] transition-colors cursor-pointer text-[10px]"
+              title="Click to customize canvas background colors, gradients, and textures"
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full border border-white/20 shrink-0"
+                style={{
+                  backgroundColor: activePage.backgroundColor || '#ffffff',
+                  backgroundImage: activePage.backgroundGradient,
+                }}
+              />
+              <span>Canvas Surface</span>
+            </button>
           </div>
         )}
       </div>
@@ -347,6 +388,19 @@ export const ContextBar: React.FC = () => {
             </button>
           )}
         </div>
+
+        <span className="w-px h-4 bg-zinc-800" />
+
+        {/* Cmd+F Canvas Find & Replace shortcut pill */}
+        <button
+          onClick={() => setIsFindReplaceOpen((prev) => !prev)}
+          className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-[#B8F36B] bg-zinc-800/70 hover:bg-zinc-700/60 border border-zinc-700/50 transition-colors"
+          title="Find & Replace on Canvas (Cmd+F)"
+        >
+          <Search className="w-3 h-3 text-[#B8F36B]" />
+          <span>Find</span>
+          <kbd className="text-[9px] bg-zinc-700 text-zinc-300 px-1 py-0.5 rounded ml-0.5 font-mono">⌘F</kbd>
+        </button>
 
         <span className="w-px h-4 bg-zinc-800" />
 

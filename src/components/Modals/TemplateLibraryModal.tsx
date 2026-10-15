@@ -223,8 +223,8 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
       <div
         style={{
           width: '100%', maxWidth: 900, maxHeight: '90vh',
-          backgroundColor: '#0f0f14',
-          border: '1px solid #1e1e28',
+          backgroundColor: '#101510',
+          border: '1px solid #354331',
           borderRadius: 18,
           boxShadow: '0 32px 100px rgba(0,0,0,0.8)',
           display: 'flex', flexDirection: 'column',
@@ -235,7 +235,7 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
         {/* Header */}
         <div style={{
           padding: '20px 24px 16px',
-          borderBottom: '1px solid #1a1a22',
+          borderBottom: '1px solid #354331',
           display: 'flex', alignItems: 'flex-start', gap: 16,
           flexShrink: 0,
         }}>
@@ -243,16 +243,16 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <div style={{
                 width: 30, height: 30, borderRadius: 8,
-                background: 'linear-gradient(135deg, #6366f1, #9333ea)',
+                background: '#1C241B', border: '1px solid #354331',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <Sparkles size={16} color="#fff" />
+                <Sparkles size={16} color="#B8F36B" />
               </div>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#f4f4f5' }}>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#F4F5EF', fontFamily: 'Cabinet Grotesk, sans-serif' }}>
                 Template Library
               </h2>
             </div>
-            <p style={{ margin: 0, fontSize: 12, color: '#71717a' }}>
+            <p style={{ margin: 0, fontSize: 12, color: '#A0A99A' }}>
               Pick a full-page layout to start from. Applying replaces the current canvas.
             </p>
           </div>
@@ -260,17 +260,17 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
           {/* Search */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: '#141418', border: '1px solid #2a2a35',
+            background: '#1C241B', border: '1px solid #354331',
             borderRadius: 8, padding: '0 10px', height: 34,
           }}>
-            <Search size={13} color="#52525b" />
+            <Search size={13} color="#A0A99A" />
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search templates…"
               style={{
                 background: 'transparent', border: 'none', outline: 'none',
-                color: '#d4d4d8', fontSize: 12, fontFamily: 'inherit', width: 150,
+                color: '#F4F5EF', fontSize: 12, fontFamily: 'inherit', width: 150,
               }}
             />
           </div>
@@ -279,7 +279,7 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
             onClick={onClose}
             style={{
               width: 30, height: 30, borderRadius: 7, border: 'none',
-              background: '#1c1c22', color: '#71717a', cursor: 'pointer',
+              background: '#1C241B', color: '#A0A99A', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}
@@ -292,7 +292,7 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
         <div style={{
           padding: '12px 24px',
           display: 'flex', gap: 6, flexShrink: 0,
-          borderBottom: '1px solid #1a1a22',
+          borderBottom: '1px solid #354331',
         }}>
           {CATEGORIES.map(cat => {
             const active = activeCategory === cat;
@@ -303,10 +303,11 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
                 onClick={() => setActiveCategory(cat)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer',
-                  fontSize: 12, fontWeight: 500,
-                  background: active ? '#6366f1' : '#1a1a22',
-                  color: active ? '#fff' : '#71717a',
+                  padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
+                  fontSize: 12, fontWeight: active ? 700 : 500,
+                  border: active ? '1px solid #B8F36B' : '1px solid #354331',
+                  background: active ? '#B8F36B' : '#1C241B',
+                  color: active ? '#101510' : '#A0A99A',
                 }}
               >
                 {CATEGORY_ICONS[cat]}

@@ -1,0 +1,200 @@
+/* ==========================================================================
+   Gummy Mascot Component Styles (GummyMascot.css)
+   Anti-slop compliant: Zero opacity gating, clear overflow, tactile feedback
+   ========================================================================== */
+
+.gummy-mascot-container {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: visible;
+}
+
+.gummy-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: visible;
+  cursor: grab;
+  touch-action: manipulation;
+  outline: none;
+}
+
+.gummy-wrap:focus-visible {
+  outline: 2px solid #a4ac86;
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.gummy-wrap:active {
+  cursor: grabbing;
+}
+
+.gummy-wrap svg {
+  overflow: visible;
+  display: block;
+  transition: filter 0.22s ease;
+}
+
+.gummy-wrap:hover svg {
+  filter: brightness(1.05);
+}
+
+/* ── Size Variants ──────────────────────────────────────────────────────── */
+
+.gummy-size-xs {
+  width: 38px;
+  height: 20px;
+}
+
+.gummy-size-sm {
+  width: 60px;
+  height: 30px;
+}
+
+.gummy-size-md {
+  width: 110px;
+  height: 52px;
+}
+
+.gummy-size-lg {
+  width: 155px;
+  height: 74px;
+}
+
+.gummy-size-xl {
+  width: 210px;
+  height: 100px;
+}
+
+/* ── Interactive Speech Bubble ─────────────────────────────────────────── */
+
+.gummy-speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #191c16;
+  border: 1px solid rgba(164, 172, 134, 0.35);
+  color: #f4ede2;
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  padding: 6px 12px;
+  border-radius: 9px;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  z-index: 20;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.18s ease;
+  will-change: transform;
+}
+
+.gummy-speech-bubble:hover {
+  border-color: rgba(184, 243, 107, 0.6);
+  background: #20241c;
+}
+
+/* Speech bubble caret */
+.gummy-speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px 5px 0 5px;
+  border-style: solid;
+  border-color: #191c16 transparent transparent transparent;
+}
+
+.gummy-speech-bubble::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: rgba(164, 172, 134, 0.35) transparent transparent transparent;
+  margin-top: 1px;
+}
+
+.gummy-speech-hint {
+  display: block;
+  font-size: 9px;
+  color: #a4ac86;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+  opacity: 0.85;
+}
+
+/* ── Floating Corner Dock Companion ───────────────────────────────────── */
+
+.gummy-floating-dock {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  background: rgba(15, 17, 13, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(164, 172, 134, 0.28);
+  border-radius: 20px;
+  padding: 12px 14px 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+}
+
+.gummy-dock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.gummy-dock-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #a4ac86;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gummy-dock-btn {
+  background: transparent;
+  border: none;
+  color: #8a9075;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.gummy-dock-btn:hover {
+  color: #f4ede2;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Reduced Motion Accessibility ──────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .gummy-wrap svg,
+  .gummy-body-group,
+  .gummy-shadow {
+    transition: none !important;
+    animation: none !important;
+  }
+}

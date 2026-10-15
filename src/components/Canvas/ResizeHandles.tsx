@@ -72,7 +72,7 @@ export const ResizeHandles: React.FC<ResizeHandlesProps> = ({ onResizeStart }) =
             ...h.style,
             cursor: h.cursor,
           }}
-          className="absolute bg-white border-[1.5px] border-indigo-600 rounded-full z-30 shadow-[0_1px_4px_rgba(0,0,0,0.5)] hover:scale-125 hover:bg-indigo-50 hover:border-indigo-400 transition-all before:absolute before:-inset-2.5 before:content-['']"
+          className="absolute bg-white border-[1.5px] border-[#B8F36B] rounded-full z-30 shadow-[0_1px_4px_rgba(0,0,0,0.5)] hover:bg-[#cbf988] transition-colors before:absolute before:-inset-2.5 before:content-['']"
         />
       ))}
 
@@ -85,7 +85,7 @@ export const ResizeHandles: React.FC<ResizeHandlesProps> = ({ onResizeStart }) =
             ...h.style,
             cursor: h.cursor,
           }}
-          className="absolute w-2.5 h-2.5 bg-white border-[1.5px] border-indigo-600 rounded-[2px] z-30 shadow-[0_1px_4px_rgba(0,0,0,0.5)] hover:scale-125 hover:bg-indigo-50 hover:border-indigo-400 transition-all before:absolute before:-inset-2.5 before:content-['']"
+          className="absolute w-2.5 h-2.5 bg-white border-[1.5px] border-[#B8F36B] rounded-[2px] z-30 shadow-[0_1px_4px_rgba(0,0,0,0.5)] hover:bg-[#cbf988] transition-colors before:absolute before:-inset-2.5 before:content-['']"
         />
       ))}
     </>

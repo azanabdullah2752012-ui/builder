@@ -14,17 +14,29 @@ import { playSound, triggerConfetti } from '../../utils/interactiveEffects';
 import { WidgetPropertiesEditor } from './WidgetPropertiesEditor';
 
 const QUICK_COLORS = [
-  { name: 'Pickle Mint', color: '#10b981' },
-  { name: 'Emerald', color: '#059669' },
-  { name: 'Sky Blue', color: '#38bdf8' },
-  { name: 'Ocean Blue', color: '#2563eb' },
-  { name: 'Electric Purple', color: '#8b5cf6' },
-  { name: 'Bubblegum Pink', color: '#ec4899' },
+  { name: 'Pickle Lime', color: '#B8F36B' },
+  { name: 'Deep Forest', color: '#101510' },
+  { name: 'Panel Green', color: '#1C241B' },
+  { name: 'Obsidian Void', color: '#0c0e14' },
+  { name: 'Electric Indigo', color: '#4f46e5' },
+  { name: 'Ocean Cyan', color: '#06b6d4' },
+  { name: 'Emerald Spark', color: '#10b981' },
   { name: 'Solar Amber', color: '#f59e0b' },
   { name: 'Flame Red', color: '#ef4444' },
+  { name: 'Biscuit Gold', color: '#936639' },
+  { name: 'Celadon Sage', color: '#A4AC86' },
+  { name: 'Olive Ink', color: '#333D29' },
+  { name: 'Warm Linen', color: '#F4F2EC' },
   { name: 'Pure White', color: '#ffffff' },
-  { name: 'Deep Slate', color: '#1e293b' },
-  { name: 'Obsidian Black', color: '#090a0f' },
+  { name: 'Lavender Mist', color: '#f3e8ff' },
+  { name: 'Sky Frost', color: '#e0f2fe' },
+];
+
+const SIMPLE_GRADIENTS = [
+  { name: 'Forest Gradient', gradient: 'linear-gradient(180deg, #101510 0%, #1c241b 100%)' },
+  { name: 'Obsidian Gradient', gradient: 'linear-gradient(135deg, #090a0f 0%, #151824 100%)' },
+  { name: 'Warm Linen Gradient', gradient: 'linear-gradient(180deg, #fbf9f5 0%, #f3efe6 100%)' },
+  { name: 'Emerald Night', gradient: 'linear-gradient(135deg, #061712 0%, #0d281e 100%)' },
 ];
 
 const CURATED_KID_IMAGES = [
@@ -57,24 +69,24 @@ export const SimplePropertiesPanel: React.FC = () => {
         style={{
           width: '100%',
           height: '100%',
-          background: '#0d0d10',
-          color: '#d4d4d8',
+          background: '#101510',
+          color: '#F4F5EF',
           padding: 20,
           display: 'flex',
           flexDirection: 'column',
           gap: 20,
           userSelect: 'none',
           overflowY: 'auto',
-          borderLeft: '1px solid #1a1a20',
+          borderLeft: '1px solid #354331',
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, color: '#B8F36B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               🧒 Simple Inspector
             </span>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', margin: '4px 0 0' }}>Page Settings</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#F4F5EF', margin: '4px 0 0' }}>Page Settings</h3>
           </div>
           <button
             onClick={() => {
@@ -87,43 +99,131 @@ export const SimplePropertiesPanel: React.FC = () => {
               gap: 4,
               padding: '4px 8px',
               borderRadius: 8,
-              background: '#1a1a24',
-              border: '1px solid #282e42',
-              color: '#818cf8',
+              background: '#1C241B',
+              border: '1px solid #354331',
+              color: '#F4F5EF',
               fontSize: 10,
               fontWeight: 700,
               cursor: 'pointer',
             }}
           >
-            <Zap size={11} className="text-amber-400" />
+            <Zap size={11} style={{ color: '#B8F36B' }} />
             <span>Pro Mode</span>
           </button>
         </div>
 
-        {/* Canvas Background Color */}
+        {/* Canvas Background Color & Gradients */}
         <div style={{ background: '#13151f', border: '1px solid #202434', borderRadius: 16, padding: 16 }}>
           <h4 style={{ fontSize: 13, fontWeight: 700, color: '#ffffff', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Palette size={14} className="text-emerald-400" />
-            <span>Canvas Background</span>
+            <span>Canvas Colors</span>
           </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 12 }}>
             {QUICK_COLORS.map((c) => (
               <button
                 key={c.name}
                 onClick={() => {
                   playSound('pop');
-                  updatePageSettings(activePage.id, { backgroundColor: c.color });
+                  updatePageSettings(activePage.id, {
+                    backgroundColor: c.color,
+                    backgroundGradient: undefined,
+                    backgroundImage: undefined,
+                  });
                 }}
                 title={c.name}
                 style={{
-                  height: 34,
+                  height: 32,
                   borderRadius: 8,
                   background: c.color,
-                  border: activePage.backgroundColor === c.color ? '2px solid #ffffff' : '1px solid #333',
+                  border:
+                    !activePage.backgroundGradient && activePage.backgroundColor === c.color
+                      ? '2px solid #ffffff'
+                      : '1px solid #333',
                   cursor: 'pointer',
-                  boxShadow: activePage.backgroundColor === c.color ? '0 0 10px rgba(255,255,255,0.4)' : 'none',
+                  boxShadow:
+                    !activePage.backgroundGradient && activePage.backgroundColor === c.color
+                      ? '0 0 10px rgba(255,255,255,0.4)'
+                      : 'none',
                 }}
               />
+            ))}
+          </div>
+
+          <h5 style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px' }}>
+            Cool Gradients
+          </h5>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+            {SIMPLE_GRADIENTS.map((g) => (
+              <button
+                key={g.name}
+                onClick={() => {
+                  playSound('pop');
+                  updatePageSettings(activePage.id, {
+                    backgroundGradient: g.gradient,
+                    backgroundImage: undefined,
+                  });
+                }}
+                title={g.name}
+                style={{
+                  height: 34,
+                  borderRadius: 8,
+                  backgroundImage: g.gradient,
+                  border:
+                    activePage.backgroundGradient === g.gradient
+                      ? '2px solid #B8F36B'
+                      : '1px solid #333',
+                  cursor: 'pointer',
+                  color: '#ffffff',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow:
+                    activePage.backgroundGradient === g.gradient
+                      ? '0 0 10px rgba(184,243,107,0.4)'
+                      : 'none',
+                }}
+              >
+                {g.name.split(' ')[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Canvas Size Quick Controls */}
+        <div style={{ background: '#13151f', border: '1px solid #202434', borderRadius: 16, padding: 16 }}>
+          <h4 style={{ fontSize: 13, fontWeight: 700, color: '#ffffff', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span>📐</span>
+            <span>Canvas Size ({activePage.canvasWidth} × {activePage.canvasHeight})</span>
+          </h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+            {[
+              { label: 'Normal', w: 1200, h: 800 },
+              { label: 'Wide', w: 1440, h: 900 },
+              { label: 'Tall (+400)', w: activePage.canvasWidth, h: (activePage.canvasHeight || 800) + 400 },
+            ].map((s) => (
+              <button
+                key={s.label}
+                onClick={() => {
+                  playSound('pop');
+                  updatePageSettings(activePage.id, { canvasWidth: s.w, canvasHeight: s.h });
+                  showToast(`Canvas size: ${s.w} × ${s.h}`, 'success');
+                }}
+                style={{
+                  padding: '8px 4px',
+                  borderRadius: 8,
+                  background: '#1a1e2c',
+                  border: '1px solid #2e354d',
+                  color: '#ffffff',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                }}
+              >
+                {s.label}
+              </button>
             ))}
           </div>
         </div>
@@ -151,24 +251,24 @@ export const SimplePropertiesPanel: React.FC = () => {
       style={{
         width: '100%',
         height: '100%',
-        background: '#0d0d10',
-        color: '#d4d4d8',
+        background: '#101510',
+        color: '#F4F5EF',
         padding: 18,
         display: 'flex',
         flexDirection: 'column',
         gap: 16,
         userSelect: 'none',
         overflowY: 'auto',
-        borderLeft: '1px solid #1a1a20',
+        borderLeft: '1px solid #354331',
       }}
     >
       {/* Top Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1a1a20', paddingBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #354331', paddingBottom: 12 }}>
         <div>
-          <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <span style={{ fontSize: 10, fontWeight: 800, color: '#B8F36B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             🧒 Simple Inspector
           </span>
-          <h3 style={{ fontSize: 15, fontWeight: 800, color: '#ffffff', margin: '2px 0 0' }}>
+          <h3 style={{ fontSize: 15, fontWeight: 800, color: '#F4F5EF', margin: '2px 0 0' }}>
             {selectedElement.name || selectedElement.type}
           </h3>
         </div>
@@ -469,7 +569,7 @@ export const SimplePropertiesPanel: React.FC = () => {
       )}
 
       {/* Switch to Pro Footer */}
-      <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid #1a1a20', textAlign: 'center' }}>
+      <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid #354331', textAlign: 'center' }}>
         <button
           onClick={() => {
             playSound('pop');
@@ -479,7 +579,7 @@ export const SimplePropertiesPanel: React.FC = () => {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#71717a',
+            color: '#A0A99A',
             fontSize: 11,
             cursor: 'pointer',
             textDecoration: 'underline',

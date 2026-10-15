@@ -248,14 +248,14 @@ CREATE TRIGGER on_auth_user_created
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl border border-[#232738] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-scale-in text-zinc-100"
-        style={{ backgroundColor: '#11141d', zIndex: 100000 }}
+        className="relative w-full max-w-4xl border border-[#354331] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-scale-in text-[#F4F5EF]"
+        style={{ backgroundColor: '#101510', zIndex: 100000 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div
-          className="flex items-center justify-between px-6 py-4 border-b border-[#232738] shrink-0"
-          style={{ backgroundColor: '#151926' }}
+          className="flex items-center justify-between px-6 py-4 border-b border-[#354331] shrink-0"
+          style={{ backgroundColor: '#1C241B' }}
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">

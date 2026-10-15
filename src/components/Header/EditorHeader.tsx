@@ -18,12 +18,13 @@ import { AuthModal } from '../Modals/AuthModal';
 import { ProjectManagerModal } from '../Modals/ProjectManagerModal';
 import { VersionHistoryModal } from '../Modals/VersionHistoryModal';
 import { TemplateLibraryModal } from '../Modals/TemplateLibraryModal';
+import { PickleTorchSvg } from '../Brand/PickleCorpLogo';
 
 const S = {
   header: {
     height: 44,
-    background: '#0f0f0f',
-    borderBottom: '1px solid #1e1e1e',
+    background: '#101510',
+    borderBottom: '1px solid #354331',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -39,52 +40,52 @@ const S = {
     gap: 6,
     fontSize: 13,
     fontWeight: 600,
-    color: '#e8e8e8',
+    color: '#F4F5EF',
     letterSpacing: '-0.02em',
   } as React.CSSProperties,
-  brandStar: { color: '#6366f1', fontSize: 14 },
-  sep: { width: 1, height: 14, background: '#2a2a2a', margin: '0 8px' } as React.CSSProperties,
+  brandStar: { color: '#B8F36B', fontSize: 14 },
+  sep: { width: 1, height: 14, background: '#354331', margin: '0 8px' } as React.CSSProperties,
   iconBtn: {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     width: 28, height: 28, borderRadius: 6, border: 'none',
-    background: 'transparent', color: '#666', cursor: 'pointer',
+    background: 'transparent', color: '#A0A99A', cursor: 'pointer',
     transition: 'background 0.12s, color 0.12s', fontSize: 12,
   } as React.CSSProperties,
   textBtn: {
     display: 'flex', alignItems: 'center', gap: 5, height: 28,
-    padding: '0 10px', borderRadius: 6, border: '1px solid #222',
-    background: 'transparent', color: '#999', cursor: 'pointer',
+    padding: '0 10px', borderRadius: 6, border: '1px solid #354331',
+    background: 'transparent', color: '#A0A99A', cursor: 'pointer',
     transition: 'background 0.12s, color 0.12s, border-color 0.12s',
     fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap' as const,
   } as React.CSSProperties,
   pagePill: {
     display: 'flex', alignItems: 'center', gap: 5, height: 26,
     padding: '0 8px', borderRadius: 6,
-    background: '#1a1a1a', border: '1px solid #2a2a2a',
-    color: '#e8e8e8', cursor: 'pointer', fontSize: 11, fontWeight: 500,
+    background: '#1C241B', border: '1px solid #354331',
+    color: '#F4F5EF', cursor: 'pointer', fontSize: 11, fontWeight: 500,
   } as React.CSSProperties,
   dropdown: {
     position: 'absolute' as const, top: 'calc(100% + 6px)', left: 0,
-    width: 220, background: '#141414', border: '1px solid #262626',
+    width: 220, background: '#1C241B', border: '1px solid #354331',
     borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
     padding: '4px', zIndex: 100,
     animation: 'craftFadeIn 0.1s ease-out',
   } as React.CSSProperties,
   dropdownR: {
     position: 'absolute' as const, top: 'calc(100% + 6px)', right: 0,
-    width: 220, background: '#141414', border: '1px solid #262626',
+    width: 220, background: '#1C241B', border: '1px solid #354331',
     borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
     padding: '4px', zIndex: 100,
     animation: 'craftFadeIn 0.1s ease-out',
   } as React.CSSProperties,
   dropRow: {
     display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px',
-    borderRadius: 7, cursor: 'pointer', fontSize: 12, color: '#bbb',
+    borderRadius: 7, cursor: 'pointer', fontSize: 12, color: '#A0A99A',
     transition: 'background 0.1s, color 0.1s',
   } as React.CSSProperties,
   segGroup: {
     display: 'flex', alignItems: 'center', gap: 2, padding: '3px',
-    background: '#141414', border: '1px solid #222', borderRadius: 8,
+    background: '#1C241B', border: '1px solid #354331', borderRadius: 8,
   } as React.CSSProperties,
 };
 
@@ -95,7 +96,7 @@ function DropRow({ icon, label, danger, onClick }: { icon: React.ReactNode; labe
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      style={{ ...S.dropRow, background: hov ? (danger ? 'rgba(239,68,68,0.08)' : '#1e1e1e') : 'transparent', color: hov ? (danger ? '#f87171' : '#e8e8e8') : (danger ? '#f87171' : '#bbb') }}
+      style={{ ...S.dropRow, background: hov ? (danger ? 'rgba(239,68,68,0.08)' : '#252F23') : 'transparent', color: hov ? (danger ? '#f87171' : '#F4F5EF') : (danger ? '#f87171' : '#A0A99A') }}
     >
       {icon}{label}
     </div>
@@ -127,9 +128,10 @@ function TextBtn({ icon, label, title, active, accent, onClick }: { icon?: React
       onMouseLeave={() => setHov(false)}
       style={{
         ...S.textBtn,
-        background: accent ? (hov ? '#5b5bd6' : '#6366f1') : active ? '#1e1e1e' : hov ? '#1a1a1a' : 'transparent',
-        color: accent ? '#fff' : active || hov ? '#e8e8e8' : '#888',
-        borderColor: accent ? 'transparent' : active ? '#333' : hov ? '#2a2a2a' : '#222',
+        background: accent ? (hov ? '#c4f780' : '#B8F36B') : active ? '#252F23' : hov ? '#1C241B' : 'transparent',
+        color: accent ? '#101510' : active || hov ? '#F4F5EF' : '#A0A99A',
+        borderColor: accent ? 'transparent' : active ? '#B8F36B' : hov ? '#354331' : 'transparent',
+        fontWeight: accent ? 600 : 400,
       }}
     >
       {icon}{label}
@@ -226,9 +228,24 @@ export const EditorHeader: React.FC = () => {
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.8'; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
           >
-            <span style={{ fontSize: 15, marginRight: 2 }}>🥒</span>
-            <span style={{ fontWeight: 800, letterSpacing: '-0.02em', color: '#10b981' }}>Pickle</span>
-            <span style={{ fontWeight: 500, color: '#888', marginLeft: 3 }}>Studio</span>
+            <PickleTorchSvg size={22} theme="dark" style={{ marginRight: 6 }} />
+            <span style={{ fontWeight: 800, letterSpacing: '-0.02em', color: '#F4F5EF' }}>Pickle</span>
+            <span style={{ fontWeight: 600, color: '#B8F36B', marginLeft: 3 }}>Studio</span>
+            <span
+              style={{
+                fontSize: 8.5,
+                fontWeight: 800,
+                color: '#1076fc',
+                backgroundColor: 'rgba(16, 118, 252, 0.12)',
+                border: '1px solid rgba(16, 118, 252, 0.3)',
+                padding: '1px 6px',
+                borderRadius: 4,
+                marginLeft: 6,
+                letterSpacing: '0.06em',
+              }}
+            >
+              CORP™
+            </span>
           </button>
 
           <div style={S.sep} />
@@ -252,41 +269,41 @@ export const EditorHeader: React.FC = () => {
                 onChange={e => setTitleValue(e.target.value)}
                 onBlur={handleTitleSubmit}
                 onKeyDown={e => e.key === 'Enter' && handleTitleSubmit()}
-                style={{ background: '#1a1a1a', border: '1px solid #6366f1', borderRadius: 5, padding: '2px 8px', fontSize: 11, color: '#e8e8e8', outline: 'none', width: 110 }}
+                style={{ background: '#1C241B', border: '1px solid #B8F36B', borderRadius: 5, padding: '2px 8px', fontSize: 11, color: '#F4F5EF', outline: 'none', width: 110 }}
               />
             ) : (
               <span
                 onClick={() => { setTitleValue(project.name); setIsEditingTitle(true); }}
-                style={{ fontSize: 12, color: '#999', cursor: 'text', fontWeight: 400 }}
+                style={{ fontSize: 12, color: '#A0A99A', cursor: 'text', fontWeight: 400 }}
               >
                 {project.name}
               </span>
             )}
 
-            <span style={{ color: '#333', fontSize: 12, margin: '0 1px' }}>/</span>
+            <span style={{ color: '#354331', fontSize: 12, margin: '0 1px' }}>/</span>
 
             <button
               onClick={() => setIsPageDropOpen(!isPageDropOpen)}
               style={S.pagePill}
             >
-              <FileText size={11} style={{ color: '#6366f1' }} />
+              <FileText size={11} style={{ color: '#B8F36B' }} />
               <span style={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{activePage.name}</span>
-              <ChevronDown size={11} style={{ color: '#555', transform: isPageDropOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+              <ChevronDown size={11} style={{ color: '#A0A99A', transform: isPageDropOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </button>
 
             {/* Page dropdown */}
             {isPageDropOpen && (
               <div style={S.dropdown}>
-                <div style={{ padding: '4px 10px 6px', fontSize: 10, fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Pages</span><span style={{ color: '#444' }}>{project.pages.length}</span>
+                <div style={{ padding: '4px 10px 6px', fontSize: 10, fontWeight: 600, color: '#A0A99A', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Pages</span><span style={{ color: '#A0A99A' }}>{project.pages.length}</span>
                 </div>
                 <div style={{ maxHeight: 200, overflowY: 'auto' }}>
                   {project.pages.map(p => {
                     const active = p.id === activePage.id;
                     return (
-                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', borderRadius: 7, background: active ? 'rgba(99,102,241,0.1)' : 'transparent', cursor: 'pointer' }}>
-                        <button onClick={() => { setActivePage(p.id); setIsPageDropOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1, background: 'none', border: 'none', color: active ? '#818cf8' : '#bbb', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
-                          <FileText size={12} style={{ color: active ? '#6366f1' : '#444' }} />{p.name}
+                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', borderRadius: 7, background: active ? 'rgba(184,243,107,0.12)' : 'transparent', cursor: 'pointer' }}>
+                        <button onClick={() => { setActivePage(p.id); setIsPageDropOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1, background: 'none', border: 'none', color: active ? '#B8F36B' : '#A0A99A', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                          <FileText size={12} style={{ color: active ? '#B8F36B' : '#A0A99A' }} />{p.name}
                         </button>
                         <div style={{ display: 'flex', gap: 2 }}>
                           <button onClick={e => { e.stopPropagation(); duplicatePage(p.id); }} style={{ ...S.iconBtn, width: 22, height: 22 }} title="Duplicate">
@@ -302,14 +319,14 @@ export const EditorHeader: React.FC = () => {
                     );
                   })}
                 </div>
-                <form onSubmit={handleAddPage} style={{ display: 'flex', gap: 6, padding: '6px 4px 4px', borderTop: '1px solid #1e1e1e', marginTop: 4 }}>
+                <form onSubmit={handleAddPage} style={{ display: 'flex', gap: 6, padding: '6px 4px 4px', borderTop: '1px solid #354331', marginTop: 4 }}>
                   <input
                     placeholder="New page..."
                     value={newPageName}
                     onChange={e => setNewPageName(e.target.value)}
-                    style={{ flex: 1, background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 6, padding: '4px 8px', fontSize: 11, color: '#e8e8e8', outline: 'none' }}
+                    style={{ flex: 1, background: '#1C241B', border: '1px solid #354331', borderRadius: 6, padding: '4px 8px', fontSize: 11, color: '#F4F5EF', outline: 'none' }}
                   />
-                  <button type="submit" style={{ width: 26, height: 26, borderRadius: 6, background: '#6366f1', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <button type="submit" style={{ width: 26, height: 26, borderRadius: 6, background: '#B8F36B', border: 'none', color: '#101510', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
                     <Plus size={13} />
                   </button>
                 </form>
@@ -367,8 +384,8 @@ export const EditorHeader: React.FC = () => {
             style={{
               display: 'flex',
               alignItems: 'center',
-              background: '#15161d',
-              border: '1px solid #232738',
+              background: '#1C241B',
+              border: '1px solid #354331',
               borderRadius: 8,
               padding: 2,
               gap: 2,
@@ -385,8 +402,8 @@ export const EditorHeader: React.FC = () => {
                 padding: '0 8px',
                 borderRadius: 6,
                 border: 'none',
-                background: editorComplexity === 'simple' ? '#10b981' : 'transparent',
-                color: editorComplexity === 'simple' ? '#ffffff' : '#71717a',
+                background: editorComplexity === 'simple' ? '#B8F36B' : 'transparent',
+                color: editorComplexity === 'simple' ? '#101510' : '#A0A99A',
                 fontSize: 11,
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -407,15 +424,15 @@ export const EditorHeader: React.FC = () => {
                 padding: '0 8px',
                 borderRadius: 6,
                 border: 'none',
-                background: editorComplexity === 'pro' ? '#262938' : 'transparent',
-                color: editorComplexity === 'pro' ? '#e2e8f0' : '#71717a',
+                background: editorComplexity === 'pro' ? '#252F23' : 'transparent',
+                color: editorComplexity === 'pro' ? '#F4F5EF' : '#A0A99A',
                 fontSize: 11,
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.12s ease',
               }}
             >
-              <Zap size={11} className={editorComplexity === 'pro' ? 'text-amber-400' : ''} />
+              <Zap size={11} style={{ color: editorComplexity === 'pro' ? '#B8F36B' : '#A0A99A' }} />
               <span>Pro</span>
             </button>
           </div>
@@ -435,28 +452,32 @@ export const EditorHeader: React.FC = () => {
               height: 28,
               padding: '0 12px',
               borderRadius: 8,
-              border: isPublished ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(16,185,129,0.5)',
+              border: isPublished ? '1px solid rgba(184, 243, 107, 0.4)' : 'none',
               background: isPublished
-                ? 'rgba(16,185,129,0.15)'
-                : editorComplexity === 'simple'
-                ? 'linear-gradient(135deg, #10b981, #059669)'
-                : '#6366f1',
-              color: isPublished ? '#34d399' : '#ffffff',
+                ? 'rgba(184, 243, 107, 0.12)'
+                : '#B8F36B',
+              color: isPublished ? '#B8F36B' : '#101510',
               cursor: 'pointer',
               fontSize: 11,
               fontWeight: 700,
-              boxShadow: isPublished ? '0 0 10px rgba(16,185,129,0.15)' : '0 0 12px rgba(16,185,129,0.3)',
-              transition: 'all 0.15s ease',
+              boxShadow: isPublished ? 'none' : '0 1px 3px rgba(0,0,0,0.3)',
+              transition: 'background 0.15s ease, opacity 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!isPublished) (e.currentTarget as HTMLElement).style.background = '#cbf988';
+            }}
+            onMouseLeave={(e) => {
+              if (!isPublished) (e.currentTarget as HTMLElement).style.background = '#B8F36B';
             }}
           >
-            <Globe size={13} style={{ color: isPublished ? '#34d399' : '#ffffff' }} />
+            <Globe size={13} style={{ color: isPublished ? '#B8F36B' : '#101510' }} />
             <span>
               {editorComplexity === 'simple'
                 ? (isPublished ? 'Live on Web 🚀' : 'Publish Live 🚀')
                 : (isPublished ? 'Published' : 'Publish')}
             </span>
             {isPublished && (
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 4px #34d399' }} />
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#B8F36B', boxShadow: '0 0 4px #B8F36B' }} />
             )}
           </button>
 
@@ -505,9 +526,9 @@ export const EditorHeader: React.FC = () => {
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, height: 28, padding: '0 8px', borderRadius: 7, background: '#141414', border: '1px solid #222', cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, height: 28, padding: '0 8px', borderRadius: 7, background: '#1C241B', border: '1px solid #354331', cursor: 'pointer' }}
               >
-                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff' }}>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#B8F36B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#101510' }}>
                   {currentUser.name?.[0]?.toUpperCase() ?? 'U'}
                 </div>
                 <span style={{ fontSize: 11, color: '#aaa', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.name}</span>

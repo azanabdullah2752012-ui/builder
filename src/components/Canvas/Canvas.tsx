@@ -12,6 +12,8 @@ import {
   LayoutTemplate,
   Plus,
   UserPlus,
+  ChevronDown,
+  Palette,
 } from 'lucide-react';
 import {
   SECTION_TEMPLATES,
@@ -29,6 +31,13 @@ import { CanvasFloatingControls } from './CanvasFloatingControls';
 import { CanvasRulers } from './CanvasRulers';
 import { FigmaDistanceOverlay } from './FigmaDistanceOverlay';
 import { SmartGuidesOverlay } from './SmartGuidesOverlay';
+import { CanvasArtboardResizeHandles } from './CanvasArtboardResizeHandles';
+import { CanvasFindReplace } from './CanvasFindReplace';
+import {
+  getCanvasSurfaceStyles,
+  getCanvasPatternOverlayStyle,
+  CANVAS_SIZE_PRESETS,
+} from '../../utils/canvasBackground';
 import type { ShapeKind, SmartSnapLine, EqualSpacingIndicator } from '../../types/editor';
 
 export const Canvas: React.FC = () => {
@@ -58,6 +67,9 @@ export const Canvas: React.FC = () => {
     editorComplexity,
     setEditorComplexity,
     updatePageSettings,
+    setRightSidebarOpen,
+    isFindReplaceOpen,
+    setIsFindReplaceOpen,
   } = useEditor();
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -206,9 +218,24 @@ export const Canvas: React.FC = () => {
     );
   }, [activePage.elements, viewportMode, activePage.canvasWidth, activePage.canvasHeight]);
 
-  const displayWidth = responsiveLayout.canvasWidth;
-  const displayHeight = responsiveLayout.canvasHeight;
+  const [liveCanvasSize, setLiveCanvasSize] = React.useState<{ width: number; height: number } | null>(null);
+  const [isDraggingCanvasResize, setIsDraggingCanvasResize] = React.useState(false);
+  const [showSizeDropdown, setShowSizeDropdown] = React.useState(false);
+
+  const displayWidth =
+    isDraggingCanvasResize && liveCanvasSize ? liveCanvasSize.width : responsiveLayout.canvasWidth;
+  const displayHeight =
+    isDraggingCanvasResize && liveCanvasSize ? liveCanvasSize.height : responsiveLayout.canvasHeight;
   const elementsToRender = responsiveLayout.elements;
+
+  const surfaceBgStyles = useMemo(
+    () => getCanvasSurfaceStyles(activePage),
+    [activePage.backgroundColor, activePage.backgroundGradient, activePage.backgroundImage]
+  );
+  const patternOverlayStyle = useMemo(
+    () => getCanvasPatternOverlayStyle(activePage),
+    [activePage.backgroundPattern, activePage.patternOpacity]
+  );
 
   // Auto-fit function: scales canvas to fit available container width without horizontal clipping
   const fitToScreen = useCallback(() => {
@@ -223,8 +250,74 @@ export const Canvas: React.FC = () => {
     setZoom(newZoom);
   }, [displayWidth, setZoom]);
 
+  // Spacebar Panning (Hand Tool)
+  const [isSpaceDown, setIsSpaceDown] = React.useState(false);
+  const [isPanning, setIsPanning] = React.useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable ||
+        target.closest('[role="search"]')
+      ) {
+        return;
+      }
+      if (e.code === 'Space' && !e.repeat) {
+        setIsSpaceDown(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        setIsSpaceDown(false);
+        setIsPanning(false);
+      }
+    };
+
+    const handleOpenFindReplace = () => {
+      setIsFindReplaceOpen(true);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('editor:open-find-replace', handleOpenFindReplace);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('editor:open-find-replace', handleOpenFindReplace);
+    };
+  }, [setIsFindReplaceOpen]);
+
+  const handlePanStart = useCallback((e: React.MouseEvent) => {
+    if (!canvasRef.current) return;
+    setIsPanning(true);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialScrollLeft = canvasRef.current.scrollLeft;
+    const initialScrollTop = canvasRef.current.scrollTop;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!canvasRef.current) return;
+      canvasRef.current.scrollLeft = initialScrollLeft - (moveEvent.clientX - startX);
+      canvasRef.current.scrollTop = initialScrollTop - (moveEvent.clientY - startY);
+    };
+
+    const handleMouseUp = () => {
+      setIsPanning(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }, []);
+
   // Handle Marquee Drag Selection on Canvas Surface
   const handleSurfaceMouseDown = useCallback((e: React.MouseEvent) => {
+    if (isSpaceDown || e.button === 1) return;
     // Only left click
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
@@ -323,14 +416,22 @@ export const Canvas: React.FC = () => {
     <main
       ref={canvasRef}
       onClick={handleCanvasClick}
-      onMouseDown={handleSurfaceMouseDown}
+      onMouseDown={(e) => {
+        if (isSpaceDown || e.button === 1) {
+          e.preventDefault();
+          handlePanStart(e);
+        } else {
+          handleSurfaceMouseDown(e);
+        }
+      }}
       onContextMenu={handleContextMenu}
-      className="flex-1 bg-[#0c0c0e] overflow-auto relative flex flex-col items-center justify-start p-8 pb-24 select-none"
+      className="flex-1 bg-[#101510] overflow-auto relative flex flex-col items-center justify-start p-8 pb-24 select-none"
       style={{
         backgroundImage: showGrid
           ? 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px)'
           : 'none',
         backgroundSize: '24px 24px',
+        cursor: isPanning ? 'grabbing' : isSpaceDown ? 'grab' : 'default',
       }}
     >
 
@@ -343,19 +444,117 @@ export const Canvas: React.FC = () => {
         }}
         className="relative my-auto shrink-0 flex flex-col z-10"
       >
-        {/* Artboard Header Badge */}
+        {/* Artboard Header Badge with Interactive Size & Style Controls */}
         <div className="text-[11px] text-zinc-400 font-mono font-medium mb-2.5 pl-0.5 select-none flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+            <span
+              className="w-2.5 h-2.5 rounded-full border border-white/20 shrink-0"
+              style={{
+                backgroundColor: activePage.backgroundColor || '#ffffff',
+                backgroundImage: activePage.backgroundGradient,
+              }}
+            />
             <span className="font-sans font-semibold text-zinc-300 tracking-tight">Artboard</span>
             <span className="text-zinc-600 font-normal">/</span>
             <span className="text-zinc-300 font-sans">{activePage.name}</span>
+
+            {/* Quick Canvas Style Trigger Button */}
+            <button
+              type="button"
+              onClick={() => {
+                selectElements([]);
+                setRightSidebarOpen(true);
+                showToast('Opened Canvas Surface Style Inspector 🎨', 'info');
+              }}
+              className="ml-2 px-2 py-0.5 rounded-md bg-[#1c241b] hover:bg-[#253023] border border-[#354331] text-[#B8F36B] hover:text-white font-sans font-medium text-[10px] flex items-center gap-1 transition-colors cursor-pointer"
+              title="Customize canvas background colors, gradients, and textures"
+            >
+              <Palette className="w-3 h-3 text-[#B8F36B]" />
+              <span>Canvas Style</span>
+            </button>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] text-zinc-500 font-mono">
-              {viewportMode === 'mobile' ? 'Mobile (iPhone 15 Pro • 390×844)' : viewportMode === 'tablet' ? 'Tablet (iPad • 768×1024)' : `Desktop (${displayWidth}×${displayHeight})`}
+
+          <div className="flex items-center gap-2 relative">
+            {/* Interactive Dimension Preset Picker Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowSizeDropdown((prev) => !prev)}
+                className="px-2 py-0.5 rounded-md bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white font-mono text-[10px] flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                title="Click to choose a canvas size preset or expand height"
+              >
+                <span>
+                  {viewportMode === 'mobile'
+                    ? '390 × 844 (Mobile)'
+                    : viewportMode === 'tablet'
+                    ? '768 × 1024 (Tablet)'
+                    : `${displayWidth} × ${displayHeight} px`}
+                </span>
+                <ChevronDown className="w-2.5 h-2.5 text-zinc-400" />
+              </button>
+
+              {/* Size Preset Dropdown Menu */}
+              {showSizeDropdown && (
+                <div
+                  className="absolute right-0 top-full mt-1.5 w-60 bg-zinc-950/95 border border-zinc-800 rounded-xl shadow-2xl p-2 z-50 text-left flex flex-col gap-1 backdrop-blur-md animate-scale-in"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-800/80 mb-1 flex items-center justify-between">
+                    <span>Artboard Presets</span>
+                    <span className="text-[9px] text-[#B8F36B] font-mono">Drag to resize</span>
+                  </div>
+
+                  {CANVAS_SIZE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        updatePageSettings(activePage.id, {
+                          canvasWidth: preset.width,
+                          canvasHeight: preset.height,
+                        });
+                        setShowSizeDropdown(false);
+                        playSound('pop');
+                        showToast(`Switched canvas to ${preset.label} 📐`, 'success');
+                      }}
+                      className={`px-2 py-1.5 rounded-lg text-left text-[11px] flex items-center justify-between transition-colors ${
+                        activePage.canvasWidth === preset.width &&
+                        activePage.canvasHeight === preset.height
+                          ? 'bg-[#222c20] text-[#B8F36B] font-semibold'
+                          : 'text-zinc-300 hover:bg-zinc-850 hover:text-white'
+                      }`}
+                    >
+                      <span className="truncate">{preset.label}</span>
+                      <span className="text-[9px] font-mono text-zinc-500 shrink-0 ml-2">
+                        {preset.width}×{preset.height}
+                      </span>
+                    </button>
+                  ))}
+
+                  <div className="border-t border-zinc-800/80 my-1 pt-1 flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updatePageSettings(activePage.id, {
+                          canvasHeight: (activePage.canvasHeight || 800) + 400,
+                        });
+                        setShowSizeDropdown(false);
+                        playSound('pop');
+                        showToast('Added 400px height ↕', 'info');
+                      }}
+                      className="flex-1 py-1 px-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-[10px] font-medium flex items-center justify-center gap-1 transition-colors"
+                    >
+                      <Plus className="w-2.5 h-2.5 text-[#B8F36B]" />
+                      <span>+400px Height</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <span className="text-[10px] text-zinc-500 font-mono hidden sm:inline">
+              • Shift+R: Rulers • Alt: Distances
             </span>
-            <span className="text-[10px] text-zinc-600 font-mono hidden sm:inline">• Shift+R: Rulers • Alt: Distances</span>
           </div>
         </div>
 
@@ -390,17 +589,30 @@ export const Canvas: React.FC = () => {
               style={{
                 width: `${displayWidth}px`,
                 minHeight: `${displayHeight}px`,
-                backgroundColor: activePage.backgroundColor || '#ffffff',
+                ...surfaceBgStyles,
+                borderRadius:
+                  viewportMode === 'mobile'
+                    ? '44px'
+                    : viewportMode === 'tablet'
+                    ? '16px'
+                    : `${activePage.canvasBorderRadius ?? 16}px`,
                 boxShadow:
                   viewportMode === 'mobile'
                     ? '0 30px 80px -15px rgba(0, 0, 0, 0.9), 0 0 0 10px #18181b, 0 0 0 12px #27272a, 0 0 0 13px #09090b'
                     : viewportMode === 'tablet'
                     ? '0 25px 70px -15px rgba(0, 0, 0, 0.8), 0 0 0 10px #18181b, 0 0 0 11px #27272a'
-                    : '0 20px 50px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)',
-                transition: 'width 0.28s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+                    : activePage.canvasShadow ||
+                      '0 20px 50px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+                transition: isDraggingCanvasResize
+                  ? 'none'
+                  : 'width 0.28s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
               className={`relative overflow-hidden ${viewportMode === 'mobile' ? 'rounded-[44px]' : viewportMode === 'tablet' ? 'rounded-2xl' : 'rounded-xl'}`}
             >
+              {/* Pattern Texture Overlay if active */}
+              {patternOverlayStyle && (
+                <div style={patternOverlayStyle} data-canvas-surface="true" />
+              )}
               {/* Dynamic Island pill simulation when in phone mode */}
               {viewportMode === 'mobile' && (
                 <>
@@ -438,7 +650,7 @@ export const Canvas: React.FC = () => {
               {/* Marquee Selection Box Overlay */}
               {marqueeBox && (
                 <div
-                  className="absolute pointer-events-none rounded border border-indigo-400 bg-indigo-500/15 backdrop-blur-[0.5px] shadow-[0_0_12px_rgba(99,102,241,0.35)] z-50 transition-none"
+                  className="absolute pointer-events-none rounded border border-[#B8F36B] bg-[#B8F36B]/15 backdrop-blur-[0.5px] shadow-[0_0_12px_rgba(184,243,107,0.35)] z-50 transition-none"
                   style={{
                     left: `${Math.min(marqueeBox.startX, marqueeBox.currentX)}px`,
                     top: `${Math.min(marqueeBox.startY, marqueeBox.currentY)}px`,
@@ -657,6 +869,33 @@ export const Canvas: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Interactive Drag-to-Resize Artboard Handles & Quick Height Button */}
+        <CanvasArtboardResizeHandles
+          canvasWidth={displayWidth}
+          canvasHeight={displayHeight}
+          zoom={zoom}
+          isLocked={false}
+          onLiveResize={(w, h, dragging) => {
+            setIsDraggingCanvasResize(dragging);
+            if (dragging) {
+              setLiveCanvasSize({ width: w, height: h });
+            } else {
+              setLiveCanvasSize(null);
+            }
+          }}
+          onCommitResize={(w, h) => {
+            setIsDraggingCanvasResize(false);
+            setLiveCanvasSize(null);
+            updatePageSettings(activePage.id, { canvasWidth: w, canvasHeight: h });
+            showToast(`Canvas resized to ${w} × ${h} px 📐`, 'success');
+          }}
+          onQuickAddHeight={(addedH) => {
+            const newH = (activePage.canvasHeight || 800) + addedH;
+            updatePageSettings(activePage.id, { canvasHeight: newH });
+            showToast(`Expanded canvas height by ${addedH}px ↕`, 'success');
+          }}
+        />
         </div>
         </CanvasRulers>
       </div>
@@ -673,6 +912,20 @@ export const Canvas: React.FC = () => {
 
     {/* Floating Ergonomic Canvas Controls (Zoom, Grid, Rulers, Snapping, Undo/Redo) */}
     <CanvasFloatingControls />
+
+    {/* Canvas Find & Replace Modal (Cmd+F) */}
+    <CanvasFindReplace
+      isOpen={isFindReplaceOpen}
+      onClose={() => setIsFindReplaceOpen(false)}
+    />
+
+    {/* Hand Tool Notification Pill when Space is held */}
+    {isSpaceDown && (
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 px-3 py-1.5 rounded-full bg-[#1C241B]/95 border border-[#354331] text-[#B8F36B] text-[11px] font-medium shadow-2xl backdrop-blur-md flex items-center gap-2 pointer-events-none animate-fade-in">
+        <span className="w-2 h-2 rounded-full bg-[#B8F36B] animate-pulse" />
+        <span>🖐 Hand Tool Active — Drag canvas to pan</span>
+      </div>
+    )}
   </main>
   );
 };

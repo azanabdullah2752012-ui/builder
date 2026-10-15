@@ -501,6 +501,15 @@ export interface CanvasElement {
   testimonialConfig?: TestimonialWidgetConfig;
 }
 
+export type CanvasBackgroundPattern =
+  | 'none'
+  | 'dots'
+  | 'grid'
+  | 'diagonal'
+  | 'mesh'
+  | 'lines'
+  | 'glow';
+
 export interface Page {
   id: string;
   name: string;
@@ -509,6 +518,14 @@ export interface Page {
   canvasWidth: number;
   canvasHeight: number;
   backgroundColor: string;
+  backgroundGradient?: string;
+  backgroundPattern?: CanvasBackgroundPattern;
+  patternOpacity?: number;
+  backgroundImage?: string;
+  backgroundOverlayColor?: string;
+  backgroundOverlayOpacity?: number;
+  canvasBorderRadius?: number;
+  canvasShadow?: string;
   showScrollProgress?: boolean;
   scrollProgressColor?: string;
 }

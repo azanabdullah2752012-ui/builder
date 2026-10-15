@@ -100,8 +100,8 @@ export const IconRail: React.FC<IconRailProps> = ({ activeTab, setActiveTab }) =
       style={{
         width: 62,
         height: '100%',
-        backgroundColor: '#0c0c0e',
-        borderRight: '1px solid #1a1a1f',
+        backgroundColor: '#101510',
+        borderRight: '1px solid #354331',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -130,23 +130,23 @@ export const IconRail: React.FC<IconRailProps> = ({ activeTab, setActiveTab }) =
               justifyContent: 'center',
               gap: 3,
               borderRadius: 8,
-              border: item.isActive ? '1px solid #2a2a35' : '1px solid transparent',
-              backgroundColor: item.isActive ? '#1a1a24' : 'transparent',
-              color: item.isActive ? '#ffffff' : '#888892',
+              border: item.isActive ? '1px solid #354331' : '1px solid transparent',
+              backgroundColor: item.isActive ? '#1C241B' : 'transparent',
+              color: item.isActive ? '#B8F36B' : '#A0A99A',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
               padding: 0,
             }}
             onMouseEnter={(e) => {
               if (!item.isActive) {
-                e.currentTarget.style.backgroundColor = '#14141a';
-                e.currentTarget.style.color = '#e2e2e8';
+                e.currentTarget.style.backgroundColor = '#1C241B';
+                e.currentTarget.style.color = '#F4F5EF';
               }
             }}
             onMouseLeave={(e) => {
               if (!item.isActive) {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#888892';
+                e.currentTarget.style.color = '#A0A99A';
               }
             }}
           >
@@ -161,8 +161,8 @@ export const IconRail: React.FC<IconRailProps> = ({ activeTab, setActiveTab }) =
                     minWidth: 14,
                     height: 14,
                     borderRadius: 7,
-                    backgroundColor: '#6366f1',
-                    color: '#ffffff',
+                    backgroundColor: '#B8F36B',
+                    color: '#101510',
                     fontSize: 9,
                     fontWeight: 700,
                     display: 'flex',
@@ -202,18 +202,18 @@ export const IconRail: React.FC<IconRailProps> = ({ activeTab, setActiveTab }) =
               borderRadius: 8,
               border: '1px solid transparent',
               backgroundColor: 'transparent',
-              color: '#767682',
+              color: '#A0A99A',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
               padding: 0,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#14141a';
-              e.currentTarget.style.color = '#e2e2e8';
+              e.currentTarget.style.backgroundColor = '#1C241B';
+              e.currentTarget.style.color = '#F4F5EF';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#767682';
+              e.currentTarget.style.color = '#A0A99A';
             }}
           >
             {item.icon}
@@ -242,17 +242,17 @@ export const IconRail: React.FC<IconRailProps> = ({ activeTab, setActiveTab }) =
             borderRadius: 7,
             border: 'none',
             backgroundColor: 'transparent',
-            color: '#60606d',
+            color: '#A0A99A',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#14141a';
-            e.currentTarget.style.color = '#ffffff';
+            e.currentTarget.style.backgroundColor = '#1C241B';
+            e.currentTarget.style.color = '#F4F5EF';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#60606d';
+            e.currentTarget.style.color = '#A0A99A';
           }}
         >
           <Maximize2 size={15} />
@@ -273,17 +273,17 @@ export const IconRail: React.FC<IconRailProps> = ({ activeTab, setActiveTab }) =
             borderRadius: 7,
             border: 'none',
             backgroundColor: 'transparent',
-            color: '#60606d',
+            color: '#A0A99A',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#14141a';
-            e.currentTarget.style.color = '#ffffff';
+            e.currentTarget.style.backgroundColor = '#1C241B';
+            e.currentTarget.style.color = '#F4F5EF';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#60606d';
+            e.currentTarget.style.color = '#A0A99A';
           }}
         >
           <HelpCircle size={15} />
@@ -300,22 +300,22 @@ export const IconRail: React.FC<IconRailProps> = ({ activeTab, setActiveTab }) =
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 7,
-            border: leftSidebarOpen ? '1px solid #272733' : 'none',
-            backgroundColor: leftSidebarOpen ? '#171720' : 'transparent',
-            color: leftSidebarOpen ? '#a5b4fc' : '#60606d',
+            border: leftSidebarOpen ? '1px solid #354331' : 'none',
+            backgroundColor: leftSidebarOpen ? '#1C241B' : 'transparent',
+            color: leftSidebarOpen ? '#B8F36B' : '#A0A99A',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
           }}
           onMouseEnter={(e) => {
             if (!leftSidebarOpen) {
-              e.currentTarget.style.backgroundColor = '#14141a';
-              e.currentTarget.style.color = '#ffffff';
+              e.currentTarget.style.backgroundColor = '#1C241B';
+              e.currentTarget.style.color = '#F4F5EF';
             }
           }}
           onMouseLeave={(e) => {
             if (!leftSidebarOpen) {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#60606d';
+              e.currentTarget.style.color = '#A0A99A';
             }
           }}
         >

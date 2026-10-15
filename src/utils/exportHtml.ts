@@ -3,6 +3,7 @@ import { computeResponsiveLayout } from './responsiveLayout';
 import { SHAPE_DEFINITIONS, getShapeSvgNode } from './shapeDefinitions';
 import { getButtonIconSvg } from './buttonStyles';
 import { generateMotionKeyframesCss, generateScrollObserverScript } from './motionAnimations';
+import { CANVAS_PATTERNS } from './canvasBackground';
 
 export function generateExportHtml(
   project: {
@@ -20,6 +21,12 @@ export function generateExportHtml(
     name: string;
     slug?: string;
     backgroundColor?: string;
+    backgroundGradient?: string;
+    backgroundPattern?: any;
+    patternOpacity?: number;
+    backgroundImage?: string;
+    canvasBorderRadius?: number;
+    canvasShadow?: string;
     canvasWidth: number;
     canvasHeight: number;
     elements: CanvasElement[];
@@ -766,6 +773,24 @@ ${indent}</div>`;
   const mobileCss = generateResponsiveRules(mobileLayout.elements, 'mobile');
   const htmlBody = rootElements.map((r) => renderElementTree(r, 2)).join('\n');
 
+  const isGrad =
+    (page as any).backgroundGradient ||
+    (page.backgroundColor &&
+      (page.backgroundColor.startsWith('linear-gradient') ||
+        page.backgroundColor.startsWith('radial-gradient')));
+
+  let canvasBgRule = '';
+  if ((page as any).backgroundImage) {
+    canvasBgRule = `      background-image: url("${(page as any).backgroundImage}");\n      background-size: cover;\n      background-position: center center;\n      background-color: ${page.backgroundColor || '#0c0e14'};`;
+  } else if (isGrad) {
+    canvasBgRule = `      background-image: ${(page as any).backgroundGradient || page.backgroundColor};`;
+  } else {
+    canvasBgRule = `      background-color: ${page.backgroundColor || '#ffffff'};`;
+  }
+
+  const canvasRadius = typeof (page as any).canvasBorderRadius === 'number' ? (page as any).canvasBorderRadius : 16;
+  const canvasShadow = (page as any).canvasShadow || '0 20px 40px -15px rgba(0, 0, 0, 0.08)';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -791,9 +816,9 @@ ${indent}</div>`;
       width: 100%;
       max-width: ${baseW}px;
       min-height: ${baseH}px;
-      background-color: ${page.backgroundColor || '#ffffff'};
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
-      border-radius: 16px;
+${canvasBgRule}
+      box-shadow: ${canvasShadow};
+      border-radius: ${canvasRadius}px;
       overflow: hidden;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -840,7 +865,16 @@ ${(page as any).showScrollProgress ? `  <!-- Scroll-Linked Reading Progress Bar 
   <div id="studio-scroll-progress" style="position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 99990; pointer-events: none;">
     <div id="studio-scroll-bar" style="height: 100%; width: 0%; background: ${(page as any).scrollProgressColor || 'linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899)'}; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); transition: width 0.1s ease-out;"></div>
   </div>\n` : ''}  <main class="page-canvas">
-${htmlBody}
+${(() => {
+  const pat = (page as any).backgroundPattern;
+  if (!pat || pat === 'none') return '';
+  const op = typeof (page as any).patternOpacity === 'number' ? (page as any).patternOpacity : 0.2;
+  const p = CANVAS_PATTERNS.find((x) => x.id === pat);
+  if (!p) return '';
+  const style = p.cssBackground(op);
+  const bgSize = style.backgroundSize ? ` background-size: ${style.backgroundSize};` : '';
+  return `    <!-- Canvas Pattern Overlay -->\n    <div class="canvas-pattern-overlay" style="position: absolute; inset: 0; pointer-events: none; z-index: 1; background-image: ${style.backgroundImage};${bgSize}"></div>\n`;
+})()}${htmlBody}
   </main>
 
   <!-- E-Commerce Floating Cart Trigger -->

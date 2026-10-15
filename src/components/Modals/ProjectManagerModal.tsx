@@ -15,6 +15,7 @@ import {
   Clock,
   Sparkles,
 } from 'lucide-react';
+import { PickleTorchSvg } from '../Brand/PickleCorpLogo';
 
 interface ProjectManagerModalProps {
   isOpen: boolean;
@@ -295,7 +296,10 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-zinc-400">Database Engine: Supabase Cloud & SQLite</span>
           </div>
-          <span>Pickle Studio v2.4 • By Pickle Corp™</span>
+          <div className="flex items-center gap-1.5 text-zinc-400">
+            <PickleTorchSvg size={14} theme="dark" />
+            <span>Pickle Studio v2.4 • By Pickle Corp™</span>
+          </div>
         </div>
       </div>
     </div>

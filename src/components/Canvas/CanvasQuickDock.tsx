@@ -48,14 +48,14 @@ function ToolBtn({ icon, label, active, onClick, title, children }: { icon: Reac
 }
 
 function Sep() {
-  return <div style={{ width: 1, height: 14, background: '#222', margin: '0 4px', flexShrink: 0 }} />;
+  return <div style={{ width: 1, height: 14, background: '#354331', margin: '0 4px', flexShrink: 0 }} />;
 }
 
 function Popover({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       position: 'absolute', top: 'calc(100% + 6px)', left: 0,
-      background: '#111', border: '1px solid #252525', borderRadius: 10,
+      background: '#101510', border: '1px solid #354331', borderRadius: 10,
       boxShadow: '0 12px 40px rgba(0,0,0,0.7)', padding: '10px',
       zIndex: 100, minWidth: 240,
       animation: 'craftFadeIn 0.1s ease-out',
@@ -177,26 +177,26 @@ export const CanvasQuickDock: React.FC = () => {
         {active === 'emojis' && (
           <Popover>
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Search size={11} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: '#444' }} />
+              <Search size={11} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: '#A0A99A' }} />
               <input
                 placeholder="Search..."
                 value={emojiSearch}
                 onChange={e => setEmojiSearch(e.target.value)}
-                style={{ width: '100%', background: '#1a1a1a', border: '1px solid #252525', borderRadius: 7, padding: '5px 8px 5px 26px', fontSize: 11, color: '#e8e8e8', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', background: '#1C241B', border: '1px solid #354331', borderRadius: 7, padding: '5px 8px 5px 26px', fontSize: 11, color: '#F4F5EF', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
             <div style={{ display: 'flex', gap: 4, overflowX: 'auto', marginBottom: 8, paddingBottom: 4, scrollbarWidth: 'none' }}>
               {cats.map(c => (
-                <button key={c} onClick={() => setEmojiCat(c)} style={{ padding: '3px 8px', borderRadius: 99, border: `1px solid ${emojiCat === c ? '#6366f1' : '#252525'}`, background: emojiCat === c ? 'rgba(99,102,241,0.1)' : 'transparent', color: emojiCat === c ? '#818cf8' : '#555', fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                <button key={c} onClick={() => setEmojiCat(c)} style={{ padding: '3px 8px', borderRadius: 99, border: `1px solid ${emojiCat === c ? '#B8F36B' : '#354331'}`, background: emojiCat === c ? '#252F23' : 'transparent', color: emojiCat === c ? '#B8F36B' : '#A0A99A', fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   {c}
                 </button>
               ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, maxHeight: 160, overflowY: 'auto' }}>
               {filteredEmojis.map((item, i) => (
-                <button key={i} title={item.name} onClick={() => { insertEmoji(item.emoji); playSound('pop'); setActive(null); }} style={{ width: 32, height: 32, fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 0.1s, transform 0.1s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#1e1e1e'; e.currentTarget.style.transform = 'scale(1.2)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'scale(1)'; }}
+                <button key={i} title={item.name} onClick={() => { insertEmoji(item.emoji); playSound('pop'); setActive(null); }} style={{ width: 32, height: 32, fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 0.1s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#252F23'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   {item.emoji}
                 </button>

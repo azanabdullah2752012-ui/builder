@@ -572,9 +572,9 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
   const activeShadow = activePressed
     ? as?.boxShadow || 'inset 0 2px 4px rgba(0,0,0,0.4)'
     : activeFocused
-    ? fs?.boxShadow || (fs?.outlineColor ? `0 0 0 ${fs.outlineWidth || 2}px ${fs.outlineColor}` : '0 0 0 2px #6366f1, 0 0 12px rgba(99,102,241,0.5)')
+    ? fs?.boxShadow || (fs?.outlineColor ? `0 0 0 ${fs.outlineWidth || 2}px ${fs.outlineColor}` : '0 0 0 2px #B8F36B, 0 0 12px rgba(184,243,107,0.4)')
     : activeHover
-    ? hs?.boxShadow || s.hoverShadow || (s.hoverEffect === 'lift' ? '0 16px 32px -4px rgba(0,0,0,0.5), 0 8px 16px -4px rgba(0,0,0,0.3)' : s.hoverEffect === 'glow' ? '0 0 25px rgba(99, 102, 241, 0.65)' : undefined)
+    ? hs?.boxShadow || s.hoverShadow || (s.hoverEffect === 'lift' ? '0 16px 32px -4px rgba(0,0,0,0.5), 0 8px 16px -4px rgba(0,0,0,0.3)' : s.hoverEffect === 'glow' ? '0 0 25px rgba(184, 243, 107, 0.45)' : undefined)
     : s.boxShadow || undefined;
 
   const isBtn = element.type === 'button';
@@ -1064,11 +1064,11 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
           ? element.locked
             ? 'outline outline-2 outline-amber-500 shadow-[0_0_0_1px_rgba(245,158,11,0.25)]'
             : isSection
-            ? 'outline outline-2 outline-purple-500 shadow-[0_0_0_1px_rgba(168,85,247,0.25)]'
-            : 'outline outline-2 outline-indigo-500 shadow-[0_0_0_1px_rgba(99,102,241,0.3)]'
+            ? 'outline outline-2 outline-[#936639] shadow-[0_0_0_1px_rgba(147,102,57,0.25)]'
+            : 'outline outline-2 outline-[#B8F36B] shadow-[0_0_0_1px_rgba(184,243,107,0.3)]'
           : isSection
-          ? 'hover:outline hover:outline-1 hover:outline-purple-400/40'
-          : 'hover:outline hover:outline-1 hover:outline-indigo-400/35'
+          ? 'hover:outline hover:outline-1 hover:outline-[#936639]/40'
+          : 'hover:outline hover:outline-1 hover:outline-[#B8F36B]/35'
       }`}
     >
       {/* Inner Render Container (styled with background/gradient, border, radius, transitions, hover) */}
@@ -1080,7 +1080,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
       {isSelected && !element.locked && (
         <>
           {selectedElementIds.length > 1 ? (
-            <div className="absolute -top-5 left-0 px-1.5 py-0.5 rounded bg-indigo-600/90 text-white text-[9px] font-medium shadow pointer-events-none select-none z-40 whitespace-nowrap">
+            <div className="absolute -top-5 left-0 px-1.5 py-0.5 rounded bg-[#B8F36B] text-[#101510] text-[9px] font-bold shadow pointer-events-none select-none z-40 whitespace-nowrap">
               {element.name}
             </div>
           ) : (
@@ -1096,10 +1096,10 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
                 transform: 'translateX(-50%)',
                 zIndex: 65,
               }}
-              className="px-2.5 py-0.5 rounded-full bg-zinc-950/95 text-indigo-300 text-[10px] font-mono border border-indigo-500/50 shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
+              className="px-2.5 py-0.5 rounded-full bg-[#101510]/95 text-[#B8F36B] text-[10px] font-mono border border-[#354331] shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
             >
               <span>X: <strong className="text-white font-semibold">{Math.round(element.x)}</strong></span>
-              <span className="opacity-30 text-indigo-300">|</span>
+              <span className="opacity-30 text-[#B8F36B]">|</span>
               <span>Y: <strong className="text-white font-semibold">{Math.round(element.y)}</strong></span>
             </div>
           )}
@@ -1163,10 +1163,10 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
                 transform: 'translateX(-50%)',
                 zIndex: 65,
               }}
-              className="px-2.5 py-0.5 rounded-full bg-zinc-950/95 text-indigo-300 text-[10px] font-mono border border-indigo-500/50 shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
+              className="px-2.5 py-0.5 rounded-full bg-[#101510]/95 text-[#B8F36B] text-[10px] font-mono border border-[#354331] shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
             >
               <span>W: <strong className="text-white font-semibold">{Math.round(element.width)}</strong></span>
-              <span className="opacity-30 text-indigo-300">×</span>
+              <span className="opacity-30 text-[#B8F36B]">×</span>
               <span>H: <strong className="text-white font-semibold">{Math.round(element.height)}</strong></span>
             </div>
           )}

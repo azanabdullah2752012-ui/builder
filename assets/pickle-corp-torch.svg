@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" fill="none">
+  <!-- Pickle Corp™ Official Torch & Blue Flame -->
+  <g class="pickle-torch-group">
+    <!-- Outer Blue Flame -->
+    <path d="M 41 71 C 36 67 29 55 29 44 C 29 36 34 30 38 25 C 38.8 28.5 41 33 44 34.5 C 43 27 45 15 54 8 C 55 12 56 16.5 58 19.5 C 60.5 13 65 9 67 6 C 68 14 71 21 78 26 C 75.5 28.5 73.5 32 73.5 36 C 78.5 32 84 32.5 87 35.5 C 92 40.5 92 50 88 59 C 85 65 79 70 73 71 Z" fill="#1076fc" />
+    
+    <!-- Inner Flame Negative Space Cutout -->
+    <path d="M 49 71 C 45 66 43 59 45 52 C 47 46 51 40 52 34 C 54.5 40 58 45 61 51 C 64 57 65 64 63 71 Z" fill="#f1ede4" class="pickle-flame-inner" />
+
+    <!-- Torch Cup / Rim -->
+    <path d="M 23 73 H 97 C 98.6 73 100 74.4 99.8 76 L 96.5 86 C 96.2 87.2 95.1 88 93.8 88 H 26.2 C 24.9 88 23.8 87.2 23.5 86 L 20.2 76 C 20 74.4 21.4 73 23 73 Z" fill="#121011" class="pickle-torch-metal" />
+    
+    <!-- Torch Rim Slit -->
+    <rect x="33" y="78" width="20" height="3.5" rx="1.75" fill="#f1ede4" class="pickle-torch-accent" />
+
+    <!-- Torch Tapered Handle -->
+    <path d="M 32 92 L 44 140 C 44.5 142.5 46.5 144 49 144 H 71 C 73.5 144 75.5 142.5 76 140 L 88 92 Z" fill="#121011" class="pickle-torch-metal" />
+
+    <!-- Torch Handle Vertical Slit -->
+    <path d="M 40 98 L 47 132 C 47.3 133.5 48.7 134.5 50.2 134.5 C 51.8 134.5 53.1 133.2 52.8 131.6 L 46 98 C 45.7 96.5 44.3 95.5 42.8 95.5 C 41.2 95.5 39.9 96.8 40.2 98.4 Z" fill="#f1ede4" class="pickle-torch-accent" />
+  </g>
+</svg>

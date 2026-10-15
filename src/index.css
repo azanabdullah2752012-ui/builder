@@ -1,15 +1,46 @@
 :root {
-  --bg-dark: #090b10;
-  --bg-sidebar: #11141d;
-  --bg-surface: #161a26;
-  --border-dark: #1e2434;
-  --border-light: #2c364e;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-sub: #64748b;
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --accent-lock: #f59e0b;
+  /* Pickle Studio Dark Botanical Foundation */
+  --deep-forest:        #101510;
+  --panel-green:        #1C241B;
+  --raised-surface:     #252F23;
+  --raised-active:      #2E3A2C;
+  --border-green:       #354331;
+  --border-subtle:      rgba(53, 67, 49, 0.45);
+  --soft-ivory:         #F4F5EF;
+  --sage-grey:          #A0A99A;
+  --pickle-lime:        #B8F36B;
+  --pickle-lime-hover:  #cbf988;
+  --pure-white:         #FFFFFF;
+
+  /* Pickle Corp Parent Brand Editorial Alignment Tokens */
+  --corp-espresso:      #582F0E;
+  --corp-caramel:       #7F4F24;
+  --corp-biscuit:       #936639;
+  --corp-dough:         #A68A64;
+  --corp-celadon:       #A4AC86;
+  --corp-olive:         #656D4A;
+  --corp-ink:           #333D29;
+  --corp-canvas:        #FCFBFA;
+  --corp-linen:         #F4F2EC;
+
+  /* Typography Families */
+  --font-display:       'Cabinet Grotesk', 'Space Grotesk', -apple-system, sans-serif;
+  --font-body:          'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif:         'Instrument Serif', Georgia, serif;
+  --font-mono:          'JetBrains Mono', ui-monospace, monospace;
+
+  /* Mapped Editor Semantic Tokens */
+  --bg-dark:            var(--deep-forest);
+  --bg-sidebar:         var(--panel-green);
+  --bg-surface:         var(--raised-surface);
+  --border-dark:        var(--border-green);
+  --border-light:       #3f4f3b;
+  --text-main:          var(--soft-ivory);
+  --text-muted:         var(--sage-grey);
+  --text-sub:           #737d6e;
+  --primary:            var(--pickle-lime);
+  --primary-hover:      var(--pickle-lime-hover);
+  --accent-lock:        #f59e0b;
 }
 
 * {
@@ -25,7 +56,7 @@ html, body {
   padding: 0;
   background-color: var(--bg-dark);
   color: var(--text-main);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -53,9 +84,9 @@ button {
 }
 
 input, select, textarea {
-  background-color: #141824;
-  color: #f8fafc;
-  border: 1px solid #262f44;
+  background-color: var(--raised-surface);
+  color: var(--soft-ivory);
+  border: 1px solid var(--border-green);
   outline: none;
   font-family: inherit;
   font-size: 12px;
@@ -63,9 +94,9 @@ input, select, textarea {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 input:focus, select:focus, textarea:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
-  background-color: #171c2b;
+  border-color: var(--pickle-lime);
+  box-shadow: 0 0 0 2px rgba(184, 243, 107, 0.25);
+  background-color: var(--raised-active);
 }
 
 /* Scrollbar Styling */
@@ -77,11 +108,11 @@ input:focus, select:focus, textarea:focus {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #252d42;
+  background: var(--border-green);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3b4766;
+  background: #465741;
 }
 
 /* Motion Animation Keyframes */
@@ -451,110 +482,110 @@ input:focus, select:focus, textarea:focus {
 .bg-slate-100 { background-color: #f1f5f9; }
 .bg-white { background-color: #ffffff; }
 
-/* Luminous Obsidian Studio Palette */
-.bg-\[\#090b10\] { background-color: #090b10; }
-.bg-\[\#0a0c10\] { background-color: #0a0c10; }
-.bg-\[\#0b0d13\] { background-color: #0b0d13; }
-.bg-\[\#0b0e14\] { background-color: #0b0e14; }
-.bg-\[\#0c0c0e\] { background-color: #090b10; }
-.bg-\[\#0d0f15\] { background-color: #0d0f15; }
-.bg-\[\#0e0e11\] { background-color: #0c0e14; }
-.bg-\[\#10131a\] { background-color: #11141d; }
-.bg-\[\#111113\] { background-color: #11141d; }
-.bg-\[\#111114\] { background-color: #11141d; }
-.bg-\[\#121214\] { background-color: #11141d; }
-.bg-\[\#131722\] { background-color: #131722; }
-.bg-\[\#141416\] { background-color: #0b0e14; }
-.bg-\[\#141824\] { background-color: #141824; }
-.bg-\[\#151924\] { background-color: #151924; }
-.bg-\[\#151926\] { background-color: #151926; }
-.bg-\[\#161618\] { background-color: #131722; }
-.bg-\[\#161619\] { background-color: #131722; }
-.bg-\[\#161a26\] { background-color: #161a26; }
-.bg-\[\#171b28\] { background-color: #171b28; }
-.bg-\[\#18181b\] { background-color: #161a26; }
-.bg-\[\#1a1e2b\] { background-color: #1a1e2b; }
-.bg-\[\#1a2030\] { background-color: #1a2030; }
-.bg-\[\#11141e\] { background-color: #11141e; }
-.bg-\[\#1c1c20\] { background-color: #1c2233; }
-.bg-\[\#1c2232\] { background-color: #1c2232; }
-.bg-\[\#1c2234\] { background-color: #1c2234; }
-.bg-\[\#1e1e24\] { background-color: #1c2235; }
-.bg-\[\#202025\] { background-color: #1c2234; }
-.bg-\[\#222226\] { background-color: #202738; }
-.bg-\[\#27272a\] { background-color: #263044; }
-.bg-\[\#27272e\] { background-color: #2a344a; }
-.bg-zinc-800 { background-color: #202738; }
-.bg-zinc-900 { background-color: #161a26; }
-.bg-zinc-950 { background-color: #0c0e14; }
+/* Dark Botanical Studio Palette & Pickle Corp Alignment */
+.bg-\[\#090b10\] { background-color: var(--deep-forest); }
+.bg-\[\#0a0c10\] { background-color: var(--deep-forest); }
+.bg-\[\#0b0d13\] { background-color: var(--deep-forest); }
+.bg-\[\#0b0e14\] { background-color: var(--deep-forest); }
+.bg-\[\#0c0c0e\] { background-color: var(--deep-forest); }
+.bg-\[\#0d0f15\] { background-color: var(--deep-forest); }
+.bg-\[\#0e0e11\] { background-color: var(--deep-forest); }
+.bg-\[\#10131a\] { background-color: var(--panel-green); }
+.bg-\[\#111113\] { background-color: var(--panel-green); }
+.bg-\[\#111114\] { background-color: var(--panel-green); }
+.bg-\[\#121214\] { background-color: var(--panel-green); }
+.bg-\[\#131722\] { background-color: var(--panel-green); }
+.bg-\[\#141416\] { background-color: var(--panel-green); }
+.bg-\[\#141824\] { background-color: var(--raised-surface); }
+.bg-\[\#151924\] { background-color: var(--raised-surface); }
+.bg-\[\#151926\] { background-color: var(--raised-surface); }
+.bg-\[\#161618\] { background-color: var(--panel-green); }
+.bg-\[\#161619\] { background-color: var(--panel-green); }
+.bg-\[\#161a26\] { background-color: var(--raised-surface); }
+.bg-\[\#171b28\] { background-color: var(--raised-surface); }
+.bg-\[\#18181b\] { background-color: var(--raised-surface); }
+.bg-\[\#1a1e2b\] { background-color: var(--raised-surface); }
+.bg-\[\#1a2030\] { background-color: var(--raised-active); }
+.bg-\[\#11141e\] { background-color: var(--panel-green); }
+.bg-\[\#1c1c20\] { background-color: var(--raised-active); }
+.bg-\[\#1c2232\] { background-color: var(--raised-active); }
+.bg-\[\#1c2234\] { background-color: var(--raised-active); }
+.bg-\[\#1e1e24\] { background-color: var(--raised-active); }
+.bg-\[\#202025\] { background-color: var(--raised-active); }
+.bg-\[\#222226\] { background-color: var(--raised-active); }
+.bg-\[\#27272a\] { background-color: var(--raised-active); }
+.bg-\[\#27272e\] { background-color: var(--raised-active); }
+.bg-zinc-800 { background-color: var(--raised-surface); }
+.bg-zinc-900 { background-color: var(--panel-green); }
+.bg-zinc-950 { background-color: var(--deep-forest); }
 
-.bg-indigo-500 { background-color: #6366f1; }
-.bg-indigo-600 { background-color: #4f46e5; }
-.bg-indigo-700 { background-color: #4338ca; }
-.bg-indigo-800 { background-color: #3730a3; }
-.hover\:bg-indigo-500:hover { background-color: #6366f1; }
-.hover\:bg-indigo-600:hover { background-color: #4f46e5; }
-.hover\:bg-indigo-700:hover { background-color: #4338ca; }
+.bg-indigo-500 { background-color: var(--pickle-lime); color: var(--deep-forest); }
+.bg-indigo-600 { background-color: var(--pickle-lime); color: var(--deep-forest); }
+.bg-indigo-700 { background-color: #a6e556; color: var(--deep-forest); }
+.bg-indigo-800 { background-color: #90cd43; color: var(--deep-forest); }
+.hover\:bg-indigo-500:hover { background-color: var(--pickle-lime-hover); }
+.hover\:bg-indigo-600:hover { background-color: var(--pickle-lime-hover); }
+.hover\:bg-indigo-700:hover { background-color: #a6e556; }
 
-.bg-indigo-500\/10 { background-color: rgba(99, 102, 241, 0.1); }
-.bg-indigo-500\/15 { background-color: rgba(99, 102, 241, 0.15); }
-.bg-indigo-500\/20 { background-color: rgba(99, 102, 241, 0.2); }
-.bg-indigo-500\/25 { background-color: rgba(99, 102, 241, 0.25); }
-.bg-indigo-600\/15 { background-color: rgba(79, 70, 229, 0.15); }
-.bg-indigo-600\/20 { background-color: rgba(79, 70, 229, 0.2); }
-.bg-indigo-600\/25 { background-color: rgba(79, 70, 229, 0.25); }
-.bg-indigo-600\/30 { background-color: rgba(79, 70, 229, 0.3); }
+.bg-indigo-500\/10 { background-color: rgba(184, 243, 107, 0.1); }
+.bg-indigo-500\/15 { background-color: rgba(184, 243, 107, 0.15); }
+.bg-indigo-500\/20 { background-color: rgba(184, 243, 107, 0.2); }
+.bg-indigo-500\/25 { background-color: rgba(184, 243, 107, 0.25); }
+.bg-indigo-600\/15 { background-color: rgba(184, 243, 107, 0.15); }
+.bg-indigo-600\/20 { background-color: rgba(184, 243, 107, 0.2); }
+.bg-indigo-600\/25 { background-color: rgba(184, 243, 107, 0.25); }
+.bg-indigo-600\/30 { background-color: rgba(184, 243, 107, 0.3); }
 
-.border-indigo-500 { border-color: #6366f1; }
-.border-indigo-600 { border-color: #4f46e5; }
-.border-indigo-500\/20 { border-color: rgba(99, 102, 241, 0.2); }
-.border-indigo-500\/30 { border-color: rgba(99, 102, 241, 0.3); }
-.border-indigo-500\/40 { border-color: rgba(99, 102, 241, 0.4); }
-.border-indigo-500\/50 { border-color: rgba(99, 102, 241, 0.5); }
-.border-indigo-500\/60 { border-color: rgba(99, 102, 241, 0.6); }
+.border-indigo-500 { border-color: var(--pickle-lime); }
+.border-indigo-600 { border-color: var(--pickle-lime); }
+.border-indigo-500\/20 { border-color: rgba(184, 243, 107, 0.2); }
+.border-indigo-500\/30 { border-color: rgba(184, 243, 107, 0.3); }
+.border-indigo-500\/40 { border-color: rgba(184, 243, 107, 0.4); }
+.border-indigo-500\/50 { border-color: rgba(184, 243, 107, 0.5); }
+.border-indigo-500\/60 { border-color: rgba(184, 243, 107, 0.6); }
 
-.text-indigo-100 { color: #e0e7ff; }
-.text-indigo-200 { color: #c7d2fe; }
-.text-indigo-300 { color: #a5b4fc; }
-.text-indigo-400 { color: #818cf8; }
-.text-indigo-500 { color: #6366f1; }
+.text-indigo-100 { color: var(--soft-ivory); }
+.text-indigo-200 { color: #dbe4d5; }
+.text-indigo-300 { color: var(--pickle-lime); }
+.text-indigo-400 { color: var(--pickle-lime); }
+.text-indigo-500 { color: var(--pickle-lime); }
 
-.border-\[\#1e2330\] { border-color: #1e2434; }
-.border-\[\#1e2434\] { border-color: #1e2434; }
-.border-\[\#202738\] { border-color: #202738; }
-.border-\[\#222226\] { border-color: #1e2434; }
-.border-\[\#242b3b\] { border-color: #242b3b; }
-.border-\[\#252d40\] { border-color: #252d40; }
-.border-\[\#262f44\] { border-color: #262f44; }
-.border-\[\#27272a\] { border-color: #262f44; }
-.border-\[\#2a2a30\] { border-color: #2b364e; }
-.border-\[\#2b364e\] { border-color: #2b364e; }
-.border-\[\#2e2e33\] { border-color: #2e3a54; }
-.border-\[\#2e2e34\] { border-color: #2e3a54; }
-.border-\[\#333338\] { border-color: #354260; }
-.border-\[\#38383e\] { border-color: #3b4b6c; }
-.border-\[\#3f3f46\] { border-color: #425376; }
-.border-\[\#52525b\] { border-color: #556a94; }
-.border-zinc-700 { border-color: #2c374e; }
-.border-zinc-800 { border-color: #1e2637; }
+.border-\[\#1e2330\] { border-color: var(--border-green); }
+.border-\[\#1e2434\] { border-color: var(--border-green); }
+.border-\[\#202738\] { border-color: var(--border-green); }
+.border-\[\#222226\] { border-color: var(--border-green); }
+.border-\[\#242b3b\] { border-color: var(--border-green); }
+.border-\[\#252d40\] { border-color: var(--border-green); }
+.border-\[\#262f44\] { border-color: var(--border-green); }
+.border-\[\#27272a\] { border-color: var(--border-green); }
+.border-\[\#2a2a30\] { border-color: var(--border-green); }
+.border-\[\#2b364e\] { border-color: var(--border-green); }
+.border-\[\#2e2e33\] { border-color: var(--border-green); }
+.border-\[\#2e2e34\] { border-color: var(--border-green); }
+.border-\[\#333338\] { border-color: var(--border-green); }
+.border-\[\#38383e\] { border-color: var(--border-green); }
+.border-\[\#3f3f46\] { border-color: #3f4f3b; }
+.border-\[\#52525b\] { border-color: #4b5d46; }
+.border-zinc-700 { border-color: var(--border-green); }
+.border-zinc-800 { border-color: var(--border-subtle); }
 
-.text-zinc-100 { color: #f8fafc; }
-.text-zinc-200 { color: #e2e8f0; }
-.text-zinc-300 { color: #cbd5e1; }
-.text-zinc-400 { color: #94a3b8; }
-.text-zinc-500 { color: #64748b; }
-.text-zinc-600 { color: #475569; }
+.text-zinc-100 { color: var(--soft-ivory); }
+.text-zinc-200 { color: #e3e7df; }
+.text-zinc-300 { color: #c5ccc0; }
+.text-zinc-400 { color: var(--sage-grey); }
+.text-zinc-500 { color: #778272; }
+.text-zinc-600 { color: #555f51; }
 
-.hover\:bg-\[\#181d2a\]:hover { background-color: #181d2a; }
-.hover\:bg-\[\#1c1c20\]:hover { background-color: #1c2233; }
-.hover\:bg-\[\#1c2232\]:hover { background-color: #1c2232; }
-.hover\:bg-\[\#1d1d22\]:hover { background-color: #1e2537; }
-.hover\:bg-\[\#222226\]:hover { background-color: #22293c; }
-.hover\:bg-\[\#27272a\]:hover { background-color: #273147; }
-.hover\:border-\[\#38383e\]:hover { border-color: #425376; }
-.hover\:border-\[\#3f3f46\]:hover { border-color: #485b82; }
-.hover\:border-\[\#52525b\]:hover { border-color: #5c72a0; }
-.hover\:border-indigo-500\/50:hover { border-color: rgba(99, 102, 241, 0.5); }
+.hover\:bg-\[\#181d2a\]:hover { background-color: var(--raised-surface); }
+.hover\:bg-\[\#1c1c20\]:hover { background-color: var(--raised-active); }
+.hover\:bg-\[\#1c2232\]:hover { background-color: var(--raised-active); }
+.hover\:bg-\[\#1d1d22\]:hover { background-color: var(--raised-active); }
+.hover\:bg-\[\#222226\]:hover { background-color: var(--raised-active); }
+.hover\:bg-\[\#27272a\]:hover { background-color: var(--raised-active); }
+.hover\:border-\[\#38383e\]:hover { border-color: var(--border-green); }
+.hover\:border-\[\#3f3f46\]:hover { border-color: #3f4f3b; }
+.hover\:border-\[\#52525b\]:hover { border-color: #4b5d46; }
+.hover\:border-indigo-500\/50:hover { border-color: rgba(184, 243, 107, 0.5); }
 
 .bg-blue-600 { background-color: #2563eb; }
 .bg-blue-500 { background-color: #3b82f6; }

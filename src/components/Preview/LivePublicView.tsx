@@ -23,6 +23,11 @@ import { ProductCardWidget } from '../Widgets/ProductCardWidget';
 import { CartDrawer } from '../Widgets/CartDrawer';
 import { LottieWidget } from '../Widgets/LottieWidget';
 import { ReadingProgressBar } from '../Widgets/ReadingProgressBar';
+import { PickleTorchSvg } from '../Brand/PickleCorpLogo';
+import {
+  getCanvasSurfaceStyles,
+  getCanvasPatternOverlayStyle,
+} from '../../utils/canvasBackground';
 
 interface LivePublicViewProps {
   slugOrId: string;
@@ -160,13 +165,11 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
   // Loading Screen
   if (loading) {
     return (
-      <div className="w-full min-h-screen bg-[#090b10] flex flex-col items-center justify-center text-white space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-emerald-500 p-0.5 animate-spin">
-          <div className="w-full h-full bg-[#090b10] rounded-[14px]" />
-        </div>
+      <div className="w-full min-h-screen bg-[#101510] flex flex-col items-center justify-center text-[#F4F5EF] space-y-4">
+        <div className="w-10 h-10 rounded-full border-2 border-[#354331] border-t-[#B8F36B] animate-spin" />
         <div className="text-center">
-          <h2 className="text-sm font-semibold tracking-wide">Loading Live Website...</h2>
-          <p className="text-xs text-zinc-500 mt-1 font-mono">{slugOrId}</p>
+          <h2 className="text-sm font-semibold tracking-wide text-[#F4F5EF]">Loading Live Website...</h2>
+          <p className="text-xs text-[#A0A99A] mt-1 font-mono">{slugOrId}</p>
         </div>
       </div>
     );
@@ -175,17 +178,17 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
   // Error / Not Found Screen
   if (error || !project || !activePage) {
     return (
-      <div className="w-full min-h-screen bg-[#090b10] flex flex-col items-center justify-center text-white p-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-indigo-950/60 border border-indigo-500/30 flex items-center justify-center text-2xl mb-4">
-          🌐
+      <div className="w-full min-h-screen bg-[#101510] flex flex-col items-center justify-center text-[#F4F5EF] p-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-[#1C241B] border border-[#354331] flex items-center justify-center text-2xl mb-4">
+          🥒
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">Website Not Found</h1>
-        <p className="text-sm text-zinc-400 max-w-md mb-6 leading-relaxed">
+        <h1 className="text-2xl font-bold text-[#F4F5EF] mb-2" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>Website Not Found</h1>
+        <p className="text-sm text-[#A0A99A] max-w-md mb-6 leading-relaxed">
           {error || 'This page does not exist or has been taken offline.'}
         </p>
         <a
           href="/"
-          className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-lg shadow-emerald-950/40 inline-flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-[#B8F36B] hover:bg-[#c4f780] text-[#101510] font-bold text-xs transition-colors inline-flex items-center gap-2"
         >
           <span>Return to Pickle Studio</span>
           <ExternalLink className="w-3.5 h-3.5" />
@@ -473,14 +476,26 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
   const canvasWidth = responsiveLayout.canvasWidth;
   const canvasHeight = Math.max(responsiveLayout.canvasHeight, 800);
 
+  const surfaceBgStyles = useMemo(
+    () => (activePage ? getCanvasSurfaceStyles(activePage) : {}),
+    [activePage?.backgroundColor, activePage?.backgroundGradient, activePage?.backgroundImage]
+  );
+  const patternOverlayStyle = useMemo(
+    () => (activePage ? getCanvasPatternOverlayStyle(activePage) : null),
+    [activePage?.backgroundPattern, activePage?.patternOpacity]
+  );
+
   return (
     <div
       className="w-full min-h-screen overflow-x-hidden relative flex flex-col items-center"
       style={{
-        backgroundColor: activePage.backgroundColor || '#ffffff',
+        ...surfaceBgStyles,
         fontFamily: 'Inter, system-ui, sans-serif',
       }}
     >
+      {/* Pattern Texture Overlay if active */}
+      {patternOverlayStyle && <div style={patternOverlayStyle} />}
+
       {/* Scroll-Linked Reading Progress Bar */}
       {activePage.showScrollProgress && (
         <ReadingProgressBar color={activePage.scrollProgressColor} />
@@ -574,7 +589,7 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <PickleTorchSvg size={14} theme="dark" />
             <span>Built with <strong>Pickle Studio</strong> by <strong>Pickle Corp™</strong></span>
           </a>
         )}

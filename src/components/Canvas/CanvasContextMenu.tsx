@@ -12,6 +12,11 @@ import {
   Trash2,
   Layers,
   Keyboard,
+  Palette,
+  Maximize2,
+  Plus,
+  Paintbrush,
+  Search,
 } from 'lucide-react';
 
 interface CanvasContextMenuProps {
@@ -38,10 +43,18 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
     pasteElement,
     hasClipboard,
     duplicateElement,
+    copyElementStyle,
+    pasteElementStyle,
+    hasStyleClipboard,
     toggleLock,
     deleteElement,
     reorderElement,
     setShowShortcutsModal,
+    setIsFindReplaceOpen,
+    updatePageSettings,
+    setRightSidebarOpen,
+    selectElements,
+    showToast,
   } = useEditor();
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -190,6 +203,36 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
           </div>
           <span className="text-[10px] text-zinc-400 font-mono">{cmd}D</span>
         </button>
+
+        <button
+          onClick={() => {
+            if (targetElementId) copyElementStyle(targetElementId);
+            onClose();
+          }}
+          disabled={!targetEl}
+          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-left"
+        >
+          <div className="flex items-center gap-2">
+            <Paintbrush className="w-3.5 h-3.5 text-zinc-400" />
+            <span>Copy Style</span>
+          </div>
+          <span className="text-[10px] text-zinc-400 font-mono">⌥{cmd}C</span>
+        </button>
+
+        <button
+          onClick={() => {
+            if (targetElementId) pasteElementStyle(targetElementId);
+            onClose();
+          }}
+          disabled={!hasStyleClipboard}
+          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-left"
+        >
+          <div className="flex items-center gap-2">
+            <Palette className="w-3.5 h-3.5 text-[#B8F36B]" />
+            <span>Paste Style</span>
+          </div>
+          <span className="text-[10px] text-zinc-400 font-mono">⌥{cmd}V</span>
+        </button>
       </div>
 
       {targetEl && (
@@ -262,7 +305,77 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
         </>
       )}
 
+      {/* When Right-Clicking Empty Canvas Surface */}
+      {!targetEl && (
+        <>
+          <div className="my-1 border-t border-zinc-800/80" />
+          <div className="px-2 py-0.5 text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
+            Canvas Options
+          </div>
+          <button
+            onClick={() => {
+              selectElements([]);
+              setRightSidebarOpen(true);
+              onClose();
+              showToast('Opened Canvas Colors & Style Inspector 🎨', 'info');
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors text-left text-zinc-200"
+          >
+            <div className="flex items-center gap-2">
+              <Palette className="w-3.5 h-3.5 text-[#B8F36B]" />
+              <span>Canvas Colors & Style</span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => {
+              updatePageSettings(activePage.id, {
+                canvasHeight: (activePage.canvasHeight || 800) + 400,
+              });
+              onClose();
+              showToast('Expanded canvas height (+400px) ↕', 'success');
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors text-left text-zinc-200"
+          >
+            <div className="flex items-center gap-2">
+              <Plus className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Expand Height (+400px)</span>
+            </div>
+            <span className="text-[10px] text-zinc-500 font-mono">+400</span>
+          </button>
+
+          <button
+            onClick={() => {
+              updatePageSettings(activePage.id, { canvasWidth: 1440, canvasHeight: 900 });
+              onClose();
+              showToast('Set Figma HD (1440 × 900) 📐', 'success');
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors text-left text-zinc-200"
+          >
+            <div className="flex items-center gap-2">
+              <Maximize2 className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Figma HD (1440×900)</span>
+            </div>
+          </button>
+        </>
+      )}
+
       <div className="my-1 border-t border-zinc-800/80" />
+
+      {/* Find & Replace on Canvas */}
+      <button
+        onClick={() => {
+          setIsFindReplaceOpen(true);
+          onClose();
+        }}
+        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 text-zinc-200 transition-colors text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Search className="w-3.5 h-3.5 text-[#B8F36B]" />
+          <span>Find & Replace...</span>
+        </div>
+        <span className="text-[10px] text-zinc-400 font-mono">{cmd}F</span>
+      </button>
 
       {/* Shortcuts Modal Link */}
       <button
