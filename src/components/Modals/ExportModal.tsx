@@ -230,7 +230,7 @@ Upload these files directly to any static web host:
 
             <button
               onClick={handleDownloadAllZip}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-blue-600/20"
+              className="px-3.5 py-1.5 rounded-lg bg-[#1076fc] hover:bg-[#2584ff] text-white text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-blue-600/20"
             >
               <Archive className="w-3.5 h-3.5" />
               <span>Download Full Site (.ZIP)</span>

@@ -37,6 +37,8 @@ import {
   Headphones,
   SplitSquareVertical,
   Star,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { SECTION_TEMPLATES, getSmartSectionOffsetY } from '../../constants/templates';
 import { SHAPE_DEFINITIONS } from '../../utils/shapeDefinitions';
@@ -102,6 +104,8 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
     setLeftSidebarOpen,
     showToast,
     editorComplexity,
+    appTheme,
+    setAppTheme,
   } = useEditor();
 
   if (editorComplexity === 'simple') {
@@ -206,18 +210,18 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
             paddingLeft: `${depth * 14 + 8}px`,
             borderRadius: 5,
             backgroundColor: isSelected
-              ? '#252F23'
+              ? '#1a2030'
               : isDirectMatch
-              ? 'rgba(184, 243, 107, 0.08)'
+              ? 'rgba(16, 118, 252, 0.12)'
               : 'transparent',
-            border: isDirectMatch && !isSelected ? '1px solid rgba(184, 243, 107, 0.25)' : '1px solid transparent',
-            color: isSelected ? '#B8F36B' : isDirectMatch ? '#F4F5EF' : '#A0A99A',
+            border: isDirectMatch && !isSelected ? '1px solid rgba(16, 118, 252, 0.35)' : '1px solid transparent',
+            color: isSelected ? '#38bdf8' : isDirectMatch ? '#f8fafc' : '#94a3b8',
             cursor: 'pointer',
             fontSize: 11,
             transition: 'all 0.1s ease',
             position: 'relative',
           }}
-          className="group hover:bg-[#1C241B]"
+          className="group hover:bg-[#131620]"
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
             {hasChildren ? (
@@ -239,7 +243,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
             )}
 
             {/* Element Type Icon */}
-            <span style={{ color: isSelected ? '#818cf8' : '#6366f1', flexShrink: 0 }}>
+            <span style={{ color: isSelected ? '#38bdf8' : '#1076fc', flexShrink: 0 }}>
               {element.type === 'text' && <Type size={12} />}
               {element.type === 'button' && <MousePointerClick size={12} />}
               {element.type === 'container' && <Square size={12} />}
@@ -274,10 +278,10 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                     }
                   }}
                   style={{
-                    backgroundColor: '#1C241B',
-                    border: '1px solid #B8F36B',
+                    backgroundColor: '#131620',
+                    border: '1px solid #1076fc',
                     borderRadius: 4,
-                    color: '#F4F5EF',
+                    color: '#f8fafc',
                     fontSize: 11,
                     padding: '1px 5px',
                     outline: 'none',
@@ -380,26 +384,26 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
   };
 
   return (
-    <aside
+    <div
       style={{
         width: '100%',
         height: '100%',
-        backgroundColor: '#101510',
-        color: '#F4F5EF',
+        minHeight: 0,
+        backgroundColor: 'transparent',
+        color: 'var(--text-main)',
         display: 'flex',
         flexDirection: 'column',
         userSelect: 'none',
         fontSize: 11,
         overflow: 'hidden',
-        borderRight: '1px solid #354331',
       }}
     >
       {/* 1. Header with Clean Segmented Switcher */}
       <div
         style={{
-          height: 42,
-          padding: '0 10px',
-          borderBottom: '1px solid #354331',
+          height: 46,
+          padding: '0 12px',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -411,9 +415,9 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#1C241B',
-            border: '1px solid #354331',
-            borderRadius: 6,
+            backgroundColor: 'var(--studio-pill-bg)',
+            border: '1px solid var(--studio-pill-border)',
+            borderRadius: 9999,
             padding: 2,
             flex: 1,
             gap: 2,
@@ -429,13 +433,13 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                 onClick={() => setActiveTab(tab)}
                 style={{
                   flex: 1,
-                  height: 24,
-                  borderRadius: 4,
+                  height: 26,
+                  borderRadius: 9999,
                   border: 'none',
-                  backgroundColor: on ? '#252F23' : 'transparent',
-                  color: on ? '#B8F36B' : '#A0A99A',
+                  backgroundColor: on ? 'var(--studio-pill-active-bg)' : 'transparent',
+                  color: on ? 'var(--studio-pill-active-text)' : 'var(--studio-pill-inactive-text)',
                   cursor: 'pointer',
-                  fontSize: 10,
+                  fontSize: 10.5,
                   fontWeight: on ? 600 : 400,
                   transition: 'all 0.12s ease',
                   padding: 0,
@@ -470,22 +474,22 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
 
       {/* TAB 1: COMPONENTS & INSERT */}
       {activeTab === 'elements' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Search Box */}
-          <div style={{ padding: '10px 12px 6px', backgroundColor: '#101510' }}>
+          <div style={{ padding: '10px 12px 6px', backgroundColor: 'transparent' }}>
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                backgroundColor: '#1C241B',
-                border: '1px solid #354331',
+                backgroundColor: 'var(--input-bg)',
+                border: '1px solid var(--input-border)',
                 borderRadius: 6,
                 padding: '0 8px',
                 height: 28,
                 gap: 6,
               }}
             >
-              <Search size={13} color="#A0A99A" />
+              <Search size={13} color="var(--text-muted)" />
               <input
                 type="text"
                 placeholder="Search components..."
@@ -494,7 +498,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#F4F5EF',
+                  color: 'var(--input-text)',
                   fontSize: 11,
                   outline: 'none',
                   width: '100%',
@@ -504,7 +508,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  style={{ background: 'none', border: 'none', color: '#A0A99A', cursor: 'pointer', fontSize: 10 }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 10 }}
                 >
                   ✕
                 </button>
@@ -513,7 +517,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
           </div>
 
           {/* Sub Categories: All | Shapes | Emojis | Templates */}
-          <div style={{ display: 'flex', gap: 4, padding: '0 12px 8px', borderBottom: '1px solid #354331' }}>
+          <div style={{ display: 'flex', gap: 4, padding: '0 12px 8px', borderBottom: '1px solid var(--border-subtle)' }}>
             {[
               { id: 'all' as const, label: 'All' },
               { id: 'shapes' as const, label: 'Shapes' },
@@ -529,9 +533,9 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                   style={{
                     padding: '3px 8px',
                     borderRadius: 4,
-                    border: on ? '1px solid #354331' : '1px solid transparent',
-                    backgroundColor: on ? '#252F23' : 'transparent',
-                    color: on ? '#B8F36B' : '#A0A99A',
+                    border: on ? '1px solid var(--studio-pill-border)' : '1px solid transparent',
+                    backgroundColor: on ? 'var(--studio-pill-active-bg)' : 'transparent',
+                    color: on ? 'var(--studio-pill-active-text)' : 'var(--studio-pill-inactive-text)',
                     cursor: 'pointer',
                     fontSize: 10,
                     fontWeight: on ? 500 : 400,
@@ -543,14 +547,14 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
             })}
           </div>
 
-          {/* Content Views */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+          {/* Content Views with Generous Bottom Clearance for Full Scroll */}
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 12px 240px 12px', scrollBehavior: 'smooth' }}>
             {/* View A: All Basics */}
             {activeCategory === 'all' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {/* 2-Column Grid */}
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
                     Basics
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
@@ -574,24 +578,24 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                           height: 64,
                           padding: '8px 4px',
                           borderRadius: 8,
-                          backgroundColor: '#1C241B',
-                          border: '1px solid #354331',
-                          color: '#F4F5EF',
+                          backgroundColor: 'var(--studio-card-item-bg)',
+                          border: '1px solid var(--studio-card-item-border)',
+                          color: 'var(--text-main)',
                           cursor: 'pointer',
                           gap: 6,
                           transition: 'all 0.12s ease',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#252F23';
-                          e.currentTarget.style.borderColor = '#B8F36B';
+                          e.currentTarget.style.backgroundColor = 'var(--studio-card-item-hover)';
+                          e.currentTarget.style.borderColor = 'var(--primary)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#1C241B';
-                          e.currentTarget.style.borderColor = '#354331';
+                          e.currentTarget.style.backgroundColor = 'var(--studio-card-item-bg)';
+                          e.currentTarget.style.borderColor = 'var(--studio-card-item-border)';
                         }}
                         title={`Click to add or drag onto canvas`}
                       >
-                        <span style={{ color: '#A0A99A' }}>{item.icon}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{item.icon}</span>
                         <span style={{ fontSize: 11, fontWeight: 500 }}>{item.label}</span>
                       </button>
                     ))}
@@ -600,9 +604,9 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
 
                 {/* Interactive Engagement Widgets */}
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: '#A0A99A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span>Interactive Widgets</span>
-                    <span style={{ fontSize: 9, color: '#B8F36B', fontWeight: 700 }}>LIVE</span>
+                    <span style={{ fontSize: 9, color: 'var(--primary)', fontWeight: 700 }}>LIVE</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                     {INTERACTIVE_WIDGETS.filter(
@@ -625,21 +629,21 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                           height: 64,
                           padding: '8px 4px',
                           borderRadius: 8,
-                          backgroundColor: '#1C241B',
-                          border: '1px solid #354331',
-                          color: '#F4F5EF',
+                          backgroundColor: 'var(--studio-card-item-bg)',
+                          border: '1px solid var(--studio-card-item-border)',
+                          color: 'var(--text-main)',
                           cursor: 'pointer',
                           gap: 6,
                           position: 'relative',
                           transition: 'all 0.12s ease',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#252F23';
-                          e.currentTarget.style.borderColor = '#B8F36B';
+                          e.currentTarget.style.backgroundColor = 'var(--studio-card-item-hover)';
+                          e.currentTarget.style.borderColor = 'var(--primary)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#1C241B';
-                          e.currentTarget.style.borderColor = '#354331';
+                          e.currentTarget.style.backgroundColor = 'var(--studio-card-item-bg)';
+                          e.currentTarget.style.borderColor = 'var(--studio-card-item-border)';
                         }}
                         title={`Click to add or drag ${item.label} onto canvas`}
                       >
@@ -651,9 +655,9 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                               right: 4,
                               fontSize: 8,
                               fontWeight: 800,
-                              color: '#6366f1',
-                              backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                              border: '1px solid rgba(99, 102, 241, 0.3)',
+                              color: '#38bdf8',
+                              backgroundColor: 'rgba(16, 118, 252, 0.15)',
+                              border: '1px solid rgba(16, 118, 252, 0.3)',
                               padding: '1px 4px',
                               borderRadius: 4,
                             }}
@@ -661,7 +665,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                             {item.badge}
                           </span>
                         )}
-                        <span style={{ color: '#818cf8' }}>{item.icon}</span>
+                        <span style={{ color: '#1076fc' }}>{item.icon}</span>
                         <span style={{ fontSize: 11, fontWeight: 500 }}>{item.label}</span>
                       </button>
                     ))}
@@ -670,8 +674,8 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
 
                 {/* Pre-Built Sections Quick List */}
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                    SaaS Sections
+                  <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                    Section Templates
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {SECTION_TEMPLATES.map((tmpl) => (
@@ -690,24 +694,24 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                           justifyContent: 'space-between',
                           padding: '7px 10px',
                           borderRadius: 6,
-                          backgroundColor: '#1C241B',
-                          border: '1px solid #354331',
-                          color: '#F4F5EF',
+                          backgroundColor: 'var(--studio-card-item-bg)',
+                          border: '1px solid var(--studio-card-item-border)',
+                          color: 'var(--text-main)',
                           cursor: 'pointer',
                           textAlign: 'left',
                           transition: 'all 0.12s ease',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#252F23';
-                          e.currentTarget.style.borderColor = '#B8F36B';
+                          e.currentTarget.style.backgroundColor = 'var(--studio-card-item-hover)';
+                          e.currentTarget.style.borderColor = 'var(--primary)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#1C241B';
-                          e.currentTarget.style.borderColor = '#354331';
+                          e.currentTarget.style.backgroundColor = 'var(--studio-card-item-bg)';
+                          e.currentTarget.style.borderColor = 'var(--studio-card-item-border)';
                         }}
                       >
                         <span style={{ fontSize: 11, fontWeight: 500 }}>{tmpl.name}</span>
-                        <Plus size={12} color="#A0A99A" />
+                        <Plus size={12} color="var(--text-muted)" />
                       </button>
                     ))}
                   </div>
@@ -733,22 +737,22 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                         height: 64,
                         padding: '8px',
                         borderRadius: 8,
-                        backgroundColor: '#1C241B',
-                        border: '1px solid #354331',
-                        color: '#F4F5EF',
+                        backgroundColor: 'var(--studio-card-item-bg)',
+                        border: '1px solid var(--studio-card-item-border)',
+                        color: 'var(--text-main)',
                         cursor: 'pointer',
                         gap: 6,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#252F23';
-                        e.currentTarget.style.borderColor = '#B8F36B';
+                        e.currentTarget.style.backgroundColor = 'var(--studio-card-item-hover)';
+                        e.currentTarget.style.borderColor = 'var(--primary)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1C241B';
-                        e.currentTarget.style.borderColor = '#354331';
+                        e.currentTarget.style.backgroundColor = 'var(--studio-card-item-bg)';
+                        e.currentTarget.style.borderColor = 'var(--studio-card-item-border)';
                       }}
                     >
-                      <svg viewBox={def.viewBox} style={{ width: 22, height: 22, color: '#B8F36B' }}>
+                      <svg viewBox={def.viewBox} style={{ width: 22, height: 22, color: '#1076fc' }}>
                         {kind === 'circle' && <circle cx="50" cy="50" r="44" fill="currentColor" />}
                         {kind === 'rectangle' && <rect x="8" y="8" width="84" height="84" fill="currentColor" />}
                         {kind === 'rounded-rect' && <rect x="8" y="8" width="84" height="84" rx="18" fill="currentColor" />}
@@ -778,18 +782,18 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                       justifyContent: 'center',
                       height: 44,
                       borderRadius: 6,
-                      backgroundColor: '#1C241B',
-                      border: '1px solid #354331',
+                      backgroundColor: 'var(--studio-card-item-bg)',
+                      border: '1px solid var(--studio-card-item-border)',
                       fontSize: 20,
                       cursor: 'pointer',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#252F23';
-                      e.currentTarget.style.borderColor = '#B8F36B';
+                      e.currentTarget.style.backgroundColor = 'var(--studio-card-item-hover)';
+                      e.currentTarget.style.borderColor = 'var(--primary)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#1C241B';
-                      e.currentTarget.style.borderColor = '#354331';
+                      e.currentTarget.style.backgroundColor = 'var(--studio-card-item-bg)';
+                      e.currentTarget.style.borderColor = 'var(--studio-card-item-border)';
                     }}
                     title={item.name}
                   >
@@ -817,24 +821,24 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                       flexDirection: 'column',
                       padding: '8px 10px',
                       borderRadius: 6,
-                      backgroundColor: '#1C241B',
-                      border: '1px solid #354331',
-                      color: '#F4F5EF',
+                      backgroundColor: 'var(--studio-card-item-bg)',
+                      border: '1px solid var(--studio-card-item-border)',
+                      color: 'var(--text-main)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       gap: 3,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#252F23';
-                      e.currentTarget.style.borderColor = '#B8F36B';
+                      e.currentTarget.style.backgroundColor = 'var(--studio-card-item-hover)';
+                      e.currentTarget.style.borderColor = 'var(--primary)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#1C241B';
-                      e.currentTarget.style.borderColor = '#354331';
+                      e.currentTarget.style.backgroundColor = 'var(--studio-card-item-bg)';
+                      e.currentTarget.style.borderColor = 'var(--studio-card-item-border)';
                     }}
                   >
                     <span style={{ fontSize: 11, fontWeight: 600 }}>{tmpl.name}</span>
-                    <span style={{ fontSize: 10, color: '#A0A99A' }}>{tmpl.description}</span>
+                    <span style={{ fontSize: 10, color: '#94a3b8' }}>{tmpl.description}</span>
                   </button>
                 ))}
               </div>
@@ -845,22 +849,22 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
 
       {/* TAB 2: LAYERS */}
       {activeTab === 'layers' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Layer Search & Filter Bar */}
-          <div style={{ padding: '8px 10px 6px', borderBottom: '1px solid #354331', backgroundColor: '#101510', flexShrink: 0 }}>
+          <div style={{ padding: '8px 10px 6px', borderBottom: '1px solid #23283a', backgroundColor: '#0c0e14', flexShrink: 0 }}>
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                backgroundColor: '#1C241B',
-                border: '1px solid #354331',
+                backgroundColor: '#131620',
+                border: '1px solid #23283a',
                 borderRadius: 6,
                 padding: '0 8px',
                 height: 28,
                 gap: 6,
               }}
             >
-              <Search size={13} color="#B8F36B" style={{ flexShrink: 0 }} />
+              <Search size={13} color="#1076fc" style={{ flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Filter layers (name, type, text)..."
@@ -869,7 +873,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#F4F5EF',
+                  color: '#f8fafc',
                   fontSize: 11,
                   outline: 'none',
                   width: '100%',
@@ -880,7 +884,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                 <button
                   type="button"
                   onClick={() => setLayerSearchQuery('')}
-                  style={{ background: 'none', border: 'none', color: '#A0A99A', cursor: 'pointer', fontSize: 11, padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 11, padding: 0 }}
                   title="Clear filter"
                 >
                   ✕
@@ -889,7 +893,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
             </div>
 
             {/* Quick Stats & Collapse/Expand All */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: '#A0A99A' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: '#94a3b8' }}>
               <span>
                 {layerSearchQuery
                   ? `${matchingLayersCount} match${matchingLayersCount === 1 ? '' : 'es'}`
@@ -905,7 +909,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                     });
                     setCollapsedIds(allOpen);
                   }}
-                  style={{ background: 'none', border: 'none', color: '#B8F36B', cursor: 'pointer', fontSize: 10, padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: '#1076fc', cursor: 'pointer', fontSize: 10, padding: 0 }}
                 >
                   Expand
                 </button>
@@ -919,7 +923,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                     });
                     setCollapsedIds(allCollapsed);
                   }}
-                  style={{ background: 'none', border: 'none', color: '#A0A99A', cursor: 'pointer', fontSize: 10, padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 10, padding: 0 }}
                 >
                   Collapse
                 </button>
@@ -928,7 +932,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
           </div>
 
           {/* Layers Tree */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '8px 8px 260px 8px' }}>
             {activePage.elements.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '32px 16px', color: '#71717a' }}>
                 <Layers size={24} style={{ opacity: 0.3, margin: '0 auto 8px' }} />
@@ -950,7 +954,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
 
       {/* TAB 3: PAGES */}
       {activeTab === 'pages' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '12px', gap: 12 }}>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '12px 12px 260px 12px', gap: 12 }}>
           {/* Add Page Form */}
           <form
             onSubmit={(e) => {
@@ -970,11 +974,11 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
               style={{
                 flex: 1,
                 height: 26,
-                backgroundColor: '#1C241B',
-                border: '1px solid #354331',
+                backgroundColor: '#131620',
+                border: '1px solid #23283a',
                 borderRadius: 5,
                 padding: '0 8px',
-                color: '#F4F5EF',
+                color: '#f8fafc',
                 fontSize: 11,
                 outline: 'none',
               }}
@@ -987,8 +991,8 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                 height: 26,
                 borderRadius: 5,
                 border: 'none',
-                backgroundColor: '#B8F36B',
-                color: '#101510',
+                backgroundColor: '#1076fc',
+                color: '#0c0e14',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -1016,15 +1020,15 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                     justifyContent: 'space-between',
                     padding: '7px 10px',
                     borderRadius: 6,
-                    backgroundColor: isActive ? '#252F23' : '#1C241B',
-                    border: isActive ? '1px solid #B8F36B' : '1px solid #354331',
-                    color: isActive ? '#F4F5EF' : '#A0A99A',
+                    backgroundColor: isActive ? '#1a1f2e' : '#131620',
+                    border: isActive ? '1px solid #1076fc' : '1px solid #23283a',
+                    color: isActive ? '#f8fafc' : '#94a3b8',
                     cursor: 'pointer',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <FileText size={12} color={isActive ? '#B8F36B' : '#A0A99A'} />
-                    <span style={{ fontSize: 9.5, fontFamily: 'monospace', color: '#A0A99A' }}>#{idx + 1}</span>
+                    <FileText size={12} color={isActive ? '#1076fc' : '#94a3b8'} />
+                    <span style={{ fontSize: 9.5, fontFamily: 'monospace', color: '#94a3b8' }}>#{idx + 1}</span>
                     <span style={{ fontSize: 11, fontWeight: isActive ? 600 : 400 }}>{p.name}</span>
                   </div>
 
@@ -1035,7 +1039,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                         e.stopPropagation();
                         duplicatePage(p.id);
                       }}
-                      style={{ background: 'none', border: 'none', color: '#A0A99A', cursor: 'pointer', padding: 2 }}
+                      style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 2 }}
                       title="Duplicate"
                     >
                       <Copy size={11} />
@@ -1047,7 +1051,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                           e.stopPropagation();
                           deletePage(p.id);
                         }}
-                        style={{ background: 'none', border: 'none', color: '#A0A99A', cursor: 'pointer', padding: 2 }}
+                        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 2 }}
                         title="Delete"
                       >
                         <Trash2 size={11} />
@@ -1062,21 +1066,87 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
       )}
       {/* TAB 4: GLOBAL THEME & TOKENS */}
       {activeTab === 'theme' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '12px 14px' }}>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '12px 14px 260px 14px' }}>
           {/* Header */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <Palette size={14} color="#B8F36B" />
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#F4F5EF' }}>Theme & Tokens</span>
+              <Palette size={14} color="var(--primary)" />
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-main)' }}>Theme & Appearance</span>
             </div>
-            <p style={{ fontSize: 10.5, color: '#A0A99A', margin: 0, lineHeight: 1.4 }}>
-              Cascade color palettes, canvas tones, typography, and corner radii across your site.
+            <p style={{ fontSize: 10.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+              Switch studio interface appearance, or cascade design system tokens across your site.
             </p>
+          </div>
+
+          {/* 0. Studio Interface Appearance (Dark vs Light Mode) */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+              Studio Interface Mode
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {/* Dark Option */}
+              <button
+                type="button"
+                onClick={() => setAppTheme('dark')}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '10px 8px',
+                  borderRadius: 10,
+                  backgroundColor: '#0c0f18',
+                  border: appTheme === 'dark' ? '2px solid #1076fc' : '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#f8fafc',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'all 0.15s ease',
+                  boxShadow: appTheme === 'dark' ? '0 0 14px rgba(16, 118, 252, 0.35)' : 'none',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <Moon size={14} color="#38bdf8" />
+                  <span style={{ fontSize: 11, fontWeight: 600 }}>Dark</span>
+                </div>
+                <span style={{ fontSize: 9.5, color: '#94a3b8' }}>Obsidian Velvet</span>
+                {appTheme === 'dark' && (
+                  <span style={{ position: 'absolute', top: 5, right: 5, width: 6, height: 6, borderRadius: '50%', backgroundColor: '#1076fc' }} />
+                )}
+              </button>
+
+              {/* Light Option */}
+              <button
+                type="button"
+                onClick={() => setAppTheme('light')}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '10px 8px',
+                  borderRadius: 10,
+                  backgroundColor: '#ffffff',
+                  border: appTheme === 'light' ? '2px solid #0284c7' : '1px solid rgba(15, 23, 42, 0.15)',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'all 0.15s ease',
+                  boxShadow: appTheme === 'light' ? '0 0 14px rgba(2, 132, 199, 0.35)' : '0 2px 6px rgba(0,0,0,0.06)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <Sun size={14} color="#f59e0b" />
+                  <span style={{ fontSize: 11, fontWeight: 600 }}>Light</span>
+                </div>
+                <span style={{ fontSize: 9.5, color: '#64748b' }}>Titanium Studio</span>
+                {appTheme === 'light' && (
+                  <span style={{ position: 'absolute', top: 5, right: 5, width: 6, height: 6, borderRadius: '50%', backgroundColor: '#0284c7' }} />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* 1. Theme Presets */}
           <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#A0A99A', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
               Design Systems
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1084,10 +1154,10 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                 {
                   id: 'pickle-dark',
                   name: 'Pickle Botanical',
-                  accent: '#B8F36B',
-                  bg: '#101510',
-                  card: '#1C241B',
-                  text: '#F4F5EF',
+                  accent: '#1076fc',
+                  bg: '#0c0e14',
+                  card: '#131620',
+                  text: '#f8fafc',
                   font: 'Cabinet Grotesk',
                   radius: 8,
                 },
@@ -1234,12 +1304,12 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
           </div>
 
           {/* 2. Primary Brand Accent */}
-          <div style={{ marginBottom: 18, padding: '10px 12px', backgroundColor: '#1C241B', borderRadius: 8, border: '1px solid #354331' }}>
-            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#A0A99A', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+          <div style={{ marginBottom: 18, padding: '10px 12px', backgroundColor: '#131620', borderRadius: 8, border: '1px solid #23283a' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
               Brand Accent Color
             </div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-              {['#B8F36B', '#936639', '#A4AC86', '#10b981', '#f59e0b', '#70B8FF', '#ffffff', '#101510'].map((color) => (
+              {['#1076fc', '#936639', '#A4AC86', '#10b981', '#f59e0b', '#70B8FF', '#ffffff', '#0c0e14'].map((color) => (
                 <button
                   key={color}
                   type="button"
@@ -1251,7 +1321,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                           styles: {
                             ...el.styles,
                             backgroundColor: color,
-                            color: color === '#ffffff' || color === '#B8F36B' ? '#101510' : '#ffffff',
+                            color: color === '#ffffff' || color === '#1076fc' ? '#0c0e14' : '#ffffff',
                           },
                         };
                       }
@@ -1265,7 +1335,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                     height: 22,
                     borderRadius: 9999,
                     backgroundColor: color,
-                    border: '2px solid #354331',
+                    border: '2px solid #23283a',
                     cursor: 'pointer',
                     transition: 'transform 0.1s ease',
                   }}
@@ -1276,7 +1346,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <input
                 type="color"
-                defaultValue="#6366f1"
+                defaultValue="#1076fc"
                 onChange={(e) => {
                   const color = e.target.value;
                   const updated = activePage.elements.map((el) => {
@@ -1292,24 +1362,24 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                   height: 26,
                   padding: 0,
                   borderRadius: 4,
-                  border: '1px solid #27272a',
+                  border: '1px solid #23283a',
                   backgroundColor: 'transparent',
                   cursor: 'pointer',
                 }}
               />
-              <span style={{ fontSize: 10, color: '#71717a' }}>Custom Button Accent</span>
+              <span style={{ fontSize: 10, color: '#94a3b8' }}>Custom Button Accent</span>
             </div>
           </div>
 
           {/* 3. Canvas Background Tone */}
-          <div style={{ marginBottom: 18, padding: '10px 12px', backgroundColor: '#121216', borderRadius: 8, border: '1px solid #1c1c24' }}>
-            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+          <div style={{ marginBottom: 18, padding: '10px 12px', backgroundColor: '#131620', borderRadius: 8, border: '1px solid #23283a' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
               Canvas Tone
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, marginBottom: 10 }}>
               {[
-                { hex: '#09090b', name: 'Obsidian' },
-                { hex: '#121216', name: 'Charcoal' },
+                { hex: '#08090d', name: 'Obsidian' },
+                { hex: '#0f1118', name: 'Charcoal' },
                 { hex: '#000000', name: 'Pitch' },
                 { hex: '#0f172a', name: 'Slate' },
                 { hex: '#ffffff', name: 'White' },
@@ -1325,7 +1395,7 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                     height: 24,
                     borderRadius: 4,
                     backgroundColor: tone.hex,
-                    border: (activePage.backgroundColor || '#09090b') === tone.hex ? '2px solid #6366f1' : '1px solid #27272a',
+                    border: (activePage.backgroundColor || '#08090d') === tone.hex ? '2px solid #1076fc' : '1px solid #23283a',
                     cursor: 'pointer',
                   }}
                   title={tone.name}
@@ -1359,8 +1429,8 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
           </div>
 
           {/* 4. Corner Radius Scale */}
-          <div style={{ marginBottom: 18, padding: '10px 12px', backgroundColor: '#1C241B', borderRadius: 8, border: '1px solid #354331' }}>
-            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#A0A99A', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+          <div style={{ marginBottom: 18, padding: '10px 12px', backgroundColor: '#131620', borderRadius: 8, border: '1px solid #23283a' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
               Corner Radius
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
@@ -1392,9 +1462,9 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
                   style={{
                     padding: '5px 0',
                     borderRadius: 4,
-                    backgroundColor: '#252F23',
-                    border: '1px solid #354331',
-                    color: '#F4F5EF',
+                    backgroundColor: '#1a1f2e',
+                    border: '1px solid #23283a',
+                    color: '#f8fafc',
                     fontSize: 10.5,
                     cursor: 'pointer',
                     textAlign: 'center',
@@ -1407,6 +1477,6 @@ export const ElementsSidebar: React.FC<ElementsSidebarProps> = ({
           </div>
         </div>
       )}
-    </aside>
+    </div>
   );
 };

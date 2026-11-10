@@ -117,7 +117,7 @@ export function triggerConfetti(originX?: number, originY?: number) {
   requestAnimationFrame(animate);
 }
 
-export type SoundEffectType = 'pop' | 'success' | 'chime' | 'click' | 'bell';
+export type SoundEffectType = 'pop' | 'success' | 'chime' | 'click' | 'bell' | 'boing';
 
 /**
  * Synthesizes a crisp audio effect via Web Audio API. Zero asset downloads.
@@ -187,6 +187,20 @@ export function playSound(type: SoundEffectType = 'success') {
       gain.connect(ctx.destination);
       osc.start(now);
       osc.stop(now + 0.6);
+    } else if (type === 'boing') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(540, now + 0.12);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.22);
+      osc.frequency.exponentialRampToValueAtTime(420, now + 0.32);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.38);
     }
   } catch {
     // Graceful fallback if audio is not permitted by browser autoplay policy

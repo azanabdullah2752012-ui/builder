@@ -157,8 +157,8 @@ export const CanvasArtboardResizeHandles: React.FC<CanvasArtboardResizeHandlesPr
         <div
           className={`w-1.5 h-14 rounded-full transition-all duration-150 flex flex-col items-center justify-center gap-1 shadow-sm ${
             activeDirection === 'right' || activeDirection === 'corner'
-              ? 'bg-[#B8F36B] w-2.5 h-20 shadow-[0_0_12px_rgba(184,243,107,0.7)]'
-              : 'bg-zinc-600/70 group-hover:bg-[#B8F36B] group-hover:w-2 group-hover:h-16'
+              ? 'bg-[#1076fc] w-2.5 h-20 shadow-[0_0_12px_rgba(16,118,252,0.7)]'
+              : 'bg-zinc-600/70 group-hover:bg-[#1076fc] group-hover:w-2 group-hover:h-16'
           }`}
         >
           <span className="w-0.5 h-1 bg-black/40 rounded-full" />
@@ -176,8 +176,8 @@ export const CanvasArtboardResizeHandles: React.FC<CanvasArtboardResizeHandlesPr
         <div
           className={`h-1.5 w-14 rounded-full transition-all duration-150 flex items-center justify-center gap-1 shadow-sm ${
             activeDirection === 'bottom' || activeDirection === 'corner'
-              ? 'bg-[#B8F36B] h-2.5 w-20 shadow-[0_0_12px_rgba(184,243,107,0.7)]'
-              : 'bg-zinc-600/70 group-hover:bg-[#B8F36B] group-hover:h-2 group-hover:w-16'
+              ? 'bg-[#1076fc] h-2.5 w-20 shadow-[0_0_12px_rgba(16,118,252,0.7)]'
+              : 'bg-zinc-600/70 group-hover:bg-[#1076fc] group-hover:h-2 group-hover:w-16'
           }`}
         >
           <span className="h-0.5 w-1 bg-black/40 rounded-full" />
@@ -193,10 +193,10 @@ export const CanvasArtboardResizeHandles: React.FC<CanvasArtboardResizeHandlesPr
         title="Drag corner to resize canvas width and height"
       >
         <div
-          className={`w-3.5 h-3.5 rounded-br-lg rounded-tl-sm transition-all duration-150 border-r-2 border-b-2 flex items-center justify-center shadow-sm ${
+          className={`w-3.5 h-3.5 transition-all duration-150 border flex items-center justify-center shadow-sm ${
             activeDirection === 'corner'
-              ? 'border-[#B8F36B] bg-[#B8F36B]/30 scale-125 shadow-[0_0_10px_rgba(184,243,107,0.8)]'
-              : 'border-zinc-500 group-hover:border-[#B8F36B] group-hover:bg-[#B8F36B]/20 group-hover:scale-110'
+              ? 'border-[#1076fc] bg-[#1076fc]/40 scale-125 shadow-[0_0_10px_rgba(16,118,252,0.8)]'
+              : 'border-zinc-500 bg-zinc-900 group-hover:border-[#1076fc] group-hover:bg-[#1076fc]/20 group-hover:scale-110'
           }`}
         >
           <div className="w-1 h-1 bg-white/70 rounded-full" />
@@ -212,12 +212,12 @@ export const CanvasArtboardResizeHandles: React.FC<CanvasArtboardResizeHandlesPr
             top: activeDirection === 'bottom' ? `${canvasHeight + 20}px` : `${canvasHeight / 2}px`,
           }}
         >
-          <div className="px-3 py-1.5 rounded-lg bg-zinc-950/95 border border-[#B8F36B] shadow-[0_0_20px_rgba(0,0,0,0.8)] backdrop-blur-md text-white font-mono text-xs flex items-center gap-2">
-            <span className="text-[#B8F36B] font-bold">
+          <div className="px-3 py-1.5 rounded-lg bg-zinc-950/95 border border-[#1076fc] shadow-[0_0_20px_rgba(0,0,0,0.8)] backdrop-blur-md text-white font-mono text-xs flex items-center gap-2">
+            <span className="text-[#1076fc] font-bold">
               {currentSize.width} × {currentSize.height} px
             </span>
             {(snappedWidth || snappedHeight) && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#B8F36B]/20 text-[#B8F36B] font-sans font-semibold">
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#1076fc]/20 text-[#38bdf8] font-sans font-semibold">
                 ✨ Snapped
               </span>
             )}
@@ -237,7 +237,7 @@ export const CanvasArtboardResizeHandles: React.FC<CanvasArtboardResizeHandlesPr
             className="px-2.5 py-1 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white text-[10px] font-medium flex items-center gap-1.5 shadow-md cursor-pointer transition-colors"
             title="Add 400px to canvas height"
           >
-            <Plus className="w-3 h-3 text-[#B8F36B]" />
+            <Plus className="w-3 h-3 text-[#1076fc]" />
             <span>+400px Height</span>
           </button>
         </div>

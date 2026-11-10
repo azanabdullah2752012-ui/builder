@@ -572,7 +572,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
   const activeShadow = activePressed
     ? as?.boxShadow || 'inset 0 2px 4px rgba(0,0,0,0.4)'
     : activeFocused
-    ? fs?.boxShadow || (fs?.outlineColor ? `0 0 0 ${fs.outlineWidth || 2}px ${fs.outlineColor}` : '0 0 0 2px #B8F36B, 0 0 12px rgba(184,243,107,0.4)')
+    ? fs?.boxShadow || (fs?.outlineColor ? `0 0 0 ${fs.outlineWidth || 2}px ${fs.outlineColor}` : '0 0 0 2px #1076fc, 0 0 12px rgba(184,243,107,0.4)')
     : activeHover
     ? hs?.boxShadow || s.hoverShadow || (s.hoverEffect === 'lift' ? '0 16px 32px -4px rgba(0,0,0,0.5), 0 8px 16px -4px rgba(0,0,0,0.3)' : s.hoverEffect === 'glow' ? '0 0 25px rgba(184, 243, 107, 0.45)' : undefined)
     : s.boxShadow || undefined;
@@ -701,7 +701,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
           onKeyDown={handleInlineKeyDown}
           autoFocus
           onFocus={(e) => e.currentTarget.select()}
-          className="w-full h-full bg-transparent resize-none outline-none border-2 border-indigo-500 rounded p-1 shadow-inner"
+          className="w-full h-full bg-transparent resize-none outline-none border-2 border-[#1076fc] rounded p-1 shadow-inner"
           style={{
             color: s.color || 'inherit',
             fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
@@ -720,7 +720,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         return (
           <div className="w-full h-full pointer-events-none relative select-none">
             <div className="absolute top-2 left-2 flex items-center gap-1.5 opacity-60">
-              <span className="text-[9px] font-mono uppercase font-semibold text-purple-600 bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800">
+              <span className="text-[9px] font-mono uppercase font-semibold text-[#38bdf8] bg-[#1076fc]/10 px-1.5 py-0.5 rounded border border-[#1076fc]/30">
                 § Section
               </span>
               <span className="text-[11px] font-medium text-slate-500">{element.name}</span>
@@ -731,7 +731,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
 
       case 'text':
         return (
-          <div className={`w-full h-full whitespace-pre-wrap select-none pointer-events-none p-1 ${b?.actionType === 'navigate-url' ? 'underline underline-offset-4 decoration-indigo-400/50' : ''}`}>
+          <div className={`w-full h-full whitespace-pre-wrap select-none pointer-events-none p-1 ${b?.actionType === 'navigate-url' ? 'underline underline-offset-4 decoration-[#38bdf8]/50' : ''}`}>
             {element.content || 'Double-click to write text...'}
           </div>
         );
@@ -925,7 +925,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
               data-field-id={element.id}
               type="checkbox"
               defaultChecked={element.formConfig?.checked}
-              className="w-4 h-4 rounded text-indigo-600 bg-zinc-800 border-zinc-700 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+              className="w-4 h-4 rounded text-[#1076fc] bg-zinc-800 border-zinc-700 focus:ring-[#1076fc] focus:ring-offset-0 cursor-pointer"
               onClick={(e) => {
                 if (editorMode === 'preview') {
                   e.stopPropagation();
@@ -1065,10 +1065,10 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
             ? 'outline outline-2 outline-amber-500 shadow-[0_0_0_1px_rgba(245,158,11,0.25)]'
             : isSection
             ? 'outline outline-2 outline-[#936639] shadow-[0_0_0_1px_rgba(147,102,57,0.25)]'
-            : 'outline outline-2 outline-[#B8F36B] shadow-[0_0_0_1px_rgba(184,243,107,0.3)]'
+            : 'outline outline-2 outline-[#1076fc] shadow-[0_0_0_1px_rgba(184,243,107,0.3)]'
           : isSection
           ? 'hover:outline hover:outline-1 hover:outline-[#936639]/40'
-          : 'hover:outline hover:outline-1 hover:outline-[#B8F36B]/35'
+          : 'hover:outline hover:outline-1 hover:outline-[#1076fc]/35'
       }`}
     >
       {/* Inner Render Container (styled with background/gradient, border, radius, transitions, hover) */}
@@ -1079,11 +1079,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
       {/* Selected Chrome - 8 Prominent Resize Handles & Live Coordinate HUD (unclipped in outer wrapper) */}
       {isSelected && !element.locked && (
         <>
-          {selectedElementIds.length > 1 ? (
-            <div className="absolute -top-5 left-0 px-1.5 py-0.5 rounded bg-[#B8F36B] text-[#101510] text-[9px] font-bold shadow pointer-events-none select-none z-40 whitespace-nowrap">
-              {element.name}
-            </div>
-          ) : (
+          {selectedElementIds.length > 1 ? null : (
             <ResizeHandles onResizeStart={handleResizeStart} />
           )}
           {/* Subtle real-time dimension & position HUD indicator */}
@@ -1096,10 +1092,10 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
                 transform: 'translateX(-50%)',
                 zIndex: 65,
               }}
-              className="px-2.5 py-0.5 rounded-full bg-[#101510]/95 text-[#B8F36B] text-[10px] font-mono border border-[#354331] shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
+              className="px-2.5 py-0.5 rounded-full bg-[#0c0e14]/95 text-[#1076fc] text-[10px] font-mono border border-[#23283a] shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
             >
               <span>X: <strong className="text-white font-semibold">{Math.round(element.x)}</strong></span>
-              <span className="opacity-30 text-[#B8F36B]">|</span>
+              <span className="opacity-30 text-[#1076fc]">|</span>
               <span>Y: <strong className="text-white font-semibold">{Math.round(element.y)}</strong></span>
             </div>
           )}
@@ -1108,19 +1104,19 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
             <div
               style={{
                 position: 'absolute',
-                top: element.y < 35 ? 'calc(100% + 6px)' : -32,
+                top: element.y < 35 ? 'calc(100% + 6px)' : -30,
                 left: 0,
                 zIndex: 60,
               }}
-              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zinc-900/95 border border-zinc-700/80 shadow-2xl backdrop-blur-md pointer-events-auto select-none"
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#080b12]/95 border border-sky-500/40 shadow-xl backdrop-blur-md pointer-events-auto select-none"
             >
-              <span className="text-[9.5px] font-semibold text-zinc-300 px-1 max-w-[90px] truncate">{element.name}</span>
-              <span className="w-px h-3 bg-zinc-700" />
+              <span className="text-[10px] font-semibold text-sky-400 px-1 max-w-[120px] truncate">{element.name}</span>
+              <span className="w-px h-2.5 bg-white/10" />
               <button
                 type="button"
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); reorderElement(element.id, 'forward'); }}
-                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700/60 rounded transition-colors"
+                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
                 title="Bring Forward (⌘])"
               >
                 <ChevronUp size={11} />
@@ -1129,7 +1125,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
                 type="button"
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); reorderElement(element.id, 'backward'); }}
-                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700/60 rounded transition-colors"
+                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
                 title="Send Backward (⌘[)"
               >
                 <ChevronDown size={11} />
@@ -1138,7 +1134,7 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
                 type="button"
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); duplicateElement(); }}
-                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700/60 rounded transition-colors"
+                className="w-4 h-4 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
                 title="Duplicate (⌘D)"
               >
                 <Copy size={10} />
@@ -1163,10 +1159,10 @@ export const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
                 transform: 'translateX(-50%)',
                 zIndex: 65,
               }}
-              className="px-2.5 py-0.5 rounded-full bg-[#101510]/95 text-[#B8F36B] text-[10px] font-mono border border-[#354331] shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
+              className="px-2.5 py-0.5 rounded-full bg-[#0c0e14]/95 text-[#1076fc] text-[10px] font-mono border border-[#23283a] shadow-2xl pointer-events-none select-none whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md"
             >
               <span>W: <strong className="text-white font-semibold">{Math.round(element.width)}</strong></span>
-              <span className="opacity-30 text-[#B8F36B]">×</span>
+              <span className="opacity-30 text-[#1076fc]">×</span>
               <span>H: <strong className="text-white font-semibold">{Math.round(element.height)}</strong></span>
             </div>
           )}

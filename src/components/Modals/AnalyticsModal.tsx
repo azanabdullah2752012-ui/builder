@@ -95,8 +95,8 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
         {/* Header */}
         <div className="px-6 py-4 border-b border-[#232734] flex items-center justify-between bg-[#151821]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500/20 to-teal-500/20 border border-indigo-500/30 flex items-center justify-center shadow-inner">
-              <TrendingUp className="w-5 h-5 text-indigo-400" />
+            <div className="w-9 h-9 rounded-xl bg-[#1076fc]/15 border border-[#1076fc]/30 flex items-center justify-center shadow-inner">
+              <TrendingUp className="w-5 h-5 text-[#38bdf8]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
                   onClick={() => setTimeframe(t.id)}
                   className={`px-2.5 py-1 rounded-md font-medium transition-all ${
                     timeframe === t.id
-                      ? 'bg-indigo-600 text-white shadow-sm'
+                      ? 'bg-[#1076fc] text-white shadow-sm font-semibold'
                       : 'text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -156,7 +156,7 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
             <div className="p-4 rounded-xl bg-[#171b26] border border-[#262c3e] flex flex-col justify-between">
               <div className="flex items-center justify-between text-zinc-400">
                 <span className="text-xs font-medium">Total Views</span>
-                <Eye className="w-4 h-4 text-indigo-400" />
+                <Eye className="w-4 h-4 text-[#38bdf8]" />
               </div>
               <div className="my-2 text-2xl font-bold text-white tracking-tight">
                 {summary.totalViews.toLocaleString()}
@@ -191,7 +191,7 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
               <div className="my-2 text-2xl font-bold text-white tracking-tight">
                 {summary.leadsCount}
               </div>
-              <div className="flex items-center gap-1 text-[11px] text-indigo-300 font-medium">
+              <div className="flex items-center gap-1 text-[11px] text-[#38bdf8] font-medium">
                 <span>{summary.conversionRate}% Conversion Rate</span>
               </div>
             </div>
@@ -223,7 +223,7 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
               {/* Progress Multi-Bar */}
               <div className="w-full h-3 rounded-full bg-zinc-800 overflow-hidden flex">
                 <div
-                  className="h-full bg-indigo-500 transition-all duration-500"
+                  className="h-full bg-[#1076fc] transition-all duration-500"
                   style={{ width: `${summary.deviceBreakdown.desktop}%` }}
                   title={`Desktop: ${summary.deviceBreakdown.desktop}%`}
                 />
@@ -242,7 +242,7 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
               {/* Legend */}
               <div className="grid grid-cols-3 gap-2 pt-1 text-xs">
                 <div className="flex items-center gap-2">
-                  <Monitor className="w-3.5 h-3.5 text-indigo-400" />
+                  <Monitor className="w-3.5 h-3.5 text-[#38bdf8]" />
                   <span className="text-zinc-400">Desktop</span>
                   <span className="font-semibold text-white ml-auto">
                     {summary.deviceBreakdown.desktop}%
@@ -281,7 +281,7 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
                     </div>
                     <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-indigo-500 to-teal-400 rounded-full"
+                        className="h-full bg-gradient-to-r from-[#1076fc] to-teal-400 rounded-full"
                         style={{ width: `${s.percentage}%` }}
                       />
                     </div>
@@ -297,7 +297,7 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
             <div className="p-5 rounded-xl bg-[#161a24] border border-[#242a3a] space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <MousePointerClick className="w-4 h-4 text-indigo-400" />
+                  <MousePointerClick className="w-4 h-4 text-[#38bdf8]" />
                   <h3 className="text-sm font-semibold text-white">High-Impact Click Targets</h3>
                 </div>
                 <span className="text-xs text-zinc-500">CTA Heatmap</span>
@@ -345,7 +345,7 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
                           ev.type === 'checkout'
                             ? 'bg-emerald-400'
                             : ev.type === 'cart_add'
-                            ? 'bg-indigo-400'
+                            ? 'bg-[#1076fc]'
                             : ev.type === 'click'
                             ? 'bg-amber-400'
                             : 'bg-zinc-500'
@@ -379,7 +379,7 @@ export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose 
               <button
                 type="button"
                 onClick={handleSimulateVisitor}
-                className="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-medium flex items-center gap-1.5 transition-all"
+                className="px-3 py-1.5 rounded-lg bg-[#1076fc]/20 hover:bg-[#1076fc]/30 text-sky-200 border border-[#1076fc]/40 text-xs font-medium flex items-center gap-1.5 transition-all"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 <span>Simulate Visitor Activity</span>

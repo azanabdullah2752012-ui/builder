@@ -34,52 +34,24 @@ export interface CanvasSizePreset {
   description: string;
 }
 
-// 1. Curated Anti-Slop Palette Categories
+// 1. Curated Palette Categories (Playful, Bright & Studio Clean)
 export const CANVAS_COLOR_CATEGORIES: {
   id: string;
   name: string;
   colors: CanvasPaletteItem[];
 }[] = [
   {
-    id: 'dark-luxury',
-    name: 'Dark Luxury & Obsidian',
-    colors: [
-      { name: 'Deep Obsidian', hex: '#0c0e14' },
-      { name: 'Rich Charcoal', hex: '#12151c' },
-      { name: 'Forest Studio', hex: '#101510' },
-      { name: 'Panel Dark', hex: '#1c241b' },
-      { name: 'Midnight Navy', hex: '#0b1120' },
-      { name: 'OLED Pitch', hex: '#050507' },
-      { name: 'Deep Espresso', hex: '#1c1917' },
-      { name: 'Slate Night', hex: '#1e2430' },
-    ],
-  },
-  {
-    id: 'editorial-light',
-    name: 'Clean Editorial & Studio Light',
+    id: 'candy-playful',
+    name: 'Candy Pop & Playful',
     colors: [
       { name: 'Pure White', hex: '#ffffff' },
-      { name: 'Studio Slate', hex: '#f8fafc' },
-      { name: 'Warm Linen', hex: '#F4F2EC' },
-      { name: 'Cream Paper', hex: '#fbf9f5' },
-      { name: 'Alabaster', hex: '#f5f5f0' },
-      { name: 'Soft Sand', hex: '#f5f2eb' },
-      { name: 'Celadon Frost', hex: '#f0fdf4' },
-      { name: 'Ice White', hex: '#f1f5f9' },
-    ],
-  },
-  {
-    id: 'pickle-brand',
-    name: 'Brand & Vibrant Accents',
-    colors: [
-      { name: 'Pickle Lime', hex: '#B8F36B' },
-      { name: 'Biscuit Gold', hex: '#936639' },
-      { name: 'Celadon Sage', hex: '#A4AC86' },
-      { name: 'Olive Ink', hex: '#333D29' },
-      { name: 'Electric Indigo', hex: '#4f46e5' },
-      { name: 'Emerald Gem', hex: '#10b981' },
-      { name: 'Solar Amber', hex: '#f59e0b' },
-      { name: 'Crimson Ember', hex: '#ef4444' },
+      { name: 'Banana Sunshine', hex: '#fef08a' },
+      { name: 'Fresh Pickle', hex: '#22c55e' },
+      { name: 'Sky Splash', hex: '#38bdf8' },
+      { name: 'Pop Coral', hex: '#fb7185' },
+      { name: 'Bubblegum Pink', hex: '#f472b6' },
+      { name: 'Grape Candy', hex: '#c084fc' },
+      { name: 'Tangerine Sun', hex: '#fb923c' },
     ],
   },
   {
@@ -94,6 +66,48 @@ export const CANVAS_COLOR_CATEGORIES: {
       { name: 'Peach Warmth', hex: '#ffedd5' },
       { name: 'Soft Mint', hex: '#ccfbf1' },
       { name: 'Muted Zinc', hex: '#e4e4e7' },
+    ],
+  },
+  {
+    id: 'editorial-light',
+    name: 'Clean Editorial & Studio Light',
+    colors: [
+      { name: 'Studio Slate', hex: '#f8fafc' },
+      { name: 'Warm Linen', hex: '#F4F2EC' },
+      { name: 'Cream Paper', hex: '#fbf9f5' },
+      { name: 'Alabaster', hex: '#f5f5f0' },
+      { name: 'Soft Sand', hex: '#f5f2eb' },
+      { name: 'Celadon Frost', hex: '#f0fdf4' },
+      { name: 'Ice White', hex: '#f1f5f9' },
+      { name: 'Cool Mist', hex: '#f0f4f8' },
+    ],
+  },
+  {
+    id: 'pickle-brand',
+    name: 'Brand & Vibrant Accents',
+    colors: [
+      { name: 'Pickle Blue', hex: '#1076fc' },
+      { name: 'Biscuit Gold', hex: '#936639' },
+      { name: 'Celadon Sage', hex: '#A4AC86' },
+      { name: 'Olive Ink', hex: '#333D29' },
+      { name: 'Electric Indigo', hex: '#4f46e5' },
+      { name: 'Emerald Gem', hex: '#10b981' },
+      { name: 'Solar Amber', hex: '#f59e0b' },
+      { name: 'Crimson Ember', hex: '#ef4444' },
+    ],
+  },
+  {
+    id: 'dark-luxury',
+    name: 'Dark Arcade & Obsidian',
+    colors: [
+      { name: 'Deep Obsidian', hex: '#0c0e14' },
+      { name: 'Rich Charcoal', hex: '#12151c' },
+      { name: 'Forest Studio', hex: '#09110d' },
+      { name: 'Panel Dark', hex: '#131620' },
+      { name: 'Midnight Navy', hex: '#0b1120' },
+      { name: 'OLED Pitch', hex: '#050507' },
+      { name: 'Deep Espresso', hex: '#1c1917' },
+      { name: 'Slate Night', hex: '#1e2430' },
     ],
   },
 ];
@@ -114,7 +128,7 @@ export const CANVAS_GRADIENTS: CanvasGradientPreset[] = [
   {
     id: 'pickle-forest',
     name: 'Deep Forest Studio',
-    gradient: 'linear-gradient(180deg, #101510 0%, #1c241b 100%)',
+    gradient: 'linear-gradient(180deg, #0c0e14 0%, #131620 100%)',
     dark: true,
   },
   {

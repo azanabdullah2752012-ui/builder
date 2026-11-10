@@ -100,12 +100,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#12141a] border border-[#262c3d] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden text-zinc-100 flex flex-col">
+      <div className="bg-[#0c0e14] border border-[#23283a] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden text-[#f8fafc] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-[#202533] flex items-center justify-between bg-[#151923]">
+        <div className="px-6 py-5 border-b border-[#1a1f2e] flex items-center justify-between bg-[#11131a]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-[#1a1f2e] border border-[#23283a] flex items-center justify-center text-[#1076fc] shadow-sm">
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">
@@ -138,10 +138,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl bg-[#1b212f] border border-[#2c364c] hover:border-indigo-400/50 hover:bg-[#202738] text-white text-xs font-medium transition-all shadow-sm group"
+            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl bg-[#131620] border border-[#23283a] hover:border-[#1076fc]/50 hover:bg-[#1a1f2e] text-white text-xs font-medium transition-all shadow-sm group"
           >
             {googleLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#1076fc]" />
             ) : (
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -166,17 +166,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           </button>
 
           <div className="flex items-center gap-3 my-2">
-            <div className="h-px flex-1 bg-[#222838]" />
-            <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">
+            <div className="h-px flex-1 bg-[#1a1f2e]" />
+            <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-semibold">
               Or email & password
             </span>
-            <div className="h-px flex-1 bg-[#222838]" />
+            <div className="h-px flex-1 bg-[#1a1f2e]" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {mode === 'signup' && (
               <div>
-                <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
+                <label className="block text-[11px] font-medium text-zinc-300 mb-1.5">
                   Full Name
                 </label>
                 <input
@@ -184,15 +184,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Azan Abdullah"
-                  className="w-full px-3 py-2 bg-[#171b26] border border-[#273042] rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/60"
+                  className="w-full px-3 py-2 bg-[#11131a] border border-[#23283a] rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#1076fc]/80"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-[11px] font-medium text-zinc-400 mb-1.5 flex items-center justify-between">
+              <label className="block text-[11px] font-medium text-zinc-300 mb-1.5 flex items-center justify-between">
                 <span>Email Address</span>
-                <span className="text-[10px] text-zinc-500">Supabase Connected</span>
+                <span className="text-[10px] text-[#1076fc]">Supabase Connected</span>
               </label>
               <div className="relative">
                 <input
@@ -201,14 +201,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@domain.com"
-                  className="w-full pl-9 pr-3 py-2 bg-[#171b26] border border-[#273042] rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/60"
+                  className="w-full pl-9 pr-3 py-2 bg-[#11131a] border border-[#23283a] rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#1076fc]/80"
                 />
                 <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-2.5" />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
+              <label className="block text-[11px] font-medium text-zinc-300 mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -218,7 +218,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimum 6 characters"
-                  className="w-full pl-9 pr-3 py-2 bg-[#171b26] border border-[#273042] rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/60"
+                  className="w-full pl-9 pr-3 py-2 bg-[#11131a] border border-[#23283a] rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#1076fc]/80"
                 />
                 <Lock className="w-4 h-4 text-zinc-500 absolute left-3 top-2.5" />
               </div>
@@ -227,10 +227,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold shadow-lg shadow-indigo-600/25 transition-all mt-4"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1076fc] hover:bg-[#2584ff] disabled:opacity-50 text-[#0c0e14] text-xs font-bold transition-all mt-4"
             >
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#0c0e14]" />
               ) : (
                 <>
                   <span>{mode === 'signin' ? 'Sign In' : 'Create Studio Account'}</span>
@@ -248,7 +248,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <button
                   type="button"
                   onClick={() => setMode('signup')}
-                  className="text-indigo-400 hover:text-indigo-300 font-medium underline-offset-2 hover:underline ml-1"
+                  className="text-[#1076fc] hover:underline font-medium ml-1"
                 >
                   Create one now
                 </button>
@@ -259,7 +259,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <button
                   type="button"
                   onClick={() => setMode('signin')}
-                  className="text-indigo-400 hover:text-indigo-300 font-medium underline-offset-2 hover:underline ml-1"
+                  className="text-[#1076fc] hover:underline font-medium ml-1"
                 >
                   Sign in
                 </button>

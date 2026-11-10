@@ -63,6 +63,9 @@ function getSafeFallbackContext(): EditorContextType {
     editorComplexity: 'pro',
     setEditorComplexity: noop,
     toggleEditorComplexity: noop,
+    appTheme: 'dark',
+    setAppTheme: noop,
+    toggleAppTheme: noop,
     showOnboarding: false,
     setShowOnboarding: noop,
     setEditorMode: noop,
@@ -134,7 +137,7 @@ function getSafeFallbackContext(): EditorContextType {
     removeToast: noop,
   };
 
-  return cachedFallbackContext;
+  return cachedFallbackContext!;
 }
 
 export const useEditor = (): EditorContextType => {

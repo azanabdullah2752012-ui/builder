@@ -115,7 +115,7 @@ export const KidFriendlyDock: React.FC = () => {
           alignItems: 'center',
           gap: 8,
           background: 'rgba(16, 21, 16, 0.94)',
-          border: '1px solid #354331',
+          border: '1px solid #23283a',
           boxShadow: '0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(184, 243, 107, 0.2)',
           borderRadius: 20,
           padding: '6px 10px',
@@ -133,7 +133,7 @@ export const KidFriendlyDock: React.FC = () => {
             borderRadius: 14,
             background: 'rgba(184, 243, 107, 0.15)',
             border: '1px solid rgba(184, 243, 107, 0.35)',
-            color: '#B8F36B',
+            color: '#1076fc',
             fontSize: 11,
             fontWeight: 800,
             letterSpacing: '0.02em',
@@ -144,7 +144,7 @@ export const KidFriendlyDock: React.FC = () => {
           <span>Simple Mode</span>
         </div>
 
-        <div style={{ width: 1, height: 18, background: '#354331' }} />
+        <div style={{ width: 1, height: 18, background: '#23283a' }} />
 
         {/* 1. Starter Sites Button */}
         <button
@@ -158,9 +158,9 @@ export const KidFriendlyDock: React.FC = () => {
             gap: 6,
             padding: '6px 12px',
             borderRadius: 12,
-            background: activeModal === 'sites' ? '#B8F36B' : 'rgba(184, 243, 107, 0.14)',
+            background: activeModal === 'sites' ? '#1076fc' : 'rgba(184, 243, 107, 0.14)',
             border: '1px solid rgba(184, 243, 107, 0.35)',
-            color: activeModal === 'sites' ? '#101510' : '#F4F5EF',
+            color: activeModal === 'sites' ? '#0c0e14' : '#f8fafc',
             fontSize: 12,
             fontWeight: 700,
             cursor: 'pointer',

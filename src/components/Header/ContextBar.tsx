@@ -288,7 +288,7 @@ export const ContextBar: React.FC = () => {
               </button>
               <button
                 onClick={() => copyElementStyle(el.id)}
-                className="p-1 rounded text-zinc-400 hover:text-[#B8F36B] hover:bg-zinc-800 transition-colors"
+                className="p-1 rounded text-zinc-400 hover:text-[#38bdf8] hover:bg-zinc-800 transition-colors"
                 title="Copy Style (⌥⌘C)"
               >
                 <Paintbrush className="w-3.5 h-3.5" />
@@ -296,7 +296,7 @@ export const ContextBar: React.FC = () => {
               <button
                 onClick={() => pasteElementStyle(el.id)}
                 disabled={!hasStyleClipboard}
-                className="p-1 rounded text-zinc-400 hover:text-[#B8F36B] hover:bg-zinc-800 disabled:opacity-30 transition-colors"
+                className="p-1 rounded text-zinc-400 hover:text-[#38bdf8] hover:bg-zinc-800 disabled:opacity-30 transition-colors"
                 title="Paste Style (⌥⌘V)"
               >
                 <Palette className="w-3.5 h-3.5" />
@@ -336,7 +336,7 @@ export const ContextBar: React.FC = () => {
             <button
               type="button"
               onClick={() => setRightSidebarOpen(true)}
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-[#B8F36B] transition-colors cursor-pointer text-[10px]"
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-[#38bdf8] transition-colors cursor-pointer text-[10px]"
               title="Click to customize canvas background colors, gradients, and textures"
             >
               <span
@@ -381,7 +381,7 @@ export const ContextBar: React.FC = () => {
           {hasClipboard && (
             <button
               onClick={() => pasteElement()}
-              className="p-1 text-indigo-400 hover:text-white bg-indigo-500/10 rounded hover:bg-indigo-500/20 transition-colors"
+              className="p-1 text-[#38bdf8] hover:text-white bg-[#1076fc]/10 rounded hover:bg-[#1076fc]/20 transition-colors"
               title="Paste from Clipboard (Cmd+V)"
             >
               <ClipboardPaste className="w-3.5 h-3.5" />
@@ -394,10 +394,10 @@ export const ContextBar: React.FC = () => {
         {/* Cmd+F Canvas Find & Replace shortcut pill */}
         <button
           onClick={() => setIsFindReplaceOpen((prev) => !prev)}
-          className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-[#B8F36B] bg-zinc-800/70 hover:bg-zinc-700/60 border border-zinc-700/50 transition-colors"
+          className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-[#38bdf8] bg-zinc-800/70 hover:bg-zinc-700/60 border border-zinc-700/50 transition-colors"
           title="Find & Replace on Canvas (Cmd+F)"
         >
-          <Search className="w-3 h-3 text-[#B8F36B]" />
+          <Search className="w-3 h-3 text-[#38bdf8]" />
           <span>Find</span>
           <kbd className="text-[9px] bg-zinc-700 text-zinc-300 px-1 py-0.5 rounded ml-0.5 font-mono">⌘F</kbd>
         </button>
@@ -410,7 +410,7 @@ export const ContextBar: React.FC = () => {
           className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 bg-zinc-800/70 hover:bg-zinc-700/60 border border-zinc-700/50 transition-colors"
           title="Open Command Palette (Cmd+K or /)"
         >
-          <Search className="w-3 h-3 text-indigo-400" />
+          <Search className="w-3 h-3 text-[#38bdf8]" />
           <span>Commands</span>
           <kbd className="text-[9px] bg-zinc-700 text-zinc-300 px-1 py-0.5 rounded ml-0.5 font-mono">⌘K</kbd>
         </button>
@@ -423,7 +423,7 @@ export const ContextBar: React.FC = () => {
           className="flex items-center gap-1 px-1.5 py-1 text-[11px] text-zinc-400 hover:text-white bg-zinc-800/60 hover:bg-zinc-700/60 rounded border border-zinc-750 transition-colors"
           title="Keyboard Shortcuts Cheatsheet (?)"
         >
-          <Keyboard className="w-3.5 h-3.5 text-indigo-400" />
+          <Keyboard className="w-3.5 h-3.5 text-[#38bdf8]" />
           <span className="hidden xl:inline text-[10px] font-mono">⌘/</span>
         </button>
 

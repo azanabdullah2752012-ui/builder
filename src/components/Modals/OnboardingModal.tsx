@@ -43,13 +43,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
       resetToBlank();
     } else if (selectedTemplate === 'portfolio') {
       resetToBlank();
-      // Add a clean navbar and hero for a quick clean portfolio
       const nav = createNavbarSection(0);
       const hero = createHeroSection(80);
       addElements([...nav, ...hero]);
       showToast('Loaded Clean Minimal Template', 'success');
     } else {
-      // SaaS default demo
       resetToDefaultDemo();
     }
 
@@ -71,13 +69,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#12141c] border border-[#262c3f] rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden text-zinc-100 flex flex-col"
+        className="bg-[#0c0e14] border border-[#23283a] rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden text-[#f8fafc] flex flex-col"
       >
         {/* Top Progress & Close Bar */}
-        <div className="px-6 py-4 border-b border-[#1f2536] flex items-center justify-between bg-[#151926]">
+        <div className="px-6 py-4 border-b border-[#1a1f2e] flex items-center justify-between bg-[#11131a]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md">
-              <Sparkles className="w-4 h-4 text-amber-300" />
+            <div className="w-8 h-8 rounded-xl bg-[#1a1f2e] border border-[#23283a] flex items-center justify-center text-[#1076fc] shadow-sm">
+              <Sparkles className="w-4 h-4" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-white tracking-wide">Welcome to Pickle Studio</h2>
@@ -93,10 +91,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   key={s}
                   className={`h-1.5 rounded-full transition-all ${
                     s === step
-                      ? 'w-6 bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]'
+                      ? 'w-6 bg-[#1076fc] shadow-[0_0_8px_rgba(184,243,107,0.5)]'
                       : s < step
-                      ? 'w-2 bg-indigo-800'
-                      : 'w-2 bg-[#262d42]'
+                      ? 'w-2 bg-[#23283a]'
+                      : 'w-2 bg-[#1a1f2e]'
                   }`}
                 />
               ))}
@@ -130,12 +128,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   onClick={() => setSelectedTemplate('saas')}
                   className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
                     selectedTemplate === 'saas'
-                      ? 'border-indigo-500 bg-indigo-600/15 shadow-[0_0_20px_rgba(99,102,241,0.25)] ring-1 ring-indigo-500/50'
-                      : 'border-[#22283a] bg-[#161a26] hover:border-zinc-700 hover:bg-[#1a2030]'
+                      ? 'border-[#1076fc] bg-[#1076fc]/10 shadow-[0_0_15px_rgba(184,243,107,0.15)] ring-1 ring-[#1076fc]/40'
+                      : 'border-[#23283a] bg-[#11131a] hover:border-zinc-600 hover:bg-[#131620]'
                   }`}
                 >
                   <div>
-                    <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-3">
+                    <div className="w-8 h-8 rounded-lg bg-[#1a1f2e] text-[#1076fc] flex items-center justify-center mb-3">
                       <Zap className="w-4 h-4" />
                     </div>
                     <div className="text-xs font-bold text-white mb-1">SaaS Landing Page</div>
@@ -143,7 +141,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                       Hero section, live product preview, features grid, and high-impact CTA.
                     </p>
                   </div>
-                  <div className="mt-3 pt-2 border-t border-[#22283a] flex items-center text-[10px] font-semibold text-indigo-400">
+                  <div className="mt-3 pt-2 border-t border-[#1a1f2e] flex items-center text-[10px] font-semibold text-[#1076fc]">
                     <span>Recommended</span>
                   </div>
                 </div>
@@ -153,12 +151,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   onClick={() => setSelectedTemplate('portfolio')}
                   className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
                     selectedTemplate === 'portfolio'
-                      ? 'border-indigo-500 bg-indigo-600/15 shadow-[0_0_20px_rgba(99,102,241,0.25)] ring-1 ring-indigo-500/50'
-                      : 'border-[#22283a] bg-[#161a26] hover:border-zinc-700 hover:bg-[#1a2030]'
+                      ? 'border-[#1076fc] bg-[#1076fc]/10 shadow-[0_0_15px_rgba(184,243,107,0.15)] ring-1 ring-[#1076fc]/40'
+                      : 'border-[#23283a] bg-[#11131a] hover:border-zinc-600 hover:bg-[#131620]'
                   }`}
                 >
                   <div>
-                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center mb-3">
+                    <div className="w-8 h-8 rounded-lg bg-[#1a1f2e] text-[#1076fc] flex items-center justify-center mb-3">
                       <Layers className="w-4 h-4" />
                     </div>
                     <div className="text-xs font-bold text-white mb-1">Clean Minimal</div>
@@ -166,7 +164,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                       Lightweight header and focused hero headline. Easy and uncluttered.
                     </p>
                   </div>
-                  <div className="mt-3 pt-2 border-t border-[#22283a] flex items-center text-[10px] text-zinc-400 font-medium">
+                  <div className="mt-3 pt-2 border-t border-[#1a1f2e] flex items-center text-[10px] text-zinc-400 font-medium">
                     <span>Fast Starter</span>
                   </div>
                 </div>
@@ -176,21 +174,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   onClick={() => setSelectedTemplate('blank')}
                   className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
                     selectedTemplate === 'blank'
-                      ? 'border-indigo-500 bg-indigo-600/15 shadow-[0_0_20px_rgba(99,102,241,0.25)] ring-1 ring-indigo-500/50'
-                      : 'border-[#22283a] bg-[#161a26] hover:border-zinc-700 hover:bg-[#1a2030]'
+                      ? 'border-[#1076fc] bg-[#1076fc]/10 shadow-[0_0_15px_rgba(184,243,107,0.15)] ring-1 ring-[#1076fc]/40'
+                      : 'border-[#23283a] bg-[#11131a] hover:border-zinc-600 hover:bg-[#131620]'
                   }`}
                 >
                   <div>
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
+                    <div className="w-8 h-8 rounded-lg bg-[#1a1f2e] text-[#1076fc] flex items-center justify-center mb-3">
                       <Sparkles className="w-4 h-4" />
                     </div>
                     <div className="text-xs font-bold text-white mb-1">Blank Canvas</div>
                     <p className="text-[11px] text-zinc-400 leading-relaxed">
-                      Fresh white workspace. Add sections and elements as you go.
+                      Fresh workspace. Add sections and elements as you go.
                     </p>
                   </div>
-                  <div className="mt-3 pt-2 border-t border-[#22283a] flex items-center text-[10px] text-zinc-400 font-medium">
-                    <span>Scratch</span>
+                  <div className="mt-3 pt-2 border-t border-[#1a1f2e] flex items-center text-[10px] text-zinc-400 font-medium">
+                    <span>From Scratch</span>
                   </div>
                 </div>
               </div>
@@ -208,8 +206,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               </div>
 
               <div className="space-y-2.5 pt-1">
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#161a26] border border-[#22283a]">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#11131a] border border-[#1a1f2e]">
+                  <div className="w-7 h-7 rounded-lg bg-[#1a1f2e] text-[#1076fc] flex items-center justify-center shrink-0 mt-0.5">
                     <MousePointer className="w-3.5 h-3.5" />
                   </div>
                   <div>
@@ -220,8 +218,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#161a26] border border-[#22283a]">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#11131a] border border-[#1a1f2e]">
+                  <div className="w-7 h-7 rounded-lg bg-[#1a1f2e] text-[#1076fc] flex items-center justify-center shrink-0 mt-0.5">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
                   <div>
@@ -232,8 +230,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#161a26] border border-[#22283a]">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#11131a] border border-[#1a1f2e]">
+                  <div className="w-7 h-7 rounded-lg bg-[#1a1f2e] text-[#1076fc] flex items-center justify-center shrink-0 mt-0.5">
                     <Smartphone className="w-3.5 h-3.5" />
                   </div>
                   <div>
@@ -257,35 +255,35 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 </p>
               </div>
 
-              <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-950/40 via-[#151928] to-[#12141e] border border-indigo-500/30 space-y-3">
-                <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs">
+              <div className="p-4 rounded-xl bg-[#11131a] border border-[#23283a] space-y-3">
+                <div className="flex items-center gap-2 text-[#1076fc] font-semibold text-xs">
                   <ShieldCheck className="w-4 h-4" />
                   <span>Free Forever with Complete Access</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[11px] text-zinc-300">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#1076fc] shrink-0" />
                     <span>Unlimited Web Projects</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#1076fc] shrink-0" />
                     <span>Production HTML/CSS Export</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#1076fc] shrink-0" />
                     <span>All Section Templates</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#1076fc] shrink-0" />
                     <span>No Credit Card Required</span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[#161a26] border border-[#22283a] flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-[#11131a] border border-[#1a1f2e] flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-lg bg-[#1a1f2e] text-[#1076fc] flex items-center justify-center">
                     <FileCode className="w-3.5 h-3.5" />
                   </div>
                   <div className="text-[11px] text-zinc-300">
@@ -298,11 +296,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 border-t border-[#1f2536] flex items-center justify-between bg-[#151926]">
+        <div className="px-6 py-4 border-t border-[#1a1f2e] flex items-center justify-between bg-[#11131a]">
           {step > 1 ? (
             <button
               onClick={() => setStep((s) => (s - 1) as 1 | 2)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#283149] bg-[#121520] hover:bg-[#1a2030] text-zinc-300 text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#23283a] bg-[#0c0e14] hover:bg-[#131620] text-zinc-300 text-xs font-medium transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back</span>
@@ -319,7 +317,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           {step < 3 ? (
             <button
               onClick={() => setStep((s) => (s + 1) as 2 | 3)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all hover:scale-[1.02]"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#1076fc] hover:bg-[#2584ff] text-[#0c0e14] text-xs font-bold transition-all shadow-sm"
             >
               <span>Next</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -327,9 +325,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           ) : (
             <button
               onClick={handleFinish}
-              className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-500/40 transition-all hover:scale-[1.03]"
+              className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#1076fc] hover:bg-[#2584ff] text-[#0c0e14] text-xs font-bold transition-all shadow-sm"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <Sparkles className="w-3.5 h-3.5 text-[#0c0e14]" />
               <span>Start Building Now</span>
             </button>
           )}

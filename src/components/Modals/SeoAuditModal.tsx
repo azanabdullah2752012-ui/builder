@@ -124,7 +124,7 @@ export const SeoAuditModal: React.FC<SeoAuditModalProps> = ({ isOpen, onClose })
         {/* Header */}
         <div className="px-6 py-4 border-b border-[#232734] flex items-center justify-between bg-[#151821]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500/20 to-emerald-500/20 border border-indigo-500/30 flex items-center justify-center shadow-inner">
+            <div className="w-9 h-9 rounded-xl bg-[#1076fc]/15 border border-[#1076fc]/30 flex items-center justify-center shadow-inner">
               <ShieldCheck className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
@@ -157,7 +157,7 @@ export const SeoAuditModal: React.FC<SeoAuditModalProps> = ({ isOpen, onClose })
             <div className="p-4 rounded-xl bg-[#171b26] border border-[#262c3e] flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-zinc-400">Overall Health</span>
-                <Gauge className="w-4 h-4 text-indigo-400" />
+                <Gauge className="w-4 h-4 text-[#38bdf8]" />
               </div>
               <div className="my-2 flex items-baseline gap-2">
                 <span className="text-3xl font-bold tracking-tight text-white">
@@ -200,9 +200,9 @@ export const SeoAuditModal: React.FC<SeoAuditModalProps> = ({ isOpen, onClose })
             </div>
 
             {/* 1-Click Auto-Fix Action */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-950/60 to-purple-950/60 border border-indigo-500/40 flex flex-col justify-between">
+            <div className="p-4 rounded-xl bg-[#0e1322] border border-[#1076fc]/35 flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-300 mb-1">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#38bdf8] mb-1">
                   <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                   <span>AI SEO Auto-Fixer</span>
                 </div>
@@ -213,7 +213,7 @@ export const SeoAuditModal: React.FC<SeoAuditModalProps> = ({ isOpen, onClose })
               <button
                 type="button"
                 onClick={handleAutoFix}
-                className="mt-3 w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all"
+                className="mt-3 w-full py-2 px-3 rounded-lg bg-[#1076fc] hover:bg-[#2584ff] active:scale-[0.98] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all"
               >
                 <Wand2 className="w-3.5 h-3.5" />
                 <span>Auto-Fix All Issues</span>
@@ -230,7 +230,7 @@ export const SeoAuditModal: React.FC<SeoAuditModalProps> = ({ isOpen, onClose })
                 onClick={() => setActiveCategory(cat)}
                 className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
                   activeCategory.toLowerCase() === cat.toLowerCase()
-                    ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40'
+                    ? 'bg-[#1076fc]/20 text-sky-200 border border-[#1076fc]/40 font-semibold'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -287,7 +287,7 @@ export const SeoAuditModal: React.FC<SeoAuditModalProps> = ({ isOpen, onClose })
           <div className="p-5 rounded-xl bg-[#161a24] border border-[#242a3a] space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-indigo-400" />
+                <Globe className="w-4 h-4 text-[#38bdf8]" />
                 <h3 className="text-sm font-semibold text-white">Live Search Engine Snippet Editor</h3>
               </div>
               <span className="text-xs text-zinc-500">Updates &lt;head&gt; tags on Publish & Export</span>
@@ -306,7 +306,7 @@ export const SeoAuditModal: React.FC<SeoAuditModalProps> = ({ isOpen, onClose })
                   value={seoTitleInput}
                   onChange={(e) => setSeoTitleInput(e.target.value)}
                   placeholder="e.g. Modern Architecture Portfolio | Studio Apex"
-                  className="w-full px-3 py-2 rounded-lg bg-[#101217] border border-[#262c3e] text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-[#101217] border border-[#262c3e] text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-[#1076fc] transition-colors"
                 />
               </div>
 
@@ -322,7 +322,7 @@ export const SeoAuditModal: React.FC<SeoAuditModalProps> = ({ isOpen, onClose })
                   value={seoDescInput}
                   onChange={(e) => setSeoDescInput(e.target.value)}
                   placeholder="Compelling description summarizing the value proposition of this page for Google search results..."
-                  className="w-full px-3 py-2 rounded-lg bg-[#101217] border border-[#262c3e] text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-[#101217] border border-[#262c3e] text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-[#1076fc] transition-colors resize-none"
                 />
               </div>
 
@@ -336,14 +336,14 @@ export const SeoAuditModal: React.FC<SeoAuditModalProps> = ({ isOpen, onClose })
                   value={ogImageInput}
                   onChange={(e) => setOgImageInput(e.target.value)}
                   placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3 py-2 rounded-lg bg-[#101217] border border-[#262c3e] text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-[#101217] border border-[#262c3e] text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-[#1076fc] transition-colors"
                 />
               </div>
 
               <div className="flex justify-end pt-1">
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all"
+                  className="px-4 py-2 rounded-lg bg-[#1076fc] hover:bg-[#2584ff] text-white text-xs font-semibold shadow-md shadow-blue-600/30 transition-all"
                 >
                   Save SEO Metadata
                 </button>

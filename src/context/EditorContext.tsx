@@ -38,10 +38,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [project, setProject] = useState<ProjectState>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved =
-          localStorage.getItem('pickle_studio_active_project') ||
-          localStorage.getItem('visual_website_builder_project_v14') ||
-          localStorage.getItem('craft_studio_active_project');
+        const saved = localStorage.getItem('pickle_studio_active_project_v2');
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed && parsed.pages && parsed.pages.length > 0) {
@@ -55,7 +52,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return normalizeProjectState(INITIAL_PROJECT);
   });
 
-  const [selectedElementIds, setSelectedElementIds] = useState<string[]>(['el_primary_cta']);
+  const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const selectedElementId = selectedElementIds[0] || null;
 
   const setSelectedElementId = useCallback((id: string | null) => {
@@ -68,6 +65,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const search = window.location.search;
       const hash = window.location.hash;
       const params = new URLSearchParams(search);
+      if (params.get('mode') === 'landing' || hash.includes('landing')) {
+        return 'landing';
+      }
       if (
         params.get('mode') === 'design' ||
         params.get('editor') === 'true' ||
@@ -84,20 +84,11 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
       try {
         const savedMode = localStorage.getItem('pickle_editor_mode') as EditorMode;
-        if (savedMode === 'design' || savedMode === 'preview') {
-          return savedMode;
+        if (savedMode === 'landing') {
+          return 'landing';
         }
-        const hasProject = localStorage.getItem('pickle_studio_active_project');
-        if (hasProject) {
-          const parsed = JSON.parse(hasProject);
-          if (parsed?.pages?.[0]?.elements?.length > 0) {
-            return 'design';
-          }
-        }
-        const saved = localStorage.getItem('pickle_auth_user') || localStorage.getItem('craft_auth_user');
-        if (saved) {
-          const u = JSON.parse(saved);
-          if (u && (u.email || u.name)) return 'design';
+        if (savedMode === 'preview') {
+          return 'preview';
         }
       } catch {}
     }
@@ -330,6 +321,61 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   }, []);
 
+  // Studio Theme (Default to Light / Playful)
+  const [appTheme, setAppThemeState] = useState<'dark' | 'light'>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('pickle_studio_theme');
+        if (saved === 'light' || saved === 'dark') return saved;
+      }
+    } catch {}
+    return 'light';
+  });
+
+  const setAppTheme = useCallback((theme: 'dark' | 'light') => {
+    setAppThemeState(theme);
+    try {
+      localStorage.setItem('pickle_studio_theme', theme);
+      if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'light') {
+          document.documentElement.classList.add('theme-light');
+        } else {
+          document.documentElement.classList.remove('theme-light');
+        }
+      }
+    } catch {}
+  }, []);
+
+  const toggleAppTheme = useCallback(() => {
+    setAppThemeState((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('pickle_studio_theme', next);
+        if (typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-theme', next);
+          if (next === 'light') {
+            document.documentElement.classList.add('theme-light');
+          } else {
+            document.documentElement.classList.remove('theme-light');
+          }
+        }
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', appTheme);
+      if (appTheme === 'light') {
+        document.documentElement.classList.add('theme-light');
+      } else {
+        document.documentElement.classList.remove('theme-light');
+      }
+    }
+  }, [appTheme]);
+
   // First-time Onboarding Walkthrough
   const [showOnboarding, setShowOnboardingState] = useState<boolean>(() => {
     try {
@@ -387,8 +433,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       if (typeof localStorage !== 'undefined' && project) {
         const serialized = JSON.stringify(project);
-        localStorage.setItem('pickle_studio_active_project', serialized);
-        localStorage.setItem('visual_website_builder_project_v14', serialized);
+        localStorage.setItem('pickle_studio_active_project_v2', serialized);
         localStorage.setItem(`pickle_project_${project.id}`, serialized);
         if (project.slug) {
           localStorage.setItem(`pickle_project_slug_${project.slug}`, serialized);
@@ -405,8 +450,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       try {
         if (typeof localStorage !== 'undefined' && project) {
           const serialized = JSON.stringify(project);
-          localStorage.setItem('pickle_studio_active_project', serialized);
-          localStorage.setItem('visual_website_builder_project_v14', serialized);
+          localStorage.setItem('pickle_studio_active_project_v2', serialized);
         }
       } catch {}
     };
@@ -2301,7 +2345,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (!isMounted || !projects || projects.length === 0) return;
 
       const localRaw = typeof localStorage !== 'undefined'
-        ? (localStorage.getItem('pickle_studio_active_project') || localStorage.getItem('visual_website_builder_project_v14'))
+        ? localStorage.getItem('pickle_studio_active_project_v2')
         : null;
 
       let localProj: ProjectState | null = null;
@@ -2923,6 +2967,10 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     editorComplexity,
     setEditorComplexity,
     toggleEditorComplexity,
+
+    appTheme,
+    setAppTheme,
+    toggleAppTheme,
 
     showOnboarding,
     setShowOnboarding,

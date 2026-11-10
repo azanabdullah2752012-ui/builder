@@ -94,13 +94,13 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
         {/* Header */}
         <div className="px-6 py-4 border-b border-[#202533] flex items-center justify-between bg-[#151923] shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div className="w-9 h-9 rounded-xl bg-[#1076fc] flex items-center justify-center shadow-lg shadow-blue-600/25">
               <FolderOpen className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-white">Project Manager</h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#1076fc]/15 text-[#38bdf8] border border-[#1076fc]/30">
                   {cloudProjects.length} Projects
                 </span>
               </div>
@@ -114,7 +114,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsCreatingNew(!isCreatingNew)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-md shadow-indigo-600/20 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1076fc] hover:bg-[#2584ff] text-white text-xs font-semibold shadow-md shadow-blue-600/20 transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>New Project</span>
@@ -136,7 +136,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
               placeholder="Project Name (e.g. NextGen SaaS Landing)"
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
-              className="flex-1 px-3 py-2 bg-[#10131c] border border-[#273042] rounded-xl text-white text-xs placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
+              className="flex-1 px-3 py-2 bg-[#10131c] border border-[#273042] rounded-xl text-white text-xs placeholder:text-zinc-500 focus:outline-none focus:border-[#1076fc]"
               autoFocus
             />
             <div className="flex items-center gap-2 shrink-0">
@@ -149,9 +149,9 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
               </button>
               <button
                 onClick={() => handleCreateSubmit('landing')}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1076fc] hover:bg-[#2584ff] text-white text-xs font-semibold transition-colors"
               >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
+                <Sparkles className="w-3.5 h-3.5 text-sky-200" />
                 <span>With Starter Template</span>
               </button>
               <button
@@ -172,7 +172,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
               placeholder="Search designs by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 bg-[#171b26] border border-[#252c3d] rounded-xl text-white text-xs placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
+              className="w-full pl-9 pr-3 py-1.5 bg-[#171b26] border border-[#252c3d] rounded-xl text-white text-xs placeholder:text-zinc-500 focus:outline-none focus:border-[#1076fc]"
             />
             <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
           </div>
@@ -180,10 +180,10 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
           <div className="flex items-center gap-2 text-xs">
             <button
               onClick={() => duplicateCurrentProject()}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#252c3d] bg-[#171b26] text-zinc-300 hover:text-white hover:border-indigo-500/40 transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#252c3d] bg-[#171b26] text-zinc-300 hover:text-white hover:border-[#1076fc]/40 transition-colors"
               title="Duplicate current project"
             >
-              <Copy className="w-3.5 h-3.5 text-indigo-400" />
+              <Copy className="w-3.5 h-3.5 text-[#38bdf8]" />
               <span>Clone Current</span>
             </button>
           </div>
@@ -208,7 +208,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
                     key={p.id}
                     className={`p-4 rounded-xl border transition-all text-left group relative ${
                       isCurrent
-                        ? 'bg-[#181d2b] border-indigo-500/50 ring-1 ring-indigo-500/30'
+                        ? 'bg-[#181d2b] border-[#1076fc]/60 ring-1 ring-[#1076fc]/30'
                         : 'bg-[#151822] border-[#252b3b] hover:border-[#38435d] hover:bg-[#191d2a]'
                     }`}
                   >
@@ -217,7 +217,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
                         <div className="flex items-center gap-2">
                           <h3 className="text-xs font-semibold text-white truncate">{p.name}</h3>
                           {isCurrent && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#1076fc]/20 text-[#38bdf8] border border-[#1076fc]/30 uppercase tracking-wider">
                               Active
                             </span>
                           )}
@@ -274,10 +274,10 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({ isOpen
 
                       <button
                         onClick={() => handleOpenProject(p)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors ${
                           isCurrent
-                            ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 cursor-default'
-                            : 'bg-[#232b3d] hover:bg-indigo-600 hover:text-white text-zinc-300'
+                            ? 'bg-[#1076fc]/20 text-[#38bdf8] border border-[#1076fc]/30 cursor-default'
+                            : 'bg-[#232b3d] hover:bg-[#1076fc] hover:text-white text-zinc-300'
                         }`}
                       >
                         {isCurrent ? 'Currently Open' : 'Open Project'}

@@ -228,7 +228,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
           className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-left"
         >
           <div className="flex items-center gap-2">
-            <Palette className="w-3.5 h-3.5 text-[#B8F36B]" />
+            <Palette className="w-3.5 h-3.5 text-[#1076fc]" />
             <span>Paste Style</span>
           </div>
           <span className="text-[10px] text-zinc-400 font-mono">⌥{cmd}V</span>
@@ -322,7 +322,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
             className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors text-left text-zinc-200"
           >
             <div className="flex items-center gap-2">
-              <Palette className="w-3.5 h-3.5 text-[#B8F36B]" />
+              <Palette className="w-3.5 h-3.5 text-[#1076fc]" />
               <span>Canvas Colors & Style</span>
             </div>
           </button>
@@ -371,7 +371,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
         className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 text-zinc-200 transition-colors text-left"
       >
         <div className="flex items-center gap-2">
-          <Search className="w-3.5 h-3.5 text-[#B8F36B]" />
+          <Search className="w-3.5 h-3.5 text-[#1076fc]" />
           <span>Find & Replace...</span>
         </div>
         <span className="text-[10px] text-zinc-400 font-mono">{cmd}F</span>
@@ -383,13 +383,13 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
           setShowShortcutsModal(true);
           onClose();
         }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-indigo-600/20 text-indigo-300 transition-colors text-left"
+        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-[#1076fc]/15 text-[#38bdf8] transition-colors text-left"
       >
         <div className="flex items-center gap-2">
           <Keyboard className="w-3.5 h-3.5" />
           <span>Shortcuts Cheatsheet</span>
         </div>
-        <span className="text-[10px] text-indigo-400 font-mono">?</span>
+        <span className="text-[10px] text-[#38bdf8] font-mono">?</span>
       </button>
     </div>
   );

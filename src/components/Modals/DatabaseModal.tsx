@@ -248,14 +248,14 @@ CREATE TRIGGER on_auth_user_created
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl border border-[#354331] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-scale-in text-[#F4F5EF]"
-        style={{ backgroundColor: '#101510', zIndex: 100000 }}
+        className="relative w-full max-w-4xl border border-[#23283a] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-scale-in text-[#f8fafc]"
+        style={{ backgroundColor: '#0c0e14', zIndex: 100000 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div
-          className="flex items-center justify-between px-6 py-4 border-b border-[#354331] shrink-0"
-          style={{ backgroundColor: '#1C241B' }}
+          className="flex items-center justify-between px-6 py-4 border-b border-[#23283a] shrink-0"
+          style={{ backgroundColor: '#131620' }}
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
@@ -268,7 +268,7 @@ CREATE TRIGGER on_auth_user_created
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   Supabase Live ({supaInfo.projectRef})
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-semibold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1076fc]/15 border border-[#1076fc]/30 text-sky-200 font-semibold">
                   SQLite Dual-Sync
                 </span>
               </div>
@@ -285,7 +285,7 @@ CREATE TRIGGER on_auth_user_created
               className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 transition-colors"
               title="Refresh database"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#38bdf8]' : ''}`} />
             </button>
             <button
               onClick={handleExportJson}
@@ -304,11 +304,11 @@ CREATE TRIGGER on_auth_user_created
         </div>
 
         {/* Security & Access Notice Bar */}
-        <div className="flex items-center justify-between px-6 py-2 bg-indigo-950/40 border-b border-indigo-900/40 text-[11px] text-indigo-300">
+        <div className="flex items-center justify-between px-6 py-2 bg-[#1076fc]/10 border-b border-[#1076fc]/20 text-[11px] text-sky-200">
           <div className="flex items-center gap-2">
-            <Lock className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+            <Lock className="w-3.5 h-3.5 text-[#38bdf8] shrink-0" />
             <span>
-              <strong>Creator / Admin Console:</strong> Only you (the site creator) have access to this database inspector. Public visitors on <code className="font-mono text-indigo-200">/signup</code> or live exported sites cannot view this panel or read other users' accounts.
+              <strong>Creator / Admin Console:</strong> Only you (the site creator) have access to this database inspector. Public visitors on <code className="font-mono text-sky-100">/signup</code> or live exported sites cannot view this panel or read other users' accounts.
             </span>
           </div>
         </div>
@@ -326,7 +326,7 @@ CREATE TRIGGER on_auth_user_created
           </div>
 
           <div className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/70">
-            <User className="w-4 h-4 text-indigo-400 shrink-0" />
+            <User className="w-4 h-4 text-[#38bdf8] shrink-0" />
             <div>
               <div className="text-zinc-500 text-[10px] uppercase font-semibold">Accounts</div>
               <div className="text-sm font-bold text-zinc-200">{users.length} registered</div>
@@ -342,7 +342,7 @@ CREATE TRIGGER on_auth_user_created
           </div>
 
           <div className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/70">
-            <FileJson className="w-4 h-4 text-indigo-400 shrink-0" />
+            <FileJson className="w-4 h-4 text-[#38bdf8] shrink-0" />
             <div className="truncate">
               <div className="text-zinc-500 text-[10px] uppercase font-semibold">Local Storage</div>
               <div className="text-xs font-mono font-medium text-zinc-300 truncate">data/studio.db</div>
@@ -356,7 +356,7 @@ CREATE TRIGGER on_auth_user_created
             onClick={() => setActiveTab('users')}
             className={`px-4 py-2 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               activeTab === 'users'
-                ? 'border-indigo-500 text-indigo-400'
+                ? 'border-[#1076fc] text-[#38bdf8]'
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -368,7 +368,7 @@ CREATE TRIGGER on_auth_user_created
             onClick={() => setActiveTab('submissions')}
             className={`px-4 py-2 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               activeTab === 'submissions'
-                ? 'border-indigo-500 text-indigo-400'
+                ? 'border-[#1076fc] text-[#38bdf8]'
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -417,7 +417,7 @@ CREATE TRIGGER on_auth_user_created
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search users by name, email, or plan..."
-                    className="w-full bg-[#181b26] border border-[#272c3d] rounded-lg pl-8 pr-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#181b26] border border-[#272c3d] rounded-lg pl-8 pr-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-[#1076fc]"
                   />
                 </div>
 
@@ -434,7 +434,7 @@ CREATE TRIGGER on_auth_user_created
 
                   <button
                     onClick={() => setActiveTab('test')}
-                    className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                    className="px-3 py-1.5 rounded-lg bg-[#1076fc] hover:bg-[#2584ff] text-white text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>Add New User</span>
@@ -472,7 +472,7 @@ CREATE TRIGGER on_auth_user_created
                           <td className="py-3 px-4">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                               u.plan.includes('Pro')
-                                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                ? 'bg-[#1076fc]/20 text-[#38bdf8] border border-[#1076fc]/30'
                                 : u.plan.includes('Enterprise')
                                 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                                 : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
@@ -535,7 +535,7 @@ CREATE TRIGGER on_auth_user_created
                       submissions.map((s) => (
                         <tr key={s.id} className="hover:bg-zinc-800/40 transition-colors">
                           <td className="py-3 px-4 font-mono text-zinc-500">#{s.id}</td>
-                          <td className="py-3 px-4 font-mono text-indigo-400">{s.page_slug}</td>
+                          <td className="py-3 px-4 font-mono text-[#38bdf8]">{s.page_slug}</td>
                           <td className="py-3 px-4">
                             <div className="font-semibold text-zinc-200">{s.name}</div>
                             <div className="text-[11px] text-zinc-400 font-mono">{s.email}</div>
@@ -700,7 +700,7 @@ CREATE TRIGGER on_auth_user_created
 
                   <div className="p-3 rounded-xl bg-[#0b0d14] border border-zinc-800/80">
                     <div className="text-[10px] text-zinc-500 uppercase font-sans font-semibold mb-1">Project Ref</div>
-                    <div className="text-indigo-300 select-all">{supaInfo.projectRef}</div>
+                    <div className="text-sky-200 select-all">{supaInfo.projectRef}</div>
                   </div>
 
                   <div className="p-3 rounded-xl bg-[#0b0d14] border border-zinc-800/80 col-span-2">
@@ -721,7 +721,7 @@ CREATE TRIGGER on_auth_user_created
               <div className="p-5 rounded-2xl bg-[#141722] border border-[#252a3d] flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-indigo-400" />
+                    <Shield className="w-4 h-4 text-[#38bdf8]" />
                     <div>
                       <h4 className="text-sm font-bold text-zinc-100">SQL Schema Script (also saved at supabase/schema.sql)</h4>
                       <p className="text-xs text-zinc-400">Includes auto-sync trigger from auth.users to public.profiles and Row-Level Security</p>
@@ -799,7 +799,7 @@ CREATE POLICY "Users view own profile" ON public.profiles FOR SELECT TO authenti
                       value={testName}
                       onChange={(e) => setTestName(e.target.value)}
                       placeholder="e.g. Jordan Lee"
-                      className="w-full bg-[#0d0f17] border border-[#272c3d] rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#0d0f17] border border-[#272c3d] rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[#1076fc]"
                     />
                   </div>
 
@@ -811,7 +811,7 @@ CREATE POLICY "Users view own profile" ON public.profiles FOR SELECT TO authenti
                       value={testEmail}
                       onChange={(e) => setTestEmail(e.target.value)}
                       placeholder="e.g. jordan@craftstudio.dev"
-                      className="w-full bg-[#0d0f17] border border-[#272c3d] rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#0d0f17] border border-[#272c3d] rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[#1076fc]"
                     />
                   </div>
 
@@ -822,7 +822,7 @@ CREATE POLICY "Users view own profile" ON public.profiles FOR SELECT TO authenti
                       value={testPassword}
                       onChange={(e) => setTestPassword(e.target.value)}
                       placeholder="Min 6 characters"
-                      className="w-full bg-[#0d0f17] border border-[#272c3d] rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#0d0f17] border border-[#272c3d] rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[#1076fc]"
                     />
                   </div>
 
@@ -831,7 +831,7 @@ CREATE POLICY "Users view own profile" ON public.profiles FOR SELECT TO authenti
                     <select
                       value={testPlan}
                       onChange={(e) => setTestPlan(e.target.value)}
-                      className="w-full bg-[#0d0f17] border border-[#272c3d] rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#0d0f17] border border-[#272c3d] rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-[#1076fc]"
                     >
                       <option value="Free Trial">Free Trial</option>
                       <option value="Starter">Starter Plan ($0)</option>
@@ -857,7 +857,7 @@ CREATE POLICY "Users view own profile" ON public.profiles FOR SELECT TO authenti
                   <button
                     type="button"
                     onClick={handleGoogleSignIn}
-                    className="w-full py-2.5 px-4 rounded-lg border border-[#2c3750] bg-[#1a1e2e] hover:bg-[#23293d] hover:border-indigo-500/50 text-white text-xs font-semibold flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-[0.99]"
+                    className="w-full py-2.5 px-4 rounded-lg border border-[#2c3750] bg-[#1a1e2e] hover:bg-[#23293d] hover:border-[#1076fc]/50 text-white text-xs font-semibold flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-[0.99]"
                   >
                     <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
@@ -884,7 +884,7 @@ CREATE POLICY "Users view own profile" ON public.profiles FOR SELECT TO authenti
                   <div>
                     <div className="text-zinc-500">// 1. Email Sign Up</div>
                     <div>
-                      <span className="text-indigo-400">const</span> &#123; data, error &#125; = <span className="text-indigo-400">await</span> supabase.auth.signUp(&#123;
+                      <span className="text-[#38bdf8]">const</span> &#123; data, error &#125; = <span className="text-[#38bdf8]">await</span> supabase.auth.signUp(&#123;
                     </div>
                     <div className="pl-4">
                       email: <span className="text-emerald-400">'alex@company.com'</span>,
@@ -901,7 +901,7 @@ CREATE POLICY "Users view own profile" ON public.profiles FOR SELECT TO authenti
                   <div className="pt-2 border-t border-zinc-800">
                     <div className="text-zinc-500">// 2. Google OAuth Sign In / Sign Up</div>
                     <div>
-                      <span className="text-indigo-400">await</span> supabase.auth.signInWithOAuth(&#123;
+                      <span className="text-[#38bdf8]">await</span> supabase.auth.signInWithOAuth(&#123;
                     </div>
                     <div className="pl-4">
                       provider: <span className="text-amber-400">'google'</span>,

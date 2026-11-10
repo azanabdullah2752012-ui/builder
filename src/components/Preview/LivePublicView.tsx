@@ -165,11 +165,11 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
   // Loading Screen
   if (loading) {
     return (
-      <div className="w-full min-h-screen bg-[#101510] flex flex-col items-center justify-center text-[#F4F5EF] space-y-4">
-        <div className="w-10 h-10 rounded-full border-2 border-[#354331] border-t-[#B8F36B] animate-spin" />
+      <div className="w-full min-h-screen bg-[#0c0e14] flex flex-col items-center justify-center text-[#f8fafc] space-y-4">
+        <div className="w-10 h-10 rounded-full border-2 border-[#23283a] border-t-[#1076fc] animate-spin" />
         <div className="text-center">
-          <h2 className="text-sm font-semibold tracking-wide text-[#F4F5EF]">Loading Live Website...</h2>
-          <p className="text-xs text-[#A0A99A] mt-1 font-mono">{slugOrId}</p>
+          <h2 className="text-sm font-semibold tracking-wide text-[#f8fafc]">Loading Live Website...</h2>
+          <p className="text-xs text-[#94a3b8] mt-1 font-mono">{slugOrId}</p>
         </div>
       </div>
     );
@@ -178,17 +178,17 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
   // Error / Not Found Screen
   if (error || !project || !activePage) {
     return (
-      <div className="w-full min-h-screen bg-[#101510] flex flex-col items-center justify-center text-[#F4F5EF] p-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#1C241B] border border-[#354331] flex items-center justify-center mb-4 shadow-lg">
+      <div className="w-full min-h-screen bg-[#0c0e14] flex flex-col items-center justify-center text-[#f8fafc] p-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-[#131620] border border-[#23283a] flex items-center justify-center mb-4 shadow-lg">
           <PickleTorchSvg size={38} theme="dark" />
         </div>
-        <h1 className="text-2xl font-bold text-[#F4F5EF] mb-2" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>Website Not Found</h1>
-        <p className="text-sm text-[#A0A99A] max-w-md mb-6 leading-relaxed">
+        <h1 className="text-2xl font-bold text-[#f8fafc] mb-2" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>Website Not Found</h1>
+        <p className="text-sm text-[#94a3b8] max-w-md mb-6 leading-relaxed">
           {error || 'This page does not exist or has been taken offline.'}
         </p>
         <a
           href="/"
-          className="px-5 py-2.5 rounded-xl bg-[#B8F36B] hover:bg-[#c4f780] text-[#101510] font-bold text-xs transition-colors inline-flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-[#1076fc] hover:bg-[#2584ff] text-[#0c0e14] font-bold text-xs transition-colors inline-flex items-center gap-2"
         >
           <span>Return to Pickle Studio</span>
           <ExternalLink className="w-3.5 h-3.5" />
@@ -421,7 +421,7 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
               data-field-id={element.id}
               type="checkbox"
               defaultChecked={element.formConfig?.checked}
-              className="w-4 h-4 rounded text-indigo-600 bg-zinc-800 border-zinc-700 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+              className="w-4 h-4 rounded text-[#1076fc] bg-zinc-800 border-zinc-700 focus:ring-[#1076fc] focus:ring-offset-0 cursor-pointer"
             />
             <span className="truncate">{element.content || 'I agree'}</span>
           </label>
@@ -504,7 +504,7 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-top-3 duration-200">
-          <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900/95 text-white border border-indigo-500/40 shadow-2xl backdrop-blur-md text-xs">
+          <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900/95 text-white border border-[#1076fc]/40 shadow-2xl backdrop-blur-md text-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-medium">{toastMessage.text}</span>
           </div>
@@ -545,7 +545,7 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
           >
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-base flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <Sparkles className="w-4 h-4 text-[#38bdf8]" />
                 <span>{activeModal.title}</span>
               </h3>
               <button
@@ -561,7 +561,7 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md"
+                className="px-4 py-2 rounded-xl bg-[#1076fc] hover:bg-[#2584ff] text-white font-semibold text-xs shadow-md transition-colors"
               >
                 Dismiss
               </button>
@@ -576,7 +576,7 @@ export const LivePublicView: React.FC<LivePublicViewProps> = ({ slugOrId, onEdit
           <button
             type="button"
             onClick={onEditInStudio}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-600/90 hover:bg-indigo-600 text-white font-semibold text-xs shadow-xl backdrop-blur-md transition-all hover:scale-105"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1076fc]/90 hover:bg-[#1076fc] text-white font-semibold text-xs shadow-xl backdrop-blur-md transition-all hover:scale-105"
           >
             <span>⚡ Edit in Studio</span>
           </button>

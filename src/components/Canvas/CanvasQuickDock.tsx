@@ -8,57 +8,68 @@ import { STOCK_IMAGES } from '../../constants/stockMedia';
 import { playSound } from '../../utils/interactiveEffects';
 
 const toolbar: React.CSSProperties = {
-  height: 38,
-  background: '#0f0f0f',
-  borderBottom: '1px solid #1a1a1a',
+  height: 44,
+  background: 'var(--studio-dock-bg)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  border: '1px solid var(--studio-dock-border)',
+  boxShadow: 'var(--studio-dock-shadow)',
+  borderRadius: 9999,
   display: 'flex',
   alignItems: 'center',
-  padding: '0 10px',
+  padding: '0 8px',
   flexShrink: 0,
   userSelect: 'none',
   position: 'relative',
-  zIndex: 25,
+  zIndex: 35,
   gap: 2,
+  maxWidth: 'calc(100vw - 32px)',
+  overflowX: 'auto',
 };
 
 function ToolBtn({ icon, label, active, onClick, title, children }: { icon: React.ReactNode; label?: string; active?: boolean; onClick?: () => void; title?: string; children?: React.ReactNode }) {
   const [hov, setHov] = useState(false);
   return (
     <button
-      onClick={onClick}
-      title={title}
+      onClick={() => {
+        playSound('pop');
+        if (onClick) onClick();
+      }}
+      title={title || label}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: 5,
-        height: 26, padding: label ? '0 9px' : '0 7px',
-        borderRadius: 6, border: 'none',
-        background: active ? '#1e1e1e' : hov ? '#161616' : 'transparent',
-        color: active ? '#e8e8e8' : hov ? '#ccc' : '#666',
+        height: 30, padding: label ? '0 9px' : '0 8px',
+        borderRadius: 9999, border: 'none',
+        background: active ? 'var(--primary)' : hov ? 'var(--studio-pill-hover)' : 'transparent',
+        color: active ? '#ffffff' : hov ? 'var(--text-main)' : 'var(--text-muted)',
         cursor: 'pointer', fontSize: 11, fontWeight: 500,
-        transition: 'background 0.1s, color 0.1s',
+        transform: active ? 'scale(1.05)' : hov ? 'scale(1.04) translateY(-1px)' : 'scale(1)',
+        transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
         whiteSpace: 'nowrap',
+        flexShrink: 0,
       }}
     >
-      <span style={{ opacity: active ? 1 : hov ? 0.9 : 0.7, display: 'flex', alignItems: 'center' }}>{icon}</span>
-      {label && <span>{label}</span>}
+      <span style={{ opacity: active ? 1 : hov ? 1 : 0.8, display: 'flex', alignItems: 'center' }}>{icon}</span>
+      {label && <span className="hidden sm:inline">{label}</span>}
       {children}
     </button>
   );
 }
 
 function Sep() {
-  return <div style={{ width: 1, height: 14, background: '#354331', margin: '0 4px', flexShrink: 0 }} />;
+  return <div style={{ width: 1, height: 16, background: 'var(--border-subtle)', margin: '0 4px', flexShrink: 0 }} />;
 }
 
 function Popover({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      position: 'absolute', top: 'calc(100% + 6px)', left: 0,
-      background: '#101510', border: '1px solid #354331', borderRadius: 10,
-      boxShadow: '0 12px 40px rgba(0,0,0,0.7)', padding: '10px',
-      zIndex: 100, minWidth: 240,
-      animation: 'craftFadeIn 0.1s ease-out',
+      position: 'absolute', bottom: 'calc(100% + 10px)', left: '50%', transform: 'translateX(-50%)',
+      background: 'var(--bg-sidebar)', border: '1px solid var(--border-dark)', borderRadius: 14,
+      boxShadow: 'var(--studio-panel-shadow)', padding: '12px',
+      zIndex: 100, minWidth: 260,
+      animation: 'craftFadeUp 0.12s ease-out',
     }}>
       {children}
     </div>
@@ -182,12 +193,12 @@ export const CanvasQuickDock: React.FC = () => {
                 placeholder="Search..."
                 value={emojiSearch}
                 onChange={e => setEmojiSearch(e.target.value)}
-                style={{ width: '100%', background: '#1C241B', border: '1px solid #354331', borderRadius: 7, padding: '5px 8px 5px 26px', fontSize: 11, color: '#F4F5EF', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', background: '#131620', border: '1px solid #23283a', borderRadius: 7, padding: '5px 8px 5px 26px', fontSize: 11, color: '#f8fafc', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
             <div style={{ display: 'flex', gap: 4, overflowX: 'auto', marginBottom: 8, paddingBottom: 4, scrollbarWidth: 'none' }}>
               {cats.map(c => (
-                <button key={c} onClick={() => setEmojiCat(c)} style={{ padding: '3px 8px', borderRadius: 99, border: `1px solid ${emojiCat === c ? '#B8F36B' : '#354331'}`, background: emojiCat === c ? '#252F23' : 'transparent', color: emojiCat === c ? '#B8F36B' : '#A0A99A', fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                <button key={c} onClick={() => setEmojiCat(c)} style={{ padding: '3px 8px', borderRadius: 99, border: `1px solid ${emojiCat === c ? '#1076fc' : '#23283a'}`, background: emojiCat === c ? '#1076fc20' : 'transparent', color: emojiCat === c ? '#38bdf8' : '#94a3b8', fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   {c}
                 </button>
               ))}
@@ -195,7 +206,7 @@ export const CanvasQuickDock: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, maxHeight: 160, overflowY: 'auto' }}>
               {filteredEmojis.map((item, i) => (
                 <button key={i} title={item.name} onClick={() => { insertEmoji(item.emoji); playSound('pop'); setActive(null); }} style={{ width: 32, height: 32, fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 0.1s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#252F23'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#1a2030'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   {item.emoji}
@@ -258,11 +269,6 @@ export const CanvasQuickDock: React.FC = () => {
             </button>
           </Popover>
         )}
-      </div>
-
-      {/* Right hint */}
-      <div style={{ marginLeft: 'auto', fontSize: 10, color: '#333', letterSpacing: '0.02em', pointerEvents: 'none' }}>
-        Shift+R Rulers · Alt Distances
       </div>
     </div>
   );

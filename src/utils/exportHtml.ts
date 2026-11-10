@@ -514,9 +514,10 @@ ${indent}</div>`;
 
       const optsHtml = opts.map((opt) => {
         const pct = Math.round((opt.votes / total) * 100);
+        const optText = (opt.label || (opt as any).text || 'Option').replace(/"/g, '&quot;');
         return `\n${indent}    <button type="button" class="poll-option-btn" data-opt-id="${opt.id}" onclick="voteStudioPoll('${el.id}', '${opt.id}')" style="position: relative; width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #fff; padding: 10px 14px; text-align: left; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s;">
 ${indent}      <div class="poll-bar" style="position: absolute; left: 0; top: 0; bottom: 0; width: ${pct}%; background: ${themeColor}; opacity: 0.25; border-radius: 10px; transition: width 0.4s ease;"></div>
-${indent}      <span style="position: relative; z-index: 2; font-size: 13px; font-weight: 600;">${opt.label.replace(/"/g, '&quot;')}</span>
+${indent}      <span style="position: relative; z-index: 2; font-size: 13px; font-weight: 600;">${optText}</span>
 ${indent}      <span class="poll-pct" style="position: relative; z-index: 2; font-size: 12px; font-weight: 700; color: #cbd5e1;">${pct}%</span>
 ${indent}    </button>`;
       }).join('');
@@ -799,13 +800,13 @@ ${indent}</div>`;
   <title>${project.name} - ${page.name}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #f1f5f9;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0b0f0b;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       display: flex;
       justify-content: center;
       min-height: 100vh;

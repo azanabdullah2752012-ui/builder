@@ -6,7 +6,7 @@ interface ReadingProgressBarProps {
 }
 
 export const ReadingProgressBar: React.FC<ReadingProgressBarProps> = ({
-  color = 'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)',
+  color = '#10b981',
   height = 3,
 }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -35,11 +35,11 @@ export const ReadingProgressBar: React.FC<ReadingProgressBarProps> = ({
       style={{ height: `${height}px` }}
     >
       <div
-        className="h-full transition-all duration-75 shadow-sm"
+        className="h-full transition-all duration-75"
         style={{
           width: `${scrollProgress}%`,
           background: color,
-          boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)',
+          boxShadow: '0 1px 3px rgba(16, 185, 129, 0.35)',
         }}
       />
     </div>

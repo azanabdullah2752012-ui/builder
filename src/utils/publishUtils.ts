@@ -134,7 +134,7 @@ export function generateQrCodeSvg(text: string, size: number = 180): string {
     }
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" class="rounded-xl shadow-lg bg-[#0f1117] p-2.5 border border-indigo-500/30">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" class="rounded-xl shadow-lg bg-[#0f1117] p-2.5 border border-[#1076fc]/30">
     <rect width="${size}" height="${size}" fill="#0f1117" rx="8" />
     ${rects.join('\n    ')}
   </svg>`;

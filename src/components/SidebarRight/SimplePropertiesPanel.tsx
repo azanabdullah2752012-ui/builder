@@ -14,29 +14,29 @@ import { playSound, triggerConfetti } from '../../utils/interactiveEffects';
 import { WidgetPropertiesEditor } from './WidgetPropertiesEditor';
 
 const QUICK_COLORS = [
-  { name: 'Pickle Lime', color: '#B8F36B' },
-  { name: 'Deep Forest', color: '#101510' },
-  { name: 'Panel Green', color: '#1C241B' },
-  { name: 'Obsidian Void', color: '#0c0e14' },
-  { name: 'Electric Indigo', color: '#4f46e5' },
+  { name: 'Pickle Blue', color: '#1076fc' },
+  { name: 'Obsidian Base', color: '#0c0e14' },
+  { name: 'Slate Panel', color: '#131620' },
+  { name: 'Deep Carbon', color: '#181b26' },
+  { name: 'Sky Highlight', color: '#38bdf8' },
   { name: 'Ocean Cyan', color: '#06b6d4' },
   { name: 'Emerald Spark', color: '#10b981' },
   { name: 'Solar Amber', color: '#f59e0b' },
   { name: 'Flame Red', color: '#ef4444' },
-  { name: 'Biscuit Gold', color: '#936639' },
-  { name: 'Celadon Sage', color: '#A4AC86' },
-  { name: 'Olive Ink', color: '#333D29' },
-  { name: 'Warm Linen', color: '#F4F2EC' },
+  { name: 'Zinc Muted', color: '#71717a' },
+  { name: 'Steel Border', color: '#272c3d' },
+  { name: 'Dark Surface', color: '#090b10' },
+  { name: 'Warm Off-White', color: '#f4f4f5' },
   { name: 'Pure White', color: '#ffffff' },
-  { name: 'Lavender Mist', color: '#f3e8ff' },
+  { name: 'Steel Mist', color: '#e2e8f0' },
   { name: 'Sky Frost', color: '#e0f2fe' },
 ];
 
 const SIMPLE_GRADIENTS = [
-  { name: 'Forest Gradient', gradient: 'linear-gradient(180deg, #101510 0%, #1c241b 100%)' },
-  { name: 'Obsidian Gradient', gradient: 'linear-gradient(135deg, #090a0f 0%, #151824 100%)' },
-  { name: 'Warm Linen Gradient', gradient: 'linear-gradient(180deg, #fbf9f5 0%, #f3efe6 100%)' },
-  { name: 'Emerald Night', gradient: 'linear-gradient(135deg, #061712 0%, #0d281e 100%)' },
+  { name: 'Obsidian Studio', gradient: 'linear-gradient(180deg, #0c0e14 0%, #131620 100%)' },
+  { name: 'Precision Slate', gradient: 'linear-gradient(135deg, #090a0f 0%, #151824 100%)' },
+  { name: 'Warm Minimal', gradient: 'linear-gradient(180deg, #fbf9f5 0%, #f3efe6 100%)' },
+  { name: 'Electric Edge', gradient: 'linear-gradient(135deg, #0a0d18 0%, #102542 100%)' },
 ];
 
 const CURATED_KID_IMAGES = [
@@ -69,24 +69,24 @@ export const SimplePropertiesPanel: React.FC = () => {
         style={{
           width: '100%',
           height: '100%',
-          background: '#101510',
-          color: '#F4F5EF',
+          background: '#0c0e14',
+          color: '#f8fafc',
           padding: 20,
           display: 'flex',
           flexDirection: 'column',
           gap: 20,
           userSelect: 'none',
           overflowY: 'auto',
-          borderLeft: '1px solid #354331',
+          borderLeft: '1px solid #23283a',
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <span style={{ fontSize: 10, fontWeight: 800, color: '#B8F36B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, color: '#1076fc', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               🧒 Simple Inspector
             </span>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#F4F5EF', margin: '4px 0 0' }}>Page Settings</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#f8fafc', margin: '4px 0 0' }}>Page Settings</h3>
           </div>
           <button
             onClick={() => {
@@ -99,15 +99,15 @@ export const SimplePropertiesPanel: React.FC = () => {
               gap: 4,
               padding: '4px 8px',
               borderRadius: 8,
-              background: '#1C241B',
-              border: '1px solid #354331',
-              color: '#F4F5EF',
+              background: '#131620',
+              border: '1px solid #23283a',
+              color: '#f8fafc',
               fontSize: 10,
               fontWeight: 700,
               cursor: 'pointer',
             }}
           >
-            <Zap size={11} style={{ color: '#B8F36B' }} />
+            <Zap size={11} style={{ color: '#1076fc' }} />
             <span>Pro Mode</span>
           </button>
         </div>
@@ -170,7 +170,7 @@ export const SimplePropertiesPanel: React.FC = () => {
                   backgroundImage: g.gradient,
                   border:
                     activePage.backgroundGradient === g.gradient
-                      ? '2px solid #B8F36B'
+                      ? '2px solid #1076fc'
                       : '1px solid #333',
                   cursor: 'pointer',
                   color: '#ffffff',
@@ -251,24 +251,24 @@ export const SimplePropertiesPanel: React.FC = () => {
       style={{
         width: '100%',
         height: '100%',
-        background: '#101510',
-        color: '#F4F5EF',
+        background: '#0c0e14',
+        color: '#f8fafc',
         padding: 18,
         display: 'flex',
         flexDirection: 'column',
         gap: 16,
         userSelect: 'none',
         overflowY: 'auto',
-        borderLeft: '1px solid #354331',
+        borderLeft: '1px solid #23283a',
       }}
     >
       {/* Top Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #354331', paddingBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #23283a', paddingBottom: 12 }}>
         <div>
-          <span style={{ fontSize: 10, fontWeight: 800, color: '#B8F36B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <span style={{ fontSize: 10, fontWeight: 800, color: '#1076fc', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             🧒 Simple Inspector
           </span>
-          <h3 style={{ fontSize: 15, fontWeight: 800, color: '#F4F5EF', margin: '2px 0 0' }}>
+          <h3 style={{ fontSize: 15, fontWeight: 800, color: '#f8fafc', margin: '2px 0 0' }}>
             {selectedElement.name || selectedElement.type}
           </h3>
         </div>
@@ -569,7 +569,7 @@ export const SimplePropertiesPanel: React.FC = () => {
       )}
 
       {/* Switch to Pro Footer */}
-      <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid #354331', textAlign: 'center' }}>
+      <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid #23283a', textAlign: 'center' }}>
         <button
           onClick={() => {
             playSound('pop');
@@ -579,7 +579,7 @@ export const SimplePropertiesPanel: React.FC = () => {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#A0A99A',
+            color: '#94a3b8',
             fontSize: 11,
             cursor: 'pointer',
             textDecoration: 'underline',

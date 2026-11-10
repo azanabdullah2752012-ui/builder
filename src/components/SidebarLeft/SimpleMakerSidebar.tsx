@@ -148,29 +148,29 @@ export const SimpleMakerSidebar: React.FC = () => {
       style={{
         width: '100%',
         height: '100%',
-        backgroundColor: '#101510',
-        color: '#F4F5EF',
+        backgroundColor: '#0c0e14',
+        color: '#f8fafc',
         display: 'flex',
         flexDirection: 'column',
         userSelect: 'none',
         overflow: 'hidden',
-        borderRight: '1px solid #354331',
+        borderRight: '1px solid #23283a',
       }}
     >
       {/* ── Top Header ── */}
       <div
         style={{
           padding: '12px 14px',
-          borderBottom: '1px solid #354331',
+          borderBottom: '1px solid #23283a',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: '#1C241B',
+          background: '#131620',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 16 }}>🧒</span>
-          <span style={{ fontWeight: 800, fontSize: 13, color: '#F4F5EF', letterSpacing: '-0.01em' }}>
+          <span style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', letterSpacing: '-0.01em' }}>
             Simple Maker
           </span>
           <span
@@ -178,7 +178,7 @@ export const SimpleMakerSidebar: React.FC = () => {
               fontSize: 9,
               fontWeight: 800,
               background: 'rgba(184, 243, 107, 0.15)',
-              color: '#B8F36B',
+              color: '#1076fc',
               padding: '2px 6px',
               borderRadius: 6,
               textTransform: 'uppercase',
@@ -198,7 +198,7 @@ export const SimpleMakerSidebar: React.FC = () => {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#A0A99A',
+            color: '#94a3b8',
             fontSize: 10,
             cursor: 'pointer',
             display: 'flex',
@@ -206,7 +206,7 @@ export const SimpleMakerSidebar: React.FC = () => {
             gap: 3,
           }}
         >
-          <Zap size={11} style={{ color: '#B8F36B' }} />
+          <Zap size={11} style={{ color: '#1076fc' }} />
           <span>Pro</span>
         </button>
       </div>
@@ -218,8 +218,8 @@ export const SimpleMakerSidebar: React.FC = () => {
           gridTemplateColumns: 'repeat(5, 1fr)',
           gap: 4,
           padding: '8px 10px',
-          background: '#101510',
-          borderBottom: '1px solid #354331',
+          background: '#0c0e14',
+          borderBottom: '1px solid #23283a',
         }}
       >
         {[
@@ -245,8 +245,8 @@ export const SimpleMakerSidebar: React.FC = () => {
                 padding: '6px 2px',
                 borderRadius: 8,
                 border: 'none',
-                background: on ? '#252F23' : 'transparent',
-                color: on ? '#B8F36B' : '#A0A99A',
+                background: on ? '#1a1f2e' : 'transparent',
+                color: on ? '#1076fc' : '#94a3b8',
                 cursor: 'pointer',
                 transition: 'all 0.12s ease',
               }}
@@ -512,10 +512,10 @@ export const SimpleMakerSidebar: React.FC = () => {
               { type: 'title' as const, label: 'Big Title Words', icon: <Type size={16} className="text-emerald-400" />, desc: 'Large heading for your topic' },
               { type: 'button' as const, label: 'Confetti Button', icon: <MousePointerClick size={16} className="text-amber-400" />, desc: 'Clickable button with confetti explosion' },
               { type: 'image' as const, label: 'Picture Photo', icon: <ImageIcon size={16} className="text-sky-400" />, desc: 'Add a puppy or rocket photo' },
-              { type: 'poll' as const, label: 'Live Visitor Poll', icon: <Quote size={16} className="text-indigo-400" />, desc: 'Ask a question & let friends vote live' },
+              { type: 'poll' as const, label: 'Live Visitor Poll', icon: <Quote size={16} className="text-[#38bdf8]" />, desc: 'Ask a question & let friends vote live' },
               { type: 'message' as const, label: 'Guestbook Wall', icon: <Quote size={16} className="text-rose-400" />, desc: 'Message board for friends to leave notes' },
               { type: 'reaction' as const, label: 'Reaction Counter', icon: <MousePointerClick size={16} className="text-pink-400" />, desc: 'Tap button to shower hype and love' },
-              { type: 'box' as const, label: 'Story Card Box', icon: <Layout size={16} className="text-purple-400" />, desc: 'A container card to put things inside' },
+              { type: 'box' as const, label: 'Story Card Box', icon: <Layout size={16} className="text-[#60a5fa]" />, desc: 'A container card to put things inside' },
             ].map((item) => (
               <div
                 key={item.type}

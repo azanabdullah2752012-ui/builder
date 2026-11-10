@@ -1,5 +1,5 @@
 import type { CanvasElement, ProjectState, ElementType } from '../types/editor';
-import { LANDING_PAGE_ELEMENTS } from './landingPageElements';
+import { DEFAULT_TEMPLATE_ELEMENTS } from './defaultTemplate';
 
 export const CANVAS_DEFAULT_WIDTH = 1200;
 export const CANVAS_DEFAULT_HEIGHT = 800;
@@ -1167,9 +1167,9 @@ export const INITIAL_PROJECT: ProjectState = {
       name: 'Home',
       slug: '/',
       canvasWidth: CANVAS_DEFAULT_WIDTH,
-      canvasHeight: 4300,
+      canvasHeight: 1000,
       backgroundColor: '#0c0e14',
-      elements: LANDING_PAGE_ELEMENTS,
+      elements: DEFAULT_TEMPLATE_ELEMENTS,
     },
     {
       id: 'page_about',

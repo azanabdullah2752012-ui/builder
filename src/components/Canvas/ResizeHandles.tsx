@@ -18,7 +18,7 @@ interface EdgeHandleConfig {
 }
 
 export const ResizeHandles: React.FC<ResizeHandlesProps> = ({ onResizeStart }) => {
-  // 4 corner handles (10x10 white squares with crisp 1.5px indigo border & shadow)
+  // 4 corner handles (10x10 white squares with crisp 1.5px electric blue border & shadow)
   const cornerHandles: CornerHandleConfig[] = [
     { type: 'nw', cursor: 'nwse-resize', style: { top: -5, left: -5 } },
     { type: 'ne', cursor: 'nesw-resize', style: { top: -5, right: -5 } },
@@ -72,7 +72,7 @@ export const ResizeHandles: React.FC<ResizeHandlesProps> = ({ onResizeStart }) =
             ...h.style,
             cursor: h.cursor,
           }}
-          className="absolute bg-white border-[1.5px] border-[#B8F36B] rounded-full z-30 shadow-[0_1px_4px_rgba(0,0,0,0.5)] hover:bg-[#cbf988] transition-colors before:absolute before:-inset-2.5 before:content-['']"
+          className="absolute bg-white border-[1.5px] border-[#1076fc] rounded-full z-30 shadow-[0_1px_4px_rgba(0,0,0,0.5)] hover:bg-[#60a5fa] hover:border-[#1076fc] transition-colors before:absolute before:-inset-2.5 before:content-['']"
         />
       ))}
 
@@ -85,7 +85,7 @@ export const ResizeHandles: React.FC<ResizeHandlesProps> = ({ onResizeStart }) =
             ...h.style,
             cursor: h.cursor,
           }}
-          className="absolute w-2.5 h-2.5 bg-white border-[1.5px] border-[#B8F36B] rounded-[2px] z-30 shadow-[0_1px_4px_rgba(0,0,0,0.5)] hover:bg-[#cbf988] transition-colors before:absolute before:-inset-2.5 before:content-['']"
+          className="absolute w-2.5 h-2.5 bg-white border-[1.5px] border-[#1076fc] rounded-[2px] z-30 shadow-[0_1px_4px_rgba(0,0,0,0.5)] hover:bg-[#60a5fa] hover:border-[#1076fc] transition-colors before:absolute before:-inset-2.5 before:content-['']"
         />
       ))}
     </>

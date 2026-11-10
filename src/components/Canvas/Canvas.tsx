@@ -241,13 +241,13 @@ export const Canvas: React.FC = () => {
   // Auto-fit function: scales canvas to fit available container width without horizontal clipping
   const fitToScreen = useCallback(() => {
     if (!canvasRef.current) return;
-    const paddingX = 48; // 24px each side
+    const paddingX = 64; // safe horizontal breathing room
     const containerWidth = canvasRef.current.clientWidth - paddingX;
     if (containerWidth <= 0) return;
 
     const scaleX = containerWidth / displayWidth;
-    // Scale comfortably to fit container width, capped at 1.0 (100%) and min 0.5 (50%)
-    const newZoom = Math.min(1.0, Math.max(0.5, Math.floor(scaleX * 100) / 100));
+    // Scale comfortably to fit container width, capped at 1.0 (100%) and min 0.25 (25%)
+    const newZoom = Math.min(1.0, Math.max(0.25, Math.floor(scaleX * 100) / 100));
     setZoom(newZoom);
   }, [displayWidth, setZoom]);
 
@@ -257,12 +257,13 @@ export const Canvas: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
+      const target = e.target as HTMLElement | null;
       if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable ||
-        target.closest('[role="search"]')
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable ||
+          (typeof target.closest === 'function' && target.closest('[role="search"]')))
       ) {
         return;
       }
@@ -321,9 +322,9 @@ export const Canvas: React.FC = () => {
     if (isSpaceDown || e.button === 1) return;
     // Only left click
     if (e.button !== 0) return;
-    const target = e.target as HTMLElement;
+    const target = e.target as HTMLElement | null;
     // Ensure user clicked on the canvas surface, background, or artboard wrapper, not on interactive element
-    if (target.closest('[data-element-id]')) return;
+    if (target?.closest && target.closest('[data-element-id]')) return;
 
     if (contextMenu) setContextMenu(null);
 
@@ -426,7 +427,7 @@ export const Canvas: React.FC = () => {
         }
       }}
       onContextMenu={handleContextMenu}
-      className="flex-1 bg-[#101510] overflow-auto relative flex flex-col items-center justify-start p-8 pb-24 select-none"
+      className="flex-1 bg-[#08090d] overflow-auto relative flex flex-col items-center justify-start p-8 pb-24 select-none"
       style={{
         backgroundImage: showGrid
           ? 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px)'
@@ -446,18 +447,23 @@ export const Canvas: React.FC = () => {
         className="relative my-auto shrink-0 flex flex-col z-10"
       >
         {/* Artboard Header Badge with Interactive Size & Style Controls */}
-        <div className="text-[11px] text-zinc-400 font-mono font-medium mb-2.5 pl-0.5 select-none flex items-center justify-between">
+        <div className="text-[11px] font-mono font-medium mb-2.5 pl-0.5 select-none flex items-center justify-between" style={{ color: 'var(--text-muted)' }}>
           <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border tracking-wide font-sans text-[10px] font-semibold" style={{ background: 'var(--studio-pill-bg)', borderColor: 'var(--studio-pill-border)', color: 'var(--text-main)' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Edit mode</span>
+            </span>
+            <span className="opacity-40 font-normal">•</span>
             <span
-              className="w-2.5 h-2.5 rounded-full border border-white/20 shrink-0"
+              className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0 shadow-sm"
               style={{
                 backgroundColor: activePage.backgroundColor || '#ffffff',
                 backgroundImage: activePage.backgroundGradient,
               }}
             />
-            <span className="font-sans font-semibold text-zinc-300 tracking-tight">Artboard</span>
-            <span className="text-zinc-600 font-normal">/</span>
-            <span className="text-zinc-300 font-sans">{activePage.name}</span>
+            <span className="font-sans font-semibold tracking-tight" style={{ color: 'var(--text-main)' }}>Artboard</span>
+            <span className="opacity-40 font-normal">/</span>
+            <span className="font-sans" style={{ color: 'var(--text-main)' }}>{activePage.name}</span>
 
             {/* Quick Canvas Style Trigger Button */}
             <button
@@ -467,10 +473,15 @@ export const Canvas: React.FC = () => {
                 setRightSidebarOpen(true);
                 showToast('Opened Canvas Surface Style Inspector 🎨', 'info');
               }}
-              className="ml-2 px-2 py-0.5 rounded-md bg-[#1c241b] hover:bg-[#253023] border border-[#354331] text-[#B8F36B] hover:text-white font-sans font-medium text-[10px] flex items-center gap-1 transition-colors cursor-pointer"
+              style={{
+                background: 'var(--studio-pill-bg)',
+                borderColor: 'var(--studio-pill-border)',
+                color: 'var(--primary)',
+              }}
+              className="ml-2 px-2 py-0.5 rounded-md border font-sans font-medium text-[10px] flex items-center gap-1 transition-colors cursor-pointer"
               title="Customize canvas background colors, gradients, and textures"
             >
-              <Palette className="w-3 h-3 text-[#B8F36B]" />
+              <Palette className="w-3 h-3 text-[var(--primary)]" />
               <span>Canvas Style</span>
             </button>
           </div>
@@ -481,7 +492,12 @@ export const Canvas: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowSizeDropdown((prev) => !prev)}
-                className="px-2 py-0.5 rounded-md bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white font-mono text-[10px] flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                style={{
+                  background: 'var(--studio-pill-bg)',
+                  borderColor: 'var(--studio-pill-border)',
+                  color: 'var(--text-main)',
+                }}
+                className="px-2 py-0.5 rounded-md border font-mono text-[10px] flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
                 title="Click to choose a canvas size preset or expand height"
               >
                 <span>
@@ -502,7 +518,7 @@ export const Canvas: React.FC = () => {
                 >
                   <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-800/80 mb-1 flex items-center justify-between">
                     <span>Artboard Presets</span>
-                    <span className="text-[9px] text-[#B8F36B] font-mono">Drag to resize</span>
+                    <span className="text-[9px] text-[#38bdf8] font-mono">Drag to resize</span>
                   </div>
 
                   {CANVAS_SIZE_PRESETS.map((preset) => (
@@ -521,8 +537,8 @@ export const Canvas: React.FC = () => {
                       className={`px-2 py-1.5 rounded-lg text-left text-[11px] flex items-center justify-between transition-colors ${
                         activePage.canvasWidth === preset.width &&
                         activePage.canvasHeight === preset.height
-                          ? 'bg-[#222c20] text-[#B8F36B] font-semibold'
-                          : 'text-zinc-300 hover:bg-zinc-850 hover:text-white'
+                          ? 'bg-[#1076fc]/15 text-[#38bdf8] border border-[#1076fc]/30 font-semibold'
+                          : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
                       }`}
                     >
                       <span className="truncate">{preset.label}</span>
@@ -545,7 +561,7 @@ export const Canvas: React.FC = () => {
                       }}
                       className="flex-1 py-1 px-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-[10px] font-medium flex items-center justify-center gap-1 transition-colors"
                     >
-                      <Plus className="w-2.5 h-2.5 text-[#B8F36B]" />
+                      <Plus className="w-2.5 h-2.5 text-[#38bdf8]" />
                       <span>+400px Height</span>
                     </button>
                   </div>
@@ -553,7 +569,50 @@ export const Canvas: React.FC = () => {
               )}
             </div>
 
-            <span className="text-[10px] text-zinc-500 font-mono hidden sm:inline">
+            {/* Quick Zoom & Fit to Screen Controls */}
+            <div
+              style={{
+                background: 'var(--studio-pill-bg)',
+                borderColor: 'var(--studio-pill-border)',
+                color: 'var(--text-main)',
+              }}
+              className="px-1.5 py-0.5 rounded-md border font-mono text-[10px] flex items-center gap-1 select-none shadow-sm"
+              title="Canvas Zoom Controls"
+            >
+              <button
+                type="button"
+                onClick={() => setZoom(Math.max(0.25, Math.round((zoom - 0.1) * 100) / 100))}
+                className="w-4 h-4 flex items-center justify-center rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                title="Zoom Out (Cmd -)"
+              >
+                −
+              </button>
+              <span className="min-w-[30px] text-center font-semibold text-[10px]">
+                {Math.round(zoom * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={() => setZoom(Math.min(2.0, Math.round((zoom + 0.1) * 100) / 100))}
+                className="w-4 h-4 flex items-center justify-center rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                title="Zoom In (Cmd +)"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                onClick={() => fitToScreen()}
+                style={{
+                  background: 'var(--studio-pill-active-bg)',
+                  color: 'var(--studio-pill-active-text)',
+                }}
+                className="ml-0.5 px-1.5 py-0.5 rounded text-[9px] font-sans font-medium transition-colors cursor-pointer"
+                title="Fit Canvas to Screen Width (Option + 1)"
+              >
+                Fit
+              </button>
+            </div>
+
+            <span className="text-[10px] text-zinc-500 font-mono hidden md:inline">
               • Shift+R: Rulers • Alt: Distances
             </span>
           </div>
@@ -619,7 +678,7 @@ export const Canvas: React.FC = () => {
                 <>
                   <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-40 flex items-center justify-between px-2.5 shadow-md pointer-events-none">
                     <div className="w-2.5 h-2.5 rounded-full bg-zinc-900 border border-zinc-800" />
-                    <div className="w-2 h-2 rounded-full bg-indigo-950/60" />
+                    <div className="w-2 h-2 rounded-full bg-sky-950/60" />
                   </div>
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-zinc-400/30 rounded-full z-40 pointer-events-none" />
                 </>
@@ -651,7 +710,7 @@ export const Canvas: React.FC = () => {
               {/* Marquee Selection Box Overlay */}
               {marqueeBox && (
                 <div
-                  className="absolute pointer-events-none rounded border border-[#B8F36B] bg-[#B8F36B]/15 backdrop-blur-[0.5px] shadow-[0_0_12px_rgba(184,243,107,0.35)] z-50 transition-none"
+                  className="absolute pointer-events-none rounded border border-[#1076fc] bg-[#1076fc]/15 backdrop-blur-[0.5px] shadow-[0_0_12px_rgba(16,118,252,0.35)] z-50 transition-none"
                   style={{
                     left: `${Math.min(marqueeBox.startX, marqueeBox.currentX)}px`,
                     top: `${Math.min(marqueeBox.startY, marqueeBox.currentY)}px`,
@@ -750,7 +809,7 @@ export const Canvas: React.FC = () => {
               ) : (
               <div className="max-w-xl w-full bg-zinc-900/95 border border-zinc-800 rounded-2xl p-7 shadow-2xl backdrop-blur-sm animate-scale-in">
                 {/* Header */}
-                <div className="w-12 h-12 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <div className="w-12 h-12 rounded-xl bg-[#1076fc]/10 border border-[#1076fc]/20 text-[#38bdf8] flex items-center justify-center mx-auto mb-3 shadow-inner">
                   <LayoutTemplate className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-bold text-zinc-100 mb-1">
@@ -765,10 +824,10 @@ export const Canvas: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => addElements(createHeroSection(), true)}
-                    className="p-3 rounded-xl border border-zinc-800 bg-zinc-950/60 hover:border-indigo-500 hover:bg-zinc-800/80 transition-all group"
+                    className="p-3 rounded-xl border border-zinc-800 bg-zinc-950/60 hover:border-[#1076fc] hover:bg-zinc-800/80 transition-all group"
                   >
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200 group-hover:text-indigo-400">
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200 group-hover:text-[#38bdf8]">
+                      <Sparkles className="w-3.5 h-3.5 text-[#38bdf8]" />
                       <span>SaaS Hero (Centered)</span>
                     </div>
                     <div className="text-[10px] text-zinc-400 mt-1 line-clamp-1">Headline & dual CTAs</div>
@@ -789,10 +848,10 @@ export const Canvas: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => addElements(createNavbarSection(), true)}
-                    className="p-3 rounded-xl border border-zinc-800 bg-zinc-950/60 hover:border-purple-500 hover:bg-zinc-800/80 transition-all group"
+                    className="p-3 rounded-xl border border-zinc-800 bg-zinc-950/60 hover:border-[#1076fc] hover:bg-zinc-800/80 transition-all group"
                   >
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200 group-hover:text-purple-400">
-                      <Compass className="w-3.5 h-3.5 text-purple-400" />
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200 group-hover:text-[#38bdf8]">
+                      <Compass className="w-3.5 h-3.5 text-[#38bdf8]" />
                       <span>Floating Glass Navbar</span>
                     </div>
                     <div className="text-[10px] text-zinc-400 mt-1 line-clamp-1">Brand & navigation</div>
@@ -849,9 +908,9 @@ export const Canvas: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => window.dispatchEvent(new CustomEvent('studio:open-templates'))}
-                      className="px-3 py-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-medium text-xs flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1.5 rounded-lg border border-[#1076fc]/30 bg-[#1076fc]/10 hover:bg-[#1076fc]/20 text-[#38bdf8] font-medium text-xs flex items-center gap-1.5 transition-colors"
                     >
-                      <LayoutTemplate className="w-3.5 h-3.5 text-indigo-400" />
+                      <LayoutTemplate className="w-3.5 h-3.5 text-[#38bdf8]" />
                       <span>Browse All 9 Templates</span>
                     </button>
                   </div>
@@ -859,7 +918,7 @@ export const Canvas: React.FC = () => {
                   <button
                     type="button"
                     onClick={resetToDefaultDemo}
-                    className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                    className="text-xs font-semibold text-[#38bdf8] hover:text-[#60a5fa] flex items-center gap-1"
                   >
                     <span>Load Demo Website</span>
                     <ArrowRight className="w-3 h-3" />
@@ -922,8 +981,8 @@ export const Canvas: React.FC = () => {
 
     {/* Hand Tool Notification Pill when Space is held */}
     {isSpaceDown && (
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 px-3 py-1.5 rounded-full bg-[#1C241B]/95 border border-[#354331] text-[#B8F36B] text-[11px] font-medium shadow-2xl backdrop-blur-md flex items-center gap-2 pointer-events-none animate-fade-in">
-        <span className="w-2 h-2 rounded-full bg-[#B8F36B] animate-pulse" />
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 px-3 py-1.5 rounded-full bg-[#0e111a]/95 border border-[#23283a] text-[#38bdf8] text-[11px] font-medium shadow-2xl backdrop-blur-md flex items-center gap-2 pointer-events-none animate-fade-in">
+        <span className="w-2 h-2 rounded-full bg-[#1076fc] animate-pulse" />
         <span>🖐 Hand Tool Active — Drag canvas to pan</span>
       </div>
     )}

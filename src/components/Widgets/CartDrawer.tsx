@@ -117,7 +117,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckout }) => {
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           {checkoutComplete ? (
             <div className="h-full flex flex-col items-center justify-center text-center py-12 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center animate-bounce">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center animate-float">
                 <CheckCircle className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold text-white">Payment Successful!</h3>
@@ -269,7 +269,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckout }) => {
               type="button"
               onClick={handleCheckout}
               disabled={isCheckingOut}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50"
+              className="w-full py-3.5 px-4 bg-[#1076fc] hover:bg-[#2584ff] text-white text-sm font-semibold rounded-xl shadow-lg shadow-[#1076fc]/30 flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50"
             >
               {isCheckingOut ? (
                 <span className="flex items-center gap-2">

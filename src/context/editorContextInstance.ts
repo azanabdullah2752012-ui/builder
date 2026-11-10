@@ -78,6 +78,11 @@ export interface EditorContextType {
   setEditorComplexity: (complexity: 'simple' | 'pro') => void;
   toggleEditorComplexity: () => void;
 
+  // Studio Theme (Dark vs Light)
+  appTheme: 'dark' | 'light';
+  setAppTheme: (theme: 'dark' | 'light') => void;
+  toggleAppTheme: () => void;
+
   // Guided Onboarding Walkthrough
   showOnboarding: boolean;
   setShowOnboarding: (show: boolean | ((prev: boolean) => boolean)) => void;

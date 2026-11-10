@@ -21,14 +21,15 @@ import type { CanvasBackgroundPattern } from '../../types/editor';
 import { playSound } from '../../utils/interactiveEffects';
 
 export const CanvasPropertiesEditor: React.FC = () => {
-  const { activePage, updatePageSettings, showToast } = useEditor();
+  const { activePage, updatePageSettings, showToast, appTheme } = useEditor();
+  const isLight = appTheme === 'light';
 
   const [bgTab, setBgTab] = useState<'solid' | 'gradient' | 'pattern' | 'image'>('solid');
-  const [selectedColorCat, setSelectedColorCat] = useState<string>('dark-luxury');
+  const [selectedColorCat, setSelectedColorCat] = useState<string>('candy-playful');
 
   // Custom Gradient Builder local state
-  const [gradStart, setGradStart] = useState<string>('#101510');
-  const [gradEnd, setGradEnd] = useState<string>('#1c241b');
+  const [gradStart, setGradStart] = useState<string>(isLight ? '#f8fafc' : '#0c0e14');
+  const [gradEnd, setGradEnd] = useState<string>(isLight ? '#e2e8f0' : '#131620');
   const [gradAngle, setGradAngle] = useState<string>('180deg');
 
   // Apply custom gradient
@@ -70,31 +71,52 @@ export const CanvasPropertiesEditor: React.FC = () => {
   const currentPattern = activePage.backgroundPattern || 'none';
   const currentImage = activePage.backgroundImage;
 
+  // Reusable card styling
+  const cardStyle: React.CSSProperties = {
+    background: 'var(--studio-card-item-bg)',
+    border: '1px solid var(--studio-card-item-border)',
+    borderRadius: 12,
+    padding: 12,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  };
+
+  const inputStyle: React.CSSProperties = {
+    background: 'var(--input-bg)',
+    border: '1px solid var(--input-border)',
+    color: 'var(--input-text)',
+    borderRadius: 8,
+    padding: '6px 10px',
+    fontSize: 11,
+    outline: 'none',
+  };
+
   return (
-    <div className="flex flex-col gap-5 text-xs text-zinc-300">
+    <div className="flex flex-col gap-4 text-xs select-none" style={{ color: 'var(--text-main)' }}>
       {/* 1. Page Name & Slug */}
-      <div className="bg-[#141914] border border-[#2a3528] rounded-xl p-3">
-        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+      <div style={cardStyle}>
+        <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Page Title & Identifier
         </label>
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <input
             type="text"
             value={activePage.name}
             onChange={(e) => updatePageSettings(activePage.id, { name: e.target.value })}
-            className="flex-1 bg-[#1c241b] border border-[#354331] rounded-lg px-2.5 py-1.5 text-zinc-100 text-xs outline-none focus:border-[#B8F36B] transition-colors"
+            style={{ ...inputStyle, flex: 1 }}
             placeholder="Home Page"
           />
-          <span className="text-[10px] text-zinc-500 font-mono">/{activePage.slug || 'home'}</span>
+          <span style={{ fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'monospace' }}>/{activePage.slug || 'home'}</span>
         </div>
       </div>
 
       {/* 2. Canvas Surface & Background Styling */}
-      <div className="bg-[#141914] border border-[#2a3528] rounded-xl p-3 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Palette className="w-3.5 h-3.5 text-[#B8F36B]" />
-            <span className="font-semibold text-zinc-100 text-xs">Canvas Surface</span>
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Palette className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />
+            <span style={{ fontWeight: 600, fontSize: 12, color: 'var(--text-main)' }}>Canvas Surface</span>
           </div>
 
           {/* Quick Clear / Reset Background */}
@@ -111,7 +133,16 @@ export const CanvasPropertiesEditor: React.FC = () => {
                 playSound('pop');
                 showToast('Reset surface to plain white', 'info');
               }}
-              className="text-[10px] text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer"
+              style={{
+                fontSize: 10,
+                color: 'var(--text-muted)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
             >
               <RotateCcw className="w-2.5 h-2.5" />
               <span>Reset</span>
@@ -120,72 +151,73 @@ export const CanvasPropertiesEditor: React.FC = () => {
         </div>
 
         {/* Surface Fill Tabs */}
-        <div className="flex items-center bg-[#101510] border border-[#2a3528] rounded-lg p-0.5">
-          <button
-            type="button"
-            onClick={() => setBgTab('solid')}
-            className={`flex-1 py-1 rounded text-[11px] font-medium transition-all ${
-              bgTab === 'solid'
-                ? 'bg-[#222c20] text-[#B8F36B] shadow-sm font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Solid
-          </button>
-          <button
-            type="button"
-            onClick={() => setBgTab('gradient')}
-            className={`flex-1 py-1 rounded text-[11px] font-medium transition-all ${
-              bgTab === 'gradient'
-                ? 'bg-[#222c20] text-[#B8F36B] shadow-sm font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Gradient
-          </button>
-          <button
-            type="button"
-            onClick={() => setBgTab('pattern')}
-            className={`flex-1 py-1 rounded text-[11px] font-medium transition-all ${
-              bgTab === 'pattern'
-                ? 'bg-[#222c20] text-[#B8F36B] shadow-sm font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Pattern
-          </button>
-          <button
-            type="button"
-            onClick={() => setBgTab('image')}
-            className={`flex-1 py-1 rounded text-[11px] font-medium transition-all ${
-              bgTab === 'image'
-                ? 'bg-[#222c20] text-[#B8F36B] shadow-sm font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Image
-          </button>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: 'var(--studio-pill-bg)',
+            border: '1px solid var(--studio-pill-border)',
+            borderRadius: 8,
+            padding: 2,
+            gap: 2,
+          }}
+        >
+          {(['solid', 'gradient', 'pattern', 'image'] as const).map((tab) => {
+            const on = bgTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setBgTab(tab)}
+                style={{
+                  flex: 1,
+                  padding: '4px 0',
+                  borderRadius: 6,
+                  border: 'none',
+                  fontSize: 10.5,
+                  fontWeight: on ? 600 : 500,
+                  background: on ? 'var(--studio-pill-active-bg)' : 'transparent',
+                  color: on ? 'var(--studio-pill-active-text)' : 'var(--studio-pill-inactive-text)',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  transition: 'all 0.12s ease',
+                }}
+              >
+                {tab}
+              </button>
+            );
+          })}
         </div>
 
         {/* TAB 1: SOLID COLORS */}
         {bgTab === 'solid' && (
-          <div className="flex flex-col gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* Category Filter Pills */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
-              {CANVAS_COLOR_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedColorCat(cat.id)}
-                  className={`px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap transition-colors ${
-                    selectedColorCat === cat.id
-                      ? 'bg-[#B8F36B] text-black font-semibold'
-                      : 'bg-[#1c241b] text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  {cat.name.split(' ')[0]}
-                </button>
-              ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflowX: 'auto', paddingBottom: 2 }}>
+              {CANVAS_COLOR_CATEGORIES.map((cat) => {
+                const on = selectedColorCat === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedColorCat(cat.id)}
+                    style={{
+                      padding: '2px 8px',
+                      borderRadius: 9999,
+                      fontSize: 10,
+                      fontWeight: on ? 600 : 400,
+                      whiteSpace: 'nowrap',
+                      background: on ? 'var(--primary)' : 'var(--studio-pill-bg)',
+                      border: on ? '1px solid transparent' : '1px solid var(--studio-pill-border)',
+                      color: on ? '#ffffff' : 'var(--text-muted)',
+                      cursor: 'pointer',
+                      transition: 'all 0.12s ease',
+                    }}
+                  >
+                    {cat.name.split(' ')[0]}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Color Swatch Grid */}
@@ -194,7 +226,7 @@ export const CanvasPropertiesEditor: React.FC = () => {
                 CANVAS_COLOR_CATEGORIES.find((c) => c.id === selectedColorCat) ||
                 CANVAS_COLOR_CATEGORIES[0];
               return (
-                <div className="grid grid-cols-4 gap-2">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
                   {currentCat.colors.map((color) => {
                     const isSelected =
                       !currentGrad &&
@@ -202,7 +234,7 @@ export const CanvasPropertiesEditor: React.FC = () => {
                       currentBg.toLowerCase() === color.hex.toLowerCase();
                     return (
                       <button
-                        key={color.hex}
+                        key={`${color.name}-${color.hex}`}
                         type="button"
                         onClick={() => {
                           updatePageSettings(activePage.id, {
@@ -213,19 +245,24 @@ export const CanvasPropertiesEditor: React.FC = () => {
                           playSound('pop');
                         }}
                         title={color.name}
-                        className={`h-9 rounded-lg border relative flex items-center justify-center transition-all ${
-                          isSelected
-                            ? 'border-[#B8F36B] shadow-[0_0_10px_rgba(184,243,107,0.5)] scale-105 z-10'
-                            : 'border-[#2f3c2c] hover:border-zinc-400 hover:scale-[1.02]'
-                        }`}
-                        style={{ backgroundColor: color.hex }}
+                        style={{
+                          height: 34,
+                          borderRadius: 8,
+                          backgroundColor: color.hex,
+                          border: isSelected ? '2px solid var(--primary)' : '1px solid rgba(120, 120, 120, 0.25)',
+                          boxShadow: isSelected ? '0 0 10px rgba(16, 118, 252, 0.4)' : 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transform: isSelected ? 'scale(1.05)' : 'none',
+                          transition: 'transform 0.12s',
+                        }}
                       >
                         {isSelected && (
                           <Check
                             className={`w-3.5 h-3.5 drop-shadow ${
-                              ['#ffffff', '#f8fafc', '#F4F2EC', '#fbf9f5', '#B8F36B'].includes(
-                                color.hex
-                              )
+                              ['#ffffff', '#f8fafc', '#F4F2EC', '#fbf9f5'].includes(color.hex)
                                 ? 'text-black'
                                 : 'text-white'
                             }`}
@@ -239,10 +276,19 @@ export const CanvasPropertiesEditor: React.FC = () => {
             })()}
 
             {/* Custom Hex Picker Input & Pipette */}
-            <div className="flex items-center gap-2 pt-1 border-t border-[#2a3528]">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 4, borderTop: '1px solid var(--studio-card-item-border)' }}>
               <label
-                className="w-7 h-7 rounded-lg border border-[#354331] shrink-0 cursor-pointer overflow-hidden relative shadow-sm"
-                style={{ backgroundColor: currentBg }}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 6,
+                  border: '1px solid var(--studio-card-item-border)',
+                  backgroundColor: currentBg,
+                  flexShrink: 0,
+                  cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
                 title="Open native color picker"
               >
                 <input
@@ -255,12 +301,22 @@ export const CanvasPropertiesEditor: React.FC = () => {
                       backgroundImage: undefined,
                     })
                   }
-                  className="opacity-0 absolute inset-0 cursor-pointer w-full h-full"
+                  style={{ opacity: 0, position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'pointer' }}
                 />
               </label>
 
-              <div className="flex-1 flex items-center bg-[#1c241b] border border-[#354331] rounded-lg px-2 py-1">
-                <span className="text-zinc-500 font-mono text-[11px] mr-1">#</span>
+              <div
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: 'var(--input-bg)',
+                  border: '1px solid var(--input-border)',
+                  borderRadius: 8,
+                  padding: '4px 8px',
+                }}
+              >
+                <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: 11, marginRight: 4 }}>#</span>
                 <input
                   type="text"
                   value={currentBg.replace('#', '')}
@@ -272,7 +328,7 @@ export const CanvasPropertiesEditor: React.FC = () => {
                       backgroundImage: undefined,
                     });
                   }}
-                  className="bg-transparent text-zinc-100 font-mono text-xs outline-none w-full uppercase"
+                  style={{ background: 'transparent', color: 'var(--input-text)', fontFamily: 'monospace', fontSize: 11, outline: 'none', width: '100%', textTransform: 'uppercase' }}
                   placeholder="FFFFFF"
                 />
               </div>
@@ -286,7 +342,16 @@ export const CanvasPropertiesEditor: React.FC = () => {
                     backgroundImage: undefined,
                   })
                 }
-                className="px-2 py-1 bg-[#1c241b] hover:bg-[#253023] border border-[#354331] rounded-lg text-zinc-400 hover:text-zinc-200 text-[10px] font-medium transition-colors"
+                style={{
+                  padding: '5px 10px',
+                  background: 'var(--studio-pill-bg)',
+                  border: '1px solid var(--studio-pill-border)',
+                  color: 'var(--text-main)',
+                  borderRadius: 8,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
                 title="Clear background to transparent"
               >
                 Clear
@@ -297,9 +362,9 @@ export const CanvasPropertiesEditor: React.FC = () => {
 
         {/* TAB 2: GRADIENTS */}
         {bgTab === 'gradient' && (
-          <div className="flex flex-col gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* Curated Gradients Grid */}
-            <div className="grid grid-cols-2 gap-2">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               {CANVAS_GRADIENTS.map((grad) => {
                 const isSelected = currentGrad === grad.gradient;
                 return (
@@ -313,22 +378,35 @@ export const CanvasPropertiesEditor: React.FC = () => {
                       });
                       playSound('pop');
                     }}
-                    className={`h-11 rounded-lg border p-1.5 text-left relative flex flex-col justify-end transition-all ${
-                      isSelected
-                        ? 'border-[#B8F36B] shadow-[0_0_12px_rgba(184,243,107,0.5)] scale-[1.02]'
-                        : 'border-[#2f3c2c] hover:border-zinc-400'
-                    }`}
-                    style={{ backgroundImage: grad.gradient }}
+                    style={{
+                      height: 44,
+                      borderRadius: 8,
+                      border: isSelected ? '2px solid var(--primary)' : '1px solid rgba(120, 120, 120, 0.25)',
+                      padding: 6,
+                      textAlign: 'left',
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-end',
+                      backgroundImage: grad.gradient,
+                      cursor: 'pointer',
+                    }}
                   >
                     <span
-                      className={`text-[9px] font-semibold tracking-tight px-1 py-0.5 rounded ${
-                        grad.dark ? 'text-zinc-200 bg-black/40' : 'text-zinc-800 bg-white/60'
-                      }`}
+                      style={{
+                        fontSize: 9.5,
+                        fontWeight: 600,
+                        padding: '1px 5px',
+                        borderRadius: 4,
+                        background: grad.dark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)',
+                        color: grad.dark ? '#ffffff' : '#0f172a',
+                        maxWidth: 'fit-content',
+                      }}
                     >
                       {grad.name}
                     </span>
                     {isSelected && (
-                      <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#B8F36B] shadow" />
+                      <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)' }} />
                     )}
                   </button>
                 );
@@ -336,44 +414,62 @@ export const CanvasPropertiesEditor: React.FC = () => {
             </div>
 
             {/* Custom Gradient Builder */}
-            <div className="pt-2 border-t border-[#2a3528] flex flex-col gap-2">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+            <div style={{ paddingTop: 8, borderTop: '1px solid var(--studio-card-item-border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Custom Gradient Studio
               </span>
 
               {/* Angle Direction Selector */}
-              <div className="flex items-center gap-1 bg-[#101510] border border-[#2a3528] rounded-lg p-0.5">
+              <div style={{ display: 'flex', gap: 2, background: 'var(--studio-pill-bg)', border: '1px solid var(--studio-pill-border)', borderRadius: 8, padding: 2 }}>
                 {[
                   { label: '180° ↓', value: '180deg' },
                   { label: '135° ↘', value: '135deg' },
                   { label: '90° →', value: '90deg' },
                   { label: '45° ↗', value: '45deg' },
                   { label: 'Radial ⊙', value: 'radial' },
-                ].map((a) => (
-                  <button
-                    key={a.value}
-                    type="button"
-                    onClick={() => {
-                      setGradAngle(a.value);
-                      applyCustomGradient(gradStart, gradEnd, a.value);
-                    }}
-                    className={`flex-1 py-1 rounded text-[10px] font-medium transition-all ${
-                      gradAngle === a.value
-                        ? 'bg-[#222c20] text-[#B8F36B] font-bold'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    {a.label}
-                  </button>
-                ))}
+                ].map((a) => {
+                  const on = gradAngle === a.value;
+                  return (
+                    <button
+                      key={a.value}
+                      type="button"
+                      onClick={() => {
+                        setGradAngle(a.value);
+                        applyCustomGradient(gradStart, gradEnd, a.value);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '4px 0',
+                        borderRadius: 6,
+                        border: 'none',
+                        fontSize: 10,
+                        fontWeight: on ? 700 : 500,
+                        background: on ? 'var(--primary)' : 'transparent',
+                        color: on ? '#ffffff' : 'var(--text-muted)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {a.label}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Color Stop 1 & Color Stop 2 */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex items-center gap-1.5 bg-[#1c241b] border border-[#354331] rounded-lg px-2 py-1">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 8, padding: '4px 8px' }}>
                   <label
-                    className="w-4 h-4 rounded border border-[#354331] shrink-0 cursor-pointer overflow-hidden relative"
-                    style={{ backgroundColor: gradStart }}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 4,
+                      border: '1px solid var(--studio-card-item-border)',
+                      backgroundColor: gradStart,
+                      cursor: 'pointer',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                    }}
                   >
                     <input
                       type="color"
@@ -382,18 +478,27 @@ export const CanvasPropertiesEditor: React.FC = () => {
                         setGradStart(e.target.value);
                         applyCustomGradient(e.target.value, gradEnd, gradAngle);
                       }}
-                      className="opacity-0 absolute inset-0 cursor-pointer"
+                      style={{ opacity: 0, position: 'absolute', inset: 0, cursor: 'pointer' }}
                     />
                   </label>
-                  <span className="text-[10px] text-zinc-400 font-mono uppercase truncate">
+                  <span style={{ fontSize: 10.5, color: 'var(--text-main)', fontFamily: 'monospace', textTransform: 'uppercase' }}>
                     {gradStart}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 bg-[#1c241b] border border-[#354331] rounded-lg px-2 py-1">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 8, padding: '4px 8px' }}>
                   <label
-                    className="w-4 h-4 rounded border border-[#354331] shrink-0 cursor-pointer overflow-hidden relative"
-                    style={{ backgroundColor: gradEnd }}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 4,
+                      border: '1px solid var(--studio-card-item-border)',
+                      backgroundColor: gradEnd,
+                      cursor: 'pointer',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                    }}
                   >
                     <input
                       type="color"
@@ -402,10 +507,10 @@ export const CanvasPropertiesEditor: React.FC = () => {
                         setGradEnd(e.target.value);
                         applyCustomGradient(gradStart, e.target.value, gradAngle);
                       }}
-                      className="opacity-0 absolute inset-0 cursor-pointer"
+                      style={{ opacity: 0, position: 'absolute', inset: 0, cursor: 'pointer' }}
                     />
                   </label>
-                  <span className="text-[10px] text-zinc-400 font-mono uppercase truncate">
+                  <span style={{ fontSize: 10.5, color: 'var(--text-main)', fontFamily: 'monospace', textTransform: 'uppercase' }}>
                     {gradEnd}
                   </span>
                 </div>
@@ -416,8 +521,8 @@ export const CanvasPropertiesEditor: React.FC = () => {
 
         {/* TAB 3: PATTERNS */}
         {bgTab === 'pattern' && (
-          <div className="flex flex-col gap-3">
-            <div className="grid grid-cols-2 gap-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               {CANVAS_PATTERNS.map((pat) => {
                 const isSelected = currentPattern === pat.id;
                 return (
@@ -430,17 +535,23 @@ export const CanvasPropertiesEditor: React.FC = () => {
                       });
                       playSound('pop');
                     }}
-                    className={`p-2.5 rounded-lg border text-left flex flex-col gap-1 transition-all ${
-                      isSelected
-                        ? 'border-[#B8F36B] bg-[#1c241b] shadow-[0_0_10px_rgba(184,243,107,0.3)]'
-                        : 'border-[#2f3c2c] bg-[#141914] hover:border-zinc-400'
-                    }`}
+                    style={{
+                      padding: 8,
+                      borderRadius: 8,
+                      border: isSelected ? '2px solid var(--primary)' : '1px solid var(--studio-card-item-border)',
+                      background: isSelected ? 'var(--studio-pill-active-bg)' : 'var(--studio-pill-bg)',
+                      textAlign: 'left',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4,
+                      cursor: 'pointer',
+                    }}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-zinc-100 text-[11px]">{pat.name}</span>
-                      {isSelected && <Check className="w-3 h-3 text-[#B8F36B]" />}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: 11 }}>{pat.name}</span>
+                      {isSelected && <Check className="w-3 h-3" style={{ color: 'var(--primary)' }} />}
                     </div>
-                    <span className="text-[10px] text-zinc-400 line-clamp-1">{pat.description}</span>
+                    <span style={{ fontSize: 9.5, color: 'var(--text-muted)' }}>{pat.description}</span>
                   </button>
                 );
               })}
@@ -448,10 +559,10 @@ export const CanvasPropertiesEditor: React.FC = () => {
 
             {/* Pattern Opacity Slider */}
             {currentPattern !== 'none' && (
-              <div className="pt-2 border-t border-[#2a3528] flex flex-col gap-1.5">
-                <div className="flex items-center justify-between text-[10px] text-zinc-400">
+              <div style={{ paddingTop: 8, borderTop: '1px solid var(--studio-card-item-border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)' }}>
                   <span>Pattern Opacity</span>
-                  <span className="font-mono text-zinc-200">
+                  <span style={{ fontFamily: 'monospace', color: 'var(--text-main)', fontWeight: 600 }}>
                     {Math.round((activePage.patternOpacity ?? 0.2) * 100)}%
                   </span>
                 </div>
@@ -466,7 +577,7 @@ export const CanvasPropertiesEditor: React.FC = () => {
                       patternOpacity: parseFloat(e.target.value),
                     })
                   }
-                  className="w-full accent-[#B8F36B] cursor-pointer"
+                  style={{ width: '100%', accentColor: 'var(--primary)', cursor: 'pointer' }}
                 />
               </div>
             )}
@@ -475,10 +586,10 @@ export const CanvasPropertiesEditor: React.FC = () => {
 
         {/* TAB 4: IMAGE */}
         {bgTab === 'image' && (
-          <div className="flex flex-col gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* Custom Image URL input */}
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Image URL
               </span>
               <input
@@ -489,17 +600,17 @@ export const CanvasPropertiesEditor: React.FC = () => {
                     backgroundImage: e.target.value.trim() || undefined,
                   })
                 }
-                className="bg-[#1c241b] border border-[#354331] rounded-lg px-2.5 py-1.5 text-zinc-100 text-xs outline-none focus:border-[#B8F36B] transition-colors"
+                style={inputStyle}
                 placeholder="https://images.unsplash.com/..."
               />
             </div>
 
             {/* Curated Aesthetic Backdrops */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Curated Studio Backdrops
               </span>
-              <div className="grid grid-cols-2 gap-2">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 {CURATED_CANVAS_IMAGES.map((img) => (
                   <button
                     key={img.url}
@@ -512,19 +623,23 @@ export const CanvasPropertiesEditor: React.FC = () => {
                       playSound('pop');
                       showToast(`Loaded ${img.label}`, 'success');
                     }}
-                    className={`h-16 rounded-lg border overflow-hidden relative group text-left transition-all ${
-                      activePage.backgroundImage === img.url
-                        ? 'border-[#B8F36B] shadow-[0_0_10px_rgba(184,243,107,0.4)]'
-                        : 'border-[#2f3c2c] hover:border-zinc-400'
-                    }`}
+                    style={{
+                      height: 60,
+                      borderRadius: 8,
+                      border: activePage.backgroundImage === img.url ? '2px solid var(--primary)' : '1px solid var(--studio-card-item-border)',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
                   >
                     <img
                       src={img.url}
                       alt={img.label}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-1.5 flex flex-col justify-end">
-                      <span className="text-[9px] font-semibold text-white truncate">
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', padding: 6, display: 'flex', alignItems: 'flex-end' }}>
+                      <span style={{ fontSize: 9.5, fontWeight: 600, color: '#ffffff' }}>
                         {img.label}
                       </span>
                     </div>
@@ -537,19 +652,19 @@ export const CanvasPropertiesEditor: React.FC = () => {
       </div>
 
       {/* 3. Canvas Dimensions & Quick Sizing Presets */}
-      <div className="bg-[#141914] border border-[#2a3528] rounded-xl p-3 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Maximize2 className="w-3.5 h-3.5 text-[#B8F36B]" />
-            <span className="font-semibold text-zinc-100 text-xs">Dimensions & Presets</span>
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Maximize2 className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />
+            <span style={{ fontWeight: 600, fontSize: 12, color: 'var(--text-main)' }}>Dimensions & Presets</span>
           </div>
-          <span className="text-[10px] font-mono text-zinc-500">Desktop Base</span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'monospace' }}>Desktop Base</span>
         </div>
 
         {/* Width & Height Number Inputs */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center bg-[#1c241b] border border-[#354331] rounded-lg px-2.5 py-1.5">
-            <span className="text-[10px] font-bold text-zinc-500 w-4">W</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', width: 14 }}>W</span>
             <input
               type="number"
               value={activePage.canvasWidth}
@@ -558,13 +673,13 @@ export const CanvasPropertiesEditor: React.FC = () => {
                   canvasWidth: Math.max(320, Number(e.target.value) || 1200),
                 })
               }
-              className="bg-transparent text-zinc-100 font-mono text-xs outline-none w-full"
+              style={{ background: 'transparent', color: 'var(--input-text)', fontFamily: 'monospace', fontSize: 11, outline: 'none', width: '100%', border: 'none' }}
             />
-            <span className="text-[10px] text-zinc-500 font-mono">px</span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'monospace' }}>px</span>
           </div>
 
-          <div className="flex items-center bg-[#1c241b] border border-[#354331] rounded-lg px-2.5 py-1.5">
-            <span className="text-[10px] font-bold text-zinc-500 w-4">H</span>
+          <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', width: 14 }}>H</span>
             <input
               type="number"
               value={activePage.canvasHeight}
@@ -573,18 +688,18 @@ export const CanvasPropertiesEditor: React.FC = () => {
                   canvasHeight: Math.max(400, Number(e.target.value) || 800),
                 })
               }
-              className="bg-transparent text-zinc-100 font-mono text-xs outline-none w-full"
+              style={{ background: 'transparent', color: 'var(--input-text)', fontFamily: 'monospace', fontSize: 11, outline: 'none', width: '100%', border: 'none' }}
             />
-            <span className="text-[10px] text-zinc-500 font-mono">px</span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'monospace' }}>px</span>
           </div>
         </div>
 
         {/* 1-Click Popular Size Presets */}
-        <div className="flex flex-col gap-1.5 pt-1">
-          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 4 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Quick Artboard Presets
           </span>
-          <div className="grid grid-cols-2 gap-1.5">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {CANVAS_SIZE_PRESETS.map((preset) => {
               const isActive =
                 activePage.canvasWidth === preset.width && activePage.canvasHeight === preset.height;
@@ -600,14 +715,24 @@ export const CanvasPropertiesEditor: React.FC = () => {
                     playSound('pop');
                     showToast(`Canvas resized to ${preset.label} 📐`, 'info');
                   }}
-                  className={`px-2 py-1.5 rounded-lg border text-left flex items-center justify-between transition-colors ${
-                    isActive
-                      ? 'border-[#B8F36B] bg-[#222c20] text-[#B8F36B] font-semibold'
-                      : 'border-[#2f3c2c] bg-[#101510] text-zinc-300 hover:border-zinc-400'
-                  }`}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    border: isActive ? '1.5px solid var(--primary)' : '1px solid var(--border-subtle)',
+                    background: isActive ? 'var(--primary)' : 'var(--studio-pill-bg)',
+                    color: isActive ? '#ffffff' : 'var(--text-main)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontWeight: isActive ? 700 : 500,
+                    transition: 'all 0.12s',
+                  }}
                 >
-                  <span className="text-[11px] truncate">{preset.label.split(' ')[0]}</span>
-                  <span className="text-[9px] font-mono text-zinc-500">{preset.width}w</span>
+                  <span style={{ fontSize: 11 }}>{preset.label.split(' ')[0]}</span>
+                  <span style={{ fontSize: 10, fontFamily: 'monospace', color: isActive ? 'rgba(255,255,255,0.9)' : 'var(--text-muted)' }}>
+                    {preset.width}w
+                  </span>
                 </button>
               );
             })}
@@ -615,7 +740,7 @@ export const CanvasPropertiesEditor: React.FC = () => {
         </div>
 
         {/* Height Quick Actions */}
-        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#2a3528]">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingTop: 6, borderTop: '1px solid var(--studio-card-item-border)' }}>
           <button
             type="button"
             onClick={() => {
@@ -625,58 +750,96 @@ export const CanvasPropertiesEditor: React.FC = () => {
               playSound('pop');
               showToast('Added 400px height ↕', 'info');
             }}
-            className="px-2.5 py-1.5 bg-[#1c241b] hover:bg-[#253023] border border-[#354331] rounded-lg text-zinc-300 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors"
+            style={{
+              padding: '6px 10px',
+              background: 'var(--studio-pill-bg)',
+              border: '1px solid var(--studio-pill-border)',
+              borderRadius: 8,
+              color: 'var(--text-main)',
+              fontSize: 11,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              transition: 'background 0.12s',
+            }}
           >
-            <Plus className="w-3 h-3 text-[#B8F36B]" />
+            <Plus className="w-3 h-3" style={{ color: 'var(--primary)' }} />
             <span>+ 400px Height</span>
           </button>
 
           <button
             type="button"
             onClick={handleFitElementsHeight}
-            className="px-2.5 py-1.5 bg-[#1c241b] hover:bg-[#253023] border border-[#354331] rounded-lg text-zinc-300 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors"
+            style={{
+              padding: '6px 10px',
+              background: 'var(--studio-pill-bg)',
+              border: '1px solid var(--studio-pill-border)',
+              borderRadius: 8,
+              color: 'var(--text-main)',
+              fontSize: 11,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              transition: 'background 0.12s',
+            }}
           >
-            <Sliders className="w-3 h-3 text-sky-400" />
+            <Sliders className="w-3 h-3" style={{ color: 'var(--primary)' }} />
             <span>Fit to Content</span>
           </button>
         </div>
       </div>
 
       {/* 4. Canvas Frame (Radius & Shadow) */}
-      <div className="bg-[#141914] border border-[#2a3528] rounded-xl p-3 flex flex-col gap-3">
-        <span className="font-semibold text-zinc-100 text-xs">Frame Styling</span>
+      <div style={cardStyle}>
+        <span style={{ fontWeight: 600, fontSize: 12, color: 'var(--text-main)' }}>Frame Styling</span>
 
         {/* Corner Radius Presets */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-[10px] text-zinc-400">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)' }}>
             <span>Corner Radius</span>
-            <span className="font-mono text-zinc-200">{activePage.canvasBorderRadius ?? 16}px</span>
+            <span style={{ fontFamily: 'monospace', color: 'var(--text-main)', fontWeight: 600 }}>{activePage.canvasBorderRadius ?? 16}px</span>
           </div>
-          <div className="flex items-center gap-1 bg-[#101510] border border-[#2a3528] rounded-lg p-0.5">
-            {CANVAS_BORDER_RADIUS_PRESETS.map((rad) => (
-              <button
-                key={rad.value}
-                type="button"
-                onClick={() => {
-                  updatePageSettings(activePage.id, { canvasBorderRadius: rad.value });
-                  playSound('pop');
-                }}
-                className={`flex-1 py-1 rounded text-[10px] font-medium transition-all ${
-                  (activePage.canvasBorderRadius ?? 16) === rad.value
-                    ? 'bg-[#222c20] text-[#B8F36B] font-bold'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                {rad.value}px
-              </button>
-            ))}
+          <div style={{ display: 'flex', gap: 4, background: 'var(--studio-pill-bg)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: 3 }}>
+            {CANVAS_BORDER_RADIUS_PRESETS.map((rad) => {
+              const on = (activePage.canvasBorderRadius ?? 16) === rad.value;
+              return (
+                <button
+                  key={rad.value}
+                  type="button"
+                  onClick={() => {
+                    updatePageSettings(activePage.id, { canvasBorderRadius: rad.value });
+                    playSound('pop');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '5px 0',
+                    borderRadius: 6,
+                    border: 'none',
+                    fontSize: 10.5,
+                    fontWeight: on ? 700 : 500,
+                    background: on ? 'var(--primary)' : 'transparent',
+                    color: on ? '#ffffff' : 'var(--text-main)',
+                    cursor: 'pointer',
+                    transition: 'all 0.12s',
+                  }}
+                >
+                  {rad.value}px
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Shadow Presets */}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] text-zinc-400">Artboard Elevation</span>
-          <div className="grid grid-cols-2 gap-1.5">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Artboard Elevation</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {CANVAS_SHADOW_PRESETS.map((shad) => {
               const isSelected = (activePage.canvasShadow ?? CANVAS_SHADOW_PRESETS[0].shadow) === shad.shadow;
               return (
@@ -687,11 +850,18 @@ export const CanvasPropertiesEditor: React.FC = () => {
                     updatePageSettings(activePage.id, { canvasShadow: shad.shadow });
                     playSound('pop');
                   }}
-                  className={`px-2 py-1 rounded-lg border text-left text-[10px] transition-colors ${
-                    isSelected
-                      ? 'border-[#B8F36B] bg-[#222c20] text-[#B8F36B] font-semibold'
-                      : 'border-[#2f3c2c] bg-[#101510] text-zinc-400 hover:border-zinc-400 hover:text-zinc-200'
-                  }`}
+                  style={{
+                    padding: '7px 10px',
+                    borderRadius: 8,
+                    border: isSelected ? '1.5px solid var(--primary)' : '1px solid var(--border-subtle)',
+                    background: isSelected ? 'var(--primary)' : 'var(--studio-pill-bg)',
+                    color: isSelected ? '#ffffff' : 'var(--text-main)',
+                    fontWeight: isSelected ? 700 : 500,
+                    fontSize: 10.5,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.12s',
+                  }}
                 >
                   {shad.label}
                 </button>
@@ -702,16 +872,16 @@ export const CanvasPropertiesEditor: React.FC = () => {
       </div>
 
       {/* 5. Reading Progress Bar */}
-      <div className="bg-[#141914] border border-[#2a3528] rounded-xl p-3 flex items-center justify-between">
-        <div className="flex flex-col gap-0.5">
-          <span className="font-semibold text-zinc-100 text-xs">Reading Progress Bar</span>
-          <span className="text-[10px] text-zinc-500">Top sticky indicator as visitor scrolls</span>
+      <div style={{ ...cardStyle, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontWeight: 600, fontSize: 12, color: 'var(--text-main)' }}>Reading Progress Bar</span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Top sticky indicator as visitor scrolls</span>
         </div>
         <input
           type="checkbox"
           checked={activePage.showScrollProgress ?? false}
           onChange={(e) => updatePageSettings(activePage.id, { showScrollProgress: e.target.checked })}
-          className="accent-[#B8F36B] w-4 h-4 cursor-pointer"
+          style={{ width: 16, height: 16, accentColor: 'var(--primary)', cursor: 'pointer' }}
         />
       </div>
     </div>

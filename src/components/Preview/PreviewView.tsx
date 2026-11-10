@@ -460,7 +460,7 @@ export const PreviewView: React.FC = () => {
             data-field-id={element.id}
             type="checkbox"
             defaultChecked={element.formConfig?.checked}
-            className="w-4 h-4 rounded text-indigo-600 bg-zinc-800 border-zinc-700 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+            className="w-4 h-4 rounded text-[#1076fc] bg-zinc-800 border-zinc-700 focus:ring-[#1076fc] focus:ring-offset-0 cursor-pointer"
           />
           <span className="truncate">{element.content || 'I agree'}</span>
         </label>
@@ -597,7 +597,7 @@ export const PreviewView: React.FC = () => {
       case 'blockquote':
         return (
           <blockquote {...commonProps}>
-            <span className="w-full italic select-none p-2 block border-l-2 border-indigo-500 pl-3">
+            <span className="w-full italic select-none p-2 block border-l-2 border-[#1076fc] pl-3">
               {element.content || '“Quotation text...”'}
             </span>
           </blockquote>
@@ -902,7 +902,7 @@ export const PreviewView: React.FC = () => {
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-[#1076fc]/15 text-[#38bdf8] flex items-center justify-center">
                 <Layers className="w-4 h-4" />
               </div>
               <h3 className="font-semibold text-lg text-white">{activeModal.title}</h3>
@@ -914,7 +914,7 @@ export const PreviewView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-lg transition-all"
+                className="px-4 py-2 rounded-xl bg-[#1076fc] hover:bg-[#2584ff] text-white font-medium text-xs shadow-lg transition-colors"
               >
                 Close Dialog
               </button>

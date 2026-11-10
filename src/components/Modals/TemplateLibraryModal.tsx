@@ -92,8 +92,8 @@ export const FULL_PAGE_TEMPLATES: FullPageTemplate[] = [
     description: 'Full conversion-optimised SaaS website with navbar, hero, features, pricing, and sign-up.',
     category: 'Business',
     tags: ['saas', 'startup', 'product', 'conversion'],
-    gradient: 'linear-gradient(135deg, #4f46e5 0%, #9333ea 100%)',
-    accentColor: '#6366f1',
+    gradient: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+    accentColor: '#1076fc',
     badge: 'Popular',
     sections: ['Navbar', 'Hero (Centered)', 'Feature Cards', 'Pricing Table', 'Sign-Up Form'],
     create: buildSaasLanding,
@@ -104,7 +104,7 @@ export const FULL_PAGE_TEMPLATES: FullPageTemplate[] = [
     description: 'Sleek split-hero startup page with social proof and pricing — perfect for product launches.',
     category: 'Business',
     tags: ['startup', 'launch', 'product', 'pitch'],
-    gradient: 'linear-gradient(135deg, #0284c7 0%, #6366f1 100%)',
+    gradient: 'linear-gradient(135deg, #0369a1 0%, #0284c7 100%)',
     accentColor: '#0ea5e9',
     badge: 'New',
     sections: ['Navbar', 'Split Hero', 'Feature Cards', 'Pricing Table', 'CTA Banner'],
@@ -149,8 +149,8 @@ export const FULL_PAGE_TEMPLATES: FullPageTemplate[] = [
     description: 'Minimal launch countdown page with email capture to build your waitlist before launch.',
     category: 'Launch',
     tags: ['coming soon', 'waitlist', 'launch', 'countdown'],
-    gradient: 'linear-gradient(135deg, #6366f1 0%, #d946ef 100%)',
-    accentColor: '#d946ef',
+    gradient: 'linear-gradient(135deg, #18181b 0%, #27272a 100%)',
+    accentColor: '#f59e0b',
     badge: 'Quick',
     sections: ['Hero', 'Email Capture', 'CTA Banner'],
     create: buildComingSoon,
@@ -223,8 +223,8 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
       <div
         style={{
           width: '100%', maxWidth: 900, maxHeight: '90vh',
-          backgroundColor: '#101510',
-          border: '1px solid #354331',
+          backgroundColor: '#0c0e14',
+          border: '1px solid #23283a',
           borderRadius: 18,
           boxShadow: '0 32px 100px rgba(0,0,0,0.8)',
           display: 'flex', flexDirection: 'column',
@@ -235,7 +235,7 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
         {/* Header */}
         <div style={{
           padding: '20px 24px 16px',
-          borderBottom: '1px solid #354331',
+          borderBottom: '1px solid #23283a',
           display: 'flex', alignItems: 'flex-start', gap: 16,
           flexShrink: 0,
         }}>
@@ -243,16 +243,16 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <div style={{
                 width: 30, height: 30, borderRadius: 8,
-                background: '#1C241B', border: '1px solid #354331',
+                background: '#131620', border: '1px solid #23283a',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <Sparkles size={16} color="#B8F36B" />
+                <Sparkles size={16} color="#1076fc" />
               </div>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#F4F5EF', fontFamily: 'Cabinet Grotesk, sans-serif' }}>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#f8fafc', fontFamily: 'Cabinet Grotesk, sans-serif' }}>
                 Template Library
               </h2>
             </div>
-            <p style={{ margin: 0, fontSize: 12, color: '#A0A99A' }}>
+            <p style={{ margin: 0, fontSize: 12, color: '#94a3b8' }}>
               Pick a full-page layout to start from. Applying replaces the current canvas.
             </p>
           </div>
@@ -260,17 +260,17 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
           {/* Search */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: '#1C241B', border: '1px solid #354331',
+            background: '#131620', border: '1px solid #23283a',
             borderRadius: 8, padding: '0 10px', height: 34,
           }}>
-            <Search size={13} color="#A0A99A" />
+            <Search size={13} color="#94a3b8" />
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search templates…"
               style={{
                 background: 'transparent', border: 'none', outline: 'none',
-                color: '#F4F5EF', fontSize: 12, fontFamily: 'inherit', width: 150,
+                color: '#f8fafc', fontSize: 12, fontFamily: 'inherit', width: 150,
               }}
             />
           </div>
@@ -279,7 +279,7 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
             onClick={onClose}
             style={{
               width: 30, height: 30, borderRadius: 7, border: 'none',
-              background: '#1C241B', color: '#A0A99A', cursor: 'pointer',
+              background: '#131620', color: '#94a3b8', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}
@@ -292,7 +292,7 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
         <div style={{
           padding: '12px 24px',
           display: 'flex', gap: 6, flexShrink: 0,
-          borderBottom: '1px solid #354331',
+          borderBottom: '1px solid #23283a',
         }}>
           {CATEGORIES.map(cat => {
             const active = activeCategory === cat;
@@ -305,9 +305,9 @@ export const TemplateLibraryModal: React.FC<TemplateLibraryModalProps> = ({ isOp
                   display: 'flex', alignItems: 'center', gap: 5,
                   padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
                   fontSize: 12, fontWeight: active ? 700 : 500,
-                  border: active ? '1px solid #B8F36B' : '1px solid #354331',
-                  background: active ? '#B8F36B' : '#1C241B',
-                  color: active ? '#101510' : '#A0A99A',
+                  border: active ? '1px solid #1076fc' : '1px solid #23283a',
+                  background: active ? '#1076fc' : '#131620',
+                  color: active ? '#0c0e14' : '#94a3b8',
                 }}
               >
                 {CATEGORY_ICONS[cat]}

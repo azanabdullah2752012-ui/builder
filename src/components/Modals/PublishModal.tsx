@@ -197,8 +197,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
       <div
         className="w-full max-w-xl rounded-2xl flex flex-col overflow-hidden text-zinc-200 select-none animate-scale-in"
         style={{
-          backgroundColor: '#1C241B',
-          border: '1px solid #354331',
+          backgroundColor: '#131620',
+          border: '1px solid #23283a',
           boxShadow: '0 30px 70px -15px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.06)',
           maxHeight: '88vh',
         }}
@@ -208,8 +208,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
         <div
           className="p-4 px-5 flex items-center justify-between shrink-0"
           style={{
-            backgroundColor: '#101510',
-            borderBottom: '1px solid #354331',
+            backgroundColor: '#0c0e14',
+            borderBottom: '1px solid #23283a',
           }}
         >
           <div className="flex items-center gap-3">
@@ -220,7 +220,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                 border: '1px solid rgba(184, 243, 107, 0.28)',
               }}
             >
-              <Globe className="w-4 h-4 text-[#B8F36B]" />
+              <Globe className="w-4 h-4 text-[#1076fc]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -231,11 +231,11 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                       className="flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full font-semibold"
                       style={{
                         backgroundColor: 'rgba(184, 243, 107, 0.15)',
-                        color: '#B8F36B',
+                        color: '#1076fc',
                         border: '1px solid rgba(184, 243, 107, 0.3)',
                       }}
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#B8F36B] animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1076fc] animate-pulse" />
                       LIVE ONLINE
                     </span>
                   ) : (
@@ -255,9 +255,9 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                   <span
                     className="text-[10px] px-2 py-0.5 rounded-full font-medium"
                     style={{
-                      backgroundColor: '#252F23',
-                      color: '#A0A99A',
-                      border: '1px solid #354331',
+                      backgroundColor: '#1a1f2e',
+                      color: '#94a3b8',
+                      border: '1px solid #23283a',
                     }}
                   >
                     OFFLINE DRAFT
@@ -283,8 +283,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
         <div
           className="px-5 flex items-center gap-1 text-xs shrink-0"
           style={{
-            backgroundColor: '#101510',
-            borderBottom: '1px solid #354331',
+            backgroundColor: '#0c0e14',
+            borderBottom: '1px solid #23283a',
           }}
         >
           {[
@@ -300,13 +300,13 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                 onClick={() => setActiveTab(tab.id as any)}
                 className="py-2.5 px-3 font-medium flex items-center gap-1.5 transition-all text-xs"
                 style={{
-                  color: active ? '#F4F5EF' : '#A0A99A',
-                  borderBottom: active ? '2px solid #B8F36B' : '2px solid transparent',
+                  color: active ? '#f8fafc' : '#94a3b8',
+                  borderBottom: active ? '2px solid #1076fc' : '2px solid transparent',
                   backgroundColor: active ? 'rgba(184, 243, 107, 0.08)' : 'transparent',
                   fontWeight: active ? 600 : 500,
                 }}
               >
-                <Icon className="w-3.5 h-3.5" style={{ color: active ? '#B8F36B' : '#A0A99A' }} />
+                <Icon className="w-3.5 h-3.5" style={{ color: active ? '#1076fc' : '#94a3b8' }} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -322,13 +322,13 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
               <div
                 className="p-4 rounded-xl space-y-3"
                 style={{
-                  backgroundColor: '#101510',
-                  border: '1px solid #354331',
+                  backgroundColor: '#0c0e14',
+                  border: '1px solid #23283a',
                 }}
               >
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-[#B8F36B]" />
+                    <Globe className="w-3.5 h-3.5 text-[#1076fc]" />
                     <span>Public Web Address</span>
                   </label>
 
@@ -450,26 +450,26 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                   disabled={isPublishing || slugStatus === 'taken'}
                   className="w-full py-2.5 px-4 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   style={{
-                    backgroundColor: '#B8F36B',
-                    color: '#101510',
+                    backgroundColor: '#1076fc',
+                    color: '#0c0e14',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
                   }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#cbf988'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#B8F36B'; }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#2584ff'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#1076fc'; }}
                 >
                   {isPublishing ? (
                     <>
-                      <RefreshCw className="w-4 h-4 animate-spin text-[#101510]" />
+                      <RefreshCw className="w-4 h-4 animate-spin text-[#0c0e14]" />
                       <span>Deploying Changes to Cloud...</span>
                     </>
                   ) : project.isPublic ? (
                     <>
-                      <Sparkles className="w-4 h-4 text-[#101510]" />
+                      <Sparkles className="w-4 h-4 text-[#0c0e14]" />
                       <span>Update Live Website Changes</span>
                     </>
                   ) : (
                     <>
-                      <Globe className="w-4 h-4 text-[#101510]" />
+                      <Globe className="w-4 h-4 text-[#0c0e14]" />
                       <span>🚀 Publish Live to Web Now</span>
                     </>
                   )}
@@ -534,10 +534,10 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#10b981' }} />
                     </div>
                     <div
-                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono text-[#A0A99A] ml-2"
-                      style={{ backgroundColor: '#101510', border: '1px solid #354331' }}
+                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono text-[#94a3b8] ml-2"
+                      style={{ backgroundColor: '#0c0e14', border: '1px solid #23283a' }}
                     >
-                      <Lock className="w-2.5 h-2.5 text-[#B8F36B]" />
+                      <Lock className="w-2.5 h-2.5 text-[#1076fc]" />
                       <span>{baseUrl}/?p={customSlug}</span>
                     </div>
                   </div>
@@ -546,7 +546,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                     href={liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#B8F36B] hover:text-[#c4f780] text-[11px] font-medium flex items-center gap-1"
+                    className="text-[#1076fc] hover:text-[#2584ff] text-[11px] font-medium flex items-center gap-1"
                   >
                     <span>Open in New Tab</span>
                     <ExternalLink className="w-3 h-3" />
@@ -585,7 +585,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                     borderBottom: '1px solid #1e2434',
                   }}
                 >
-                  <Share2 className="w-3 h-3 text-indigo-400" />
+                  <Share2 className="w-3 h-3 text-[#38bdf8]" />
                   <span>Social Share Card Preview (Twitter / LinkedIn)</span>
                 </div>
 
@@ -593,13 +593,13 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                   <div
                     className="h-28 rounded-lg flex items-center justify-center p-4 text-center"
                     style={{
-                      background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
-                      border: '1px solid rgba(99, 102, 241, 0.25)',
+                      background: 'linear-gradient(135deg, #0e1322 0%, #07090e 100%)',
+                      border: '1px solid rgba(16, 118, 252, 0.3)',
                     }}
                   >
                     <div>
                       <p className="text-white font-bold text-sm tracking-tight">{seoTitle || project.name}</p>
-                      <p className="text-[11px] text-indigo-300/80 mt-1 line-clamp-1">{seoDesc}</p>
+                      <p className="text-[11px] text-[#38bdf8] mt-1 line-clamp-1">{seoDesc}</p>
                     </div>
                   </div>
 
@@ -661,7 +661,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                     type="checkbox"
                     checked={removeBranding}
                     onChange={(e) => setRemoveBranding(e.target.checked)}
-                    className="w-4 h-4 rounded cursor-pointer accent-indigo-500"
+                    className="w-4 h-4 rounded cursor-pointer accent-[#1076fc]"
                   />
                 </div>
               </div>
@@ -681,16 +681,16 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
               >
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-                    <Code className="w-3.5 h-3.5 text-indigo-400" />
+                    <Code className="w-3.5 h-3.5 text-[#38bdf8]" />
                     <span>Responsive Iframe Embed Code</span>
                   </label>
                   <button
                     type="button"
                     onClick={handleCopyEmbed}
-                    className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-indigo-300 hover:text-white transition-all flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-sky-200 hover:text-white transition-all flex items-center gap-1"
                     style={{
-                      backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                      border: '1px solid rgba(99, 102, 241, 0.3)',
+                      backgroundColor: 'rgba(16, 118, 252, 0.15)',
+                      border: '1px solid rgba(16, 118, 252, 0.35)',
                     }}
                   >
                     {copiedEmbed ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -699,7 +699,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                 </div>
 
                 <div
-                  className="p-3 rounded-lg font-mono text-[11px] text-indigo-200 overflow-x-auto select-all leading-relaxed"
+                  className="p-3 rounded-lg font-mono text-[11px] text-sky-200 overflow-x-auto select-all leading-relaxed"
                   style={{
                     backgroundColor: '#07090e',
                     border: '1px solid #1c2334',
@@ -760,7 +760,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                       border: '1px solid #2d3850',
                     }}
                   >
-                    <Download className="w-3.5 h-3.5 text-indigo-400" />
+                    <Download className="w-3.5 h-3.5 text-[#38bdf8]" />
                     <span>Download .html</span>
                   </button>
                 </div>

@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { createHeroSection, createFeatureGridSection } from '../../constants/templates';
-import { LANDING_PAGE_ELEMENTS } from '../../constants/landingPageElements';
+import { DEFAULT_TEMPLATE_ELEMENTS } from '../../constants/defaultTemplate';
 
 export const PageNavigationBar: React.FC = () => {
   const {
@@ -107,7 +107,7 @@ export const PageNavigationBar: React.FC = () => {
     // If template selected, add initial elements
     if (selectedTemplate === 'full-landing') {
       setTimeout(() => {
-        addElements(LANDING_PAGE_ELEMENTS);
+        addElements(DEFAULT_TEMPLATE_ELEMENTS);
       }, 50);
     } else if (selectedTemplate === 'landing') {
       setTimeout(() => {
@@ -176,14 +176,14 @@ export const PageNavigationBar: React.FC = () => {
                 }}
                 className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer transition-all border shrink-0 relative ${
                   isActive
-                    ? 'bg-gradient-to-r from-indigo-500/20 via-purple-500/15 to-transparent text-white border-indigo-500/60 shadow-[0_0_12px_rgba(99,102,241,0.25)] font-semibold'
-                    : 'bg-[#151926] text-zinc-400 border-[#22283a] hover:text-zinc-100 hover:bg-[#1c2233] hover:border-indigo-500/40'
+                    ? 'bg-[#1076fc]/15 text-[#f8fafc] border-[#1076fc]/60 shadow-[0_0_12px_rgba(16,118,252,0.25)] font-semibold'
+                    : 'bg-[#151926] text-zinc-400 border-[#22283a] hover:text-zinc-100 hover:bg-[#1c2233] hover:border-[#1076fc]/40'
                 }`}
                 title={`Switch to ${p.name} (${p.slug}) • Alt+${idx + 1}`}
               >
                 <FileText
                   className={`w-3.5 h-3.5 shrink-0 ${
-                    isActive ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-400'
+                    isActive ? 'text-[#38bdf8]' : 'text-zinc-500 group-hover:text-zinc-400'
                   }`}
                 />
 
@@ -201,7 +201,7 @@ export const PageNavigationBar: React.FC = () => {
                         if (e.key === 'Escape') setEditingPageId(null);
                       }}
                       autoFocus
-                      className="bg-[#121214] border border-indigo-500/50 rounded px-1 py-0.5 text-xs text-white outline-none w-24"
+                      className="bg-[#121214] border border-[#1076fc]/50 rounded px-1 py-0.5 text-xs text-white outline-none w-24"
                     />
                     <button
                       type="button"
@@ -298,10 +298,10 @@ export const PageNavigationBar: React.FC = () => {
             setNewPageName(`Page ${project.pages.length + 1}`);
             setIsAddModalOpen(true);
           }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-indigo-200 hover:text-white bg-indigo-600/20 hover:bg-indigo-600/35 border border-indigo-500/40 hover:border-indigo-500/60 transition-all shrink-0 text-xs font-semibold shadow-sm"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sky-200 hover:text-white bg-[#1076fc]/20 hover:bg-[#1076fc]/35 border border-[#1076fc]/40 hover:border-[#1076fc]/60 transition-all shrink-0 text-xs font-semibold shadow-sm"
           title="Create New Page"
         >
-          <Plus className="w-3.5 h-3.5 text-indigo-300" />
+          <Plus className="w-3.5 h-3.5 text-[#38bdf8]" />
           <span className="hidden sm:inline">New Page</span>
         </button>
       </div>
@@ -311,10 +311,10 @@ export const PageNavigationBar: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-zinc-300 hover:text-white bg-[#141824] hover:bg-[#1c2234] border border-[#263148] hover:border-indigo-500/50 transition-all text-xs shadow-sm"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-zinc-300 hover:text-white bg-[#141824] hover:bg-[#1c2234] border border-[#263148] hover:border-[#1076fc]/50 transition-all text-xs shadow-sm"
           title="Jump to Page (Search)"
         >
-          <Search className="w-3.5 h-3.5 text-indigo-400" />
+          <Search className="w-3.5 h-3.5 text-[#38bdf8]" />
           <span className="hidden md:inline font-medium text-zinc-300">Jump to Page</span>
           <span className="text-[10px] text-zinc-400 font-mono bg-[#0c0e14] px-1 py-0.5 rounded border border-zinc-700/50">Alt+P</span>
         </button>
@@ -333,7 +333,7 @@ export const PageNavigationBar: React.FC = () => {
             </button>
 
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-[#1076fc]/20 text-[#38bdf8] flex items-center justify-center">
                 <FileText className="w-4 h-4" />
               </div>
               <div>
@@ -354,7 +354,7 @@ export const PageNavigationBar: React.FC = () => {
                   }}
                   placeholder="e.g. Pricing, Features, Contact"
                   autoFocus
-                  className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#2e2e34] rounded-lg text-zinc-200 outline-none focus:border-indigo-500"
+                  className="w-full px-2.5 py-1.5 text-xs bg-[#121214] border border-[#2e2e34] rounded-lg text-zinc-200 outline-none focus:border-[#1076fc]"
                 />
               </div>
 
@@ -401,7 +401,7 @@ export const PageNavigationBar: React.FC = () => {
                       onClick={() => setSelectedTemplate(tpl.id as any)}
                       className={`p-2.5 rounded-lg border text-left transition-all ${
                         selectedTemplate === tpl.id
-                          ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-sm'
+                          ? 'bg-[#1076fc]/20 border-[#1076fc] text-white shadow-sm'
                           : 'bg-[#121214] border-[#27272a] text-zinc-400 hover:text-zinc-200 hover:border-[#38383e]'
                       }`}
                     >
@@ -422,7 +422,7 @@ export const PageNavigationBar: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-lg transition-all"
+                  className="px-4 py-1.5 rounded-lg bg-[#1076fc] hover:bg-[#2584ff] text-white font-medium text-xs shadow-lg transition-all"
                 >
                   Create Page
                 </button>
@@ -465,7 +465,7 @@ export const PageNavigationBar: React.FC = () => {
                   }}
                   className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
                     p.id === activePage.id
-                      ? 'bg-indigo-600/20 text-indigo-200 border border-indigo-500/30'
+                      ? 'bg-[#1076fc]/20 text-sky-200 border border-[#1076fc]/30'
                       : 'hover:bg-[#222226] text-zinc-300'
                   }`}
                 >

@@ -84,7 +84,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <button
                 type="button"
                 onClick={this.handleTryRecover}
-                className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all"
+                className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg bg-[#1076fc] hover:bg-[#2584ff] text-white text-xs font-semibold shadow-md shadow-[#1076fc]/30 transition-all"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Try Recover</span>

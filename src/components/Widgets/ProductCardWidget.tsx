@@ -81,7 +81,7 @@ export const ProductCardWidget: React.FC<ProductCardWidgetProps> = ({
 
         {/* Badge Ribbon */}
         {config.badge && (
-          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30">
+          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#1076fc] text-white shadow-md shadow-[#1076fc]/30">
             {config.badge}
           </div>
         )}
@@ -151,7 +151,7 @@ export const ProductCardWidget: React.FC<ProductCardWidgetProps> = ({
           className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
             addedAnimation
               ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
-              : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-blue-600/25'
+              : 'bg-[#1076fc] hover:bg-[#2584ff] text-white shadow-md shadow-[#1076fc]/25'
           }`}
         >
           {addedAnimation ? (

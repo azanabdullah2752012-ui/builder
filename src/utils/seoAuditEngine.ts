@@ -319,6 +319,29 @@ export function autoFixSeoIssues(
     if (candidate) {
       candidate.role = 'heading-h1';
       fixedCount++;
+    } else {
+      // Auto-insert semantic H1 header if no text candidate exists
+      updatedPage.elements.unshift({
+        id: `h1_auto_${Date.now()}`,
+        name: 'Primary H1 Heading',
+        type: 'text',
+        role: 'heading-h1',
+        content: updatedPublishConfig.seoTitle || `${updatedPage.name || 'Pickle Studio'} Experience`,
+        x: 80,
+        y: 80,
+        width: 640,
+        height: 64,
+        zIndex: 1,
+        locked: false,
+        behavior: { actionType: 'none' },
+        styles: {
+          fontSize: 44,
+          fontWeight: '700',
+          color: '#ffffff',
+          lineHeight: 1.2,
+        },
+      });
+      fixedCount++;
     }
   }
 

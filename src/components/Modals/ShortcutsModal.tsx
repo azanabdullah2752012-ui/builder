@@ -79,7 +79,7 @@ export const ShortcutsModal: React.FC = () => {
         {/* Header */}
         <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between bg-zinc-900/60 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#1076fc]/15 border border-[#1076fc]/30 text-[#38bdf8] flex items-center justify-center">
               <Keyboard className="w-4 h-4" />
             </div>
             <div>
@@ -100,7 +100,7 @@ export const ShortcutsModal: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
           {/* Category 1: Essential Commands */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-2 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#38bdf8] mb-2 px-1">
               Core Actions & Clipboard
             </h3>
             <div className="bg-[#141416] border border-[#27272a] rounded-xl p-1.5 divide-y divide-zinc-800/40">
@@ -147,7 +147,7 @@ export const ShortcutsModal: React.FC = () => {
                 keys={[cmd, 'S']}
               />
               <ShortcutRow
-                icon={<Search className="w-3.5 h-3.5 text-[#B8F36B]" />}
+                icon={<Search className="w-3.5 h-3.5 text-[#1076fc]" />}
                 label="Find & Replace"
                 description="Search text, layer names, types, and replace copy"
                 keys={[cmd, 'F']}
@@ -159,7 +159,7 @@ export const ShortcutsModal: React.FC = () => {
                 keys={[alt, cmd, 'C']}
               />
               <ShortcutRow
-                icon={<Palette className="w-3.5 h-3.5 text-[#B8F36B]" />}
+                icon={<Palette className="w-3.5 h-3.5 text-[#1076fc]" />}
                 label="Paste Element Style"
                 description="Apply copied visual styles to selected elements"
                 keys={[alt, cmd, 'V']}
@@ -169,7 +169,7 @@ export const ShortcutsModal: React.FC = () => {
 
           {/* Category 2: Element Manipulation */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-2 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#38bdf8] mb-2 px-1">
               Elements & Selection
             </h3>
             <div className="bg-[#141416] border border-[#27272a] rounded-xl p-1.5 divide-y divide-zinc-800/40">
@@ -210,7 +210,7 @@ export const ShortcutsModal: React.FC = () => {
 
           {/* Category 3: Layer Stacking */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-2 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#38bdf8] mb-2 px-1">
               Layer Ordering
             </h3>
             <div className="bg-[#141416] border border-[#27272a] rounded-xl p-1.5 divide-y divide-zinc-800/40">
@@ -243,7 +243,7 @@ export const ShortcutsModal: React.FC = () => {
 
           {/* Category 4: Page Navigation */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-2 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#38bdf8] mb-2 px-1">
               Page Navigation
             </h3>
             <div className="bg-[#141416] border border-[#27272a] rounded-xl p-1.5 divide-y divide-zinc-800/40">
@@ -309,7 +309,7 @@ export const ShortcutsModal: React.FC = () => {
                 keys={[cmd, shift, 'G']}
               />
               <ShortcutRow
-                icon={<Hand className="w-3.5 h-3.5 text-[#B8F36B]" />}
+                icon={<Hand className="w-3.5 h-3.5 text-[#1076fc]" />}
                 label="Hand Tool / Pan Canvas"
                 description="Hold Spacebar and drag mouse to pan canvas freely"
                 keys={['Space', 'Drag']}

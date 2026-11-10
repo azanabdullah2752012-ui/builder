@@ -118,13 +118,13 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({ isOpen
         {/* Revision Timeline List */}
         <div className="p-6 overflow-y-auto space-y-3 flex-1 custom-scrollbar">
           {/* Current Working Draft */}
-          <div className="p-3.5 rounded-xl border border-indigo-500/40 bg-indigo-500/10 flex items-center justify-between">
+          <div className="p-3.5 rounded-xl border border-[#1076fc]/40 bg-[#1076fc]/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#1076fc] animate-pulse" />
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="text-xs font-semibold text-white">Current Working Draft</h4>
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 uppercase tracking-wider">
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#1076fc]/20 text-[#38bdf8] uppercase tracking-wider">
                     Live
                   </span>
                 </div>

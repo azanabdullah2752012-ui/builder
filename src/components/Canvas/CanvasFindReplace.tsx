@@ -350,11 +350,11 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
         right: 18,
         zIndex: 90,
         width: 370,
-        backgroundColor: '#101510',
-        border: '1px solid #354331',
+        backgroundColor: '#0c0e14',
+        border: '1px solid #23283a',
         borderRadius: 12,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(184,243,107,0.18)',
-        backdropFilter: 'blur(12px)',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(16,118,252,0.25)',
+        backdropFilter: 'blur(16px)',
         overflow: 'hidden',
         animation: 'findBarSlideDown 0.14s cubic-bezier(0.16, 1, 0.3, 1)',
         userSelect: 'none',
@@ -368,22 +368,22 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
         .search-highlight-pulse {
-          outline: 3px solid #B8F36B !important;
+          outline: 3px solid #1076fc !important;
           outline-offset: 4px !important;
-          box-shadow: 0 0 24px rgba(184, 243, 107, 0.5) !important;
+          box-shadow: 0 0 24px rgba(16, 118, 252, 0.6) !important;
           transition: outline 0.2s ease, box-shadow 0.2s ease;
         }
       `}</style>
 
       {/* Row 1: Search Input & Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderBottom: '1px solid #252F23' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderBottom: '1px solid #1f2433' }}>
         <button
           type="button"
           onClick={() => setShowReplace((prev) => !prev)}
           style={{
             background: 'none',
             border: 'none',
-            color: showReplace ? '#B8F36B' : '#71717a',
+            color: showReplace ? '#38bdf8' : '#71717a',
             cursor: 'pointer',
             padding: 3,
             display: 'flex',
@@ -399,8 +399,8 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
           style={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#1C241B',
-            border: '1px solid #354331',
+            backgroundColor: '#131620',
+            border: '1px solid #23283a',
             borderRadius: 6,
             padding: '0 8px',
             flex: 1,
@@ -408,7 +408,7 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
             gap: 6,
           }}
         >
-          <Search size={13} color="#B8F36B" style={{ flexShrink: 0 }} />
+          <Search size={13} color="#1076fc" style={{ flexShrink: 0 }} />
           <input
             ref={searchInputRef}
             type="text"
@@ -419,7 +419,7 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
               flex: 1,
               background: 'none',
               border: 'none',
-              color: '#F4F5EF',
+              color: '#f8fafc',
               fontSize: 12,
               outline: 'none',
               width: '100%',
@@ -443,10 +443,10 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
             fontSize: 10,
             fontFamily: 'monospace',
             fontWeight: 600,
-            color: matches.length > 0 ? '#B8F36B' : '#71717a',
+            color: matches.length > 0 ? '#38bdf8' : '#71717a',
             padding: '2px 6px',
             borderRadius: 4,
-            backgroundColor: matches.length > 0 ? '#252F23' : '#1C241B',
+            backgroundColor: matches.length > 0 ? '#1a2030' : '#131620',
             whiteSpace: 'nowrap',
           }}
         >
@@ -467,9 +467,9 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
               width: 24,
               height: 24,
               borderRadius: 4,
-              border: '1px solid #354331',
-              backgroundColor: '#1C241B',
-              color: matches.length > 0 ? '#F4F5EF' : '#52525b',
+              border: '1px solid #23283a',
+              backgroundColor: '#131620',
+              color: matches.length > 0 ? '#f8fafc' : '#52525b',
               cursor: matches.length > 0 ? 'pointer' : 'default',
               display: 'flex',
               alignItems: 'center',
@@ -487,9 +487,9 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
               width: 24,
               height: 24,
               borderRadius: 4,
-              border: '1px solid #354331',
-              backgroundColor: '#1C241B',
-              color: matches.length > 0 ? '#F4F5EF' : '#52525b',
+              border: '1px solid #23283a',
+              backgroundColor: '#131620',
+              color: matches.length > 0 ? '#f8fafc' : '#52525b',
               cursor: matches.length > 0 ? 'pointer' : 'default',
               display: 'flex',
               alignItems: 'center',
@@ -525,13 +525,13 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
 
       {/* Row 2: Replace Input & Actions (if open) */}
       {showReplace && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', backgroundColor: '#0d110d', borderBottom: '1px solid #252F23' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', backgroundColor: '#090b10', borderBottom: '1px solid #1f2433' }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              backgroundColor: '#1C241B',
-              border: '1px solid #354331',
+              backgroundColor: '#131620',
+              border: '1px solid #23283a',
               borderRadius: 6,
               padding: '0 8px',
               flex: 1,
@@ -539,7 +539,7 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
               gap: 6,
             }}
           >
-            <Replace size={12} color="#A0A99A" style={{ flexShrink: 0 }} />
+            <Replace size={12} color="#94a3b8" style={{ flexShrink: 0 }} />
             <input
               ref={replaceInputRef}
               type="text"
@@ -550,7 +550,7 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
                 flex: 1,
                 background: 'none',
                 border: 'none',
-                color: '#F4F5EF',
+                color: '#f8fafc',
                 fontSize: 12,
                 outline: 'none',
                 width: '100%',
@@ -566,9 +566,9 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
             style={{
               padding: '4px 8px',
               borderRadius: 5,
-              border: '1px solid #354331',
-              backgroundColor: matches.length > 0 ? '#1C241B' : '#141416',
-              color: matches.length > 0 ? '#F4F5EF' : '#52525b',
+              border: '1px solid #23283a',
+              backgroundColor: matches.length > 0 ? '#131620' : '#0e1017',
+              color: matches.length > 0 ? '#f8fafc' : '#52525b',
               cursor: matches.length > 0 ? 'pointer' : 'default',
               fontSize: 11,
               fontWeight: 500,
@@ -586,8 +586,8 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
               padding: '4px 8px',
               borderRadius: 5,
               border: 'none',
-              backgroundColor: matches.length > 0 ? '#B8F36B' : '#252F23',
-              color: matches.length > 0 ? '#101510' : '#52525b',
+              backgroundColor: matches.length > 0 ? '#1076fc' : '#1a2030',
+              color: matches.length > 0 ? '#ffffff' : '#52525b',
               cursor: matches.length > 0 ? 'pointer' : 'default',
               fontSize: 11,
               fontWeight: 700,
@@ -607,8 +607,8 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
           justifyContent: 'space-between',
           padding: '6px 10px',
           fontSize: 10,
-          color: '#A0A99A',
-          backgroundColor: '#121812',
+          color: '#94a3b8',
+          backgroundColor: '#0a0c12',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -622,9 +622,9 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
               gap: 3,
               padding: '2px 5px',
               borderRadius: 4,
-              border: matchCase ? '1px solid #B8F36B' : '1px solid #354331',
-              backgroundColor: matchCase ? '#252F23' : 'transparent',
-              color: matchCase ? '#B8F36B' : '#71717a',
+              border: matchCase ? '1px solid #1076fc' : '1px solid #23283a',
+              backgroundColor: matchCase ? '#1076fc25' : 'transparent',
+              color: matchCase ? '#38bdf8' : '#71717a',
               cursor: 'pointer',
               fontSize: 10,
               fontWeight: matchCase ? 600 : 400,
@@ -645,9 +645,9 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
               gap: 3,
               padding: '2px 5px',
               borderRadius: 4,
-              border: wholeWord ? '1px solid #B8F36B' : '1px solid #354331',
-              backgroundColor: wholeWord ? '#252F23' : 'transparent',
-              color: wholeWord ? '#B8F36B' : '#71717a',
+              border: wholeWord ? '1px solid #1076fc' : '1px solid #23283a',
+              backgroundColor: wholeWord ? '#1076fc25' : 'transparent',
+              color: wholeWord ? '#38bdf8' : '#71717a',
               cursor: 'pointer',
               fontSize: 10,
               fontWeight: wholeWord ? 600 : 400,
@@ -660,7 +660,7 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
         </div>
 
         {/* Scope Switcher: Active Page vs All Pages */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3, backgroundColor: '#1C241B', padding: 2, borderRadius: 5, border: '1px solid #354331' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, backgroundColor: '#131620', padding: 2, borderRadius: 5, border: '1px solid #23283a' }}>
           <button
             type="button"
             onClick={() => setScope('page')}
@@ -668,8 +668,8 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
               padding: '2px 6px',
               borderRadius: 3,
               border: 'none',
-              backgroundColor: scope === 'page' ? '#252F23' : 'transparent',
-              color: scope === 'page' ? '#B8F36B' : '#71717a',
+              backgroundColor: scope === 'page' ? '#1a2030' : 'transparent',
+              color: scope === 'page' ? '#38bdf8' : '#71717a',
               cursor: 'pointer',
               fontSize: 9.5,
               fontWeight: scope === 'page' ? 600 : 400,
@@ -684,8 +684,8 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
               padding: '2px 6px',
               borderRadius: 3,
               border: 'none',
-              backgroundColor: scope === 'all' ? '#252F23' : 'transparent',
-              color: scope === 'all' ? '#B8F36B' : '#71717a',
+              backgroundColor: scope === 'all' ? '#1a2030' : 'transparent',
+              color: scope === 'all' ? '#38bdf8' : '#71717a',
               cursor: 'pointer',
               fontSize: 9.5,
               fontWeight: scope === 'all' ? 600 : 400,
@@ -701,8 +701,8 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
         <div
           style={{
             padding: '6px 10px',
-            backgroundColor: '#0c0f0c',
-            borderTop: '1px solid #1C241B',
+            backgroundColor: '#08090d',
+            borderTop: '1px solid #1f2433',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -710,15 +710,15 @@ export const CanvasFindReplace: React.FC<CanvasFindReplaceProps> = ({ isOpen, on
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
-            <span style={{ color: '#B8F36B', fontWeight: 600, textTransform: 'uppercase', fontSize: 9 }}>
+            <span style={{ color: '#38bdf8', fontWeight: 600, textTransform: 'uppercase', fontSize: 9 }}>
               {currentMatch.elementType}
             </span>
             <span style={{ color: '#52525b' }}>•</span>
-            <span style={{ color: '#A0A99A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {currentMatch.elementName}
             </span>
             <span style={{ color: '#52525b' }}>•</span>
-            <span style={{ color: '#F4F5EF', fontFamily: 'monospace', fontSize: 10 }} title={currentMatch.preview}>
+            <span style={{ color: '#f8fafc', fontFamily: 'monospace', fontSize: 10 }} title={currentMatch.preview}>
               {currentMatch.preview}
             </span>
           </div>

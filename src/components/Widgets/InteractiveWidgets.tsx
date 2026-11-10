@@ -80,7 +80,7 @@ export const AccordionWidget: React.FC<AccordionWidgetProps> = ({ element, isInt
             >
               <span className="truncate">{item.title}</span>
               <ChevronDown
-                className={`w-4 h-4 shrink-0 transition-transform duration-300 text-indigo-400 ${
+                className={`w-4 h-4 shrink-0 transition-transform duration-300 text-[#38bdf8] ${
                   isOpen ? 'rotate-180 text-emerald-400' : ''
                 }`}
               />
@@ -302,7 +302,7 @@ export const VideoWidget: React.FC<VideoWidgetProps> = ({ element, isInteractive
         />
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center text-center p-4 bg-zinc-950 text-zinc-400 select-none">
-          <div className="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center mb-2 text-indigo-400">
+          <div className="w-12 h-12 rounded-full bg-[#1076fc]/10 border border-[#1076fc]/30 flex items-center justify-center mb-2 text-[#38bdf8]">
             <PlaySquare size={24} />
           </div>
           <span className="text-xs font-semibold text-zinc-200">Video Player</span>
@@ -381,14 +381,14 @@ export const CounterWidget: React.FC<CounterWidgetProps> = ({ element }) => {
       }}
     >
       <div
-        className="font-extrabold tracking-tight leading-none bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent flex items-baseline justify-center"
+        className="font-extrabold tracking-tight leading-none bg-gradient-to-r from-white via-sky-100 to-[#38bdf8] bg-clip-text text-transparent flex items-baseline justify-center"
         style={{
           fontSize: s.fontSize ? `${s.fontSize * 1.6}px` : '36px',
         }}
       >
         {prefix && <span className="text-[0.7em] mr-0.5 opacity-90">{prefix}</span>}
         <span>{formattedVal}</span>
-        {suffix && <span className="text-[0.7em] ml-0.5 text-indigo-400 font-bold">{suffix}</span>}
+        {suffix && <span className="text-[0.7em] ml-0.5 text-[#38bdf8] font-bold">{suffix}</span>}
       </div>
       {label && (
         <div
@@ -543,7 +543,7 @@ export const PollWidget: React.FC<PollWidgetProps> = ({ element, isInteractive =
               onClick={(e) => handleVote(opt.id, e)}
               className={`w-full group relative overflow-hidden rounded-xl border text-left p-2.5 transition-all duration-200 cursor-pointer outline-none ${
                 isSelected
-                  ? 'border-indigo-500/80 bg-indigo-500/10 shadow-sm shadow-indigo-500/20'
+                  ? 'border-[#1076fc]/80 bg-[#1076fc]/10 shadow-sm shadow-[#1076fc]/20'
                   : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]'
               }`}
             >
@@ -562,7 +562,7 @@ export const PollWidget: React.FC<PollWidgetProps> = ({ element, isInteractive =
                   <div
                     className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
                       isSelected
-                        ? 'border-indigo-400 bg-indigo-500 text-white'
+                        ? 'border-[#38bdf8] bg-[#1076fc] text-white'
                         : 'border-zinc-500 group-hover:border-zinc-300'
                     }`}
                   >
@@ -698,7 +698,7 @@ export const GuestbookWidget: React.FC<GuestbookWidgetProps> = ({ element, isInt
           </h4>
           {subtitle && <p className="text-[11px] text-zinc-400 mt-0.5">{subtitle}</p>}
         </div>
-        <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
+        <span className="px-2 py-0.5 rounded-full bg-[#1076fc]/20 text-[#38bdf8] text-[10px] font-bold border border-[#1076fc]/30">
           {entries.length} notes
         </span>
       </div>
@@ -748,7 +748,7 @@ export const GuestbookWidget: React.FC<GuestbookWidgetProps> = ({ element, isInt
                     setSelectedEmoji(emoji);
                   }}
                   className={`w-6 h-6 rounded flex items-center justify-center text-xs transition-transform ${
-                    selectedEmoji === emoji ? 'bg-indigo-600 scale-110 shadow' : 'hover:bg-white/10'
+                    selectedEmoji === emoji ? 'bg-[#1076fc] scale-110 shadow' : 'hover:bg-white/10'
                   }`}
                 >
                   {emoji}
@@ -761,7 +761,7 @@ export const GuestbookWidget: React.FC<GuestbookWidgetProps> = ({ element, isInt
               value={name}
               onChange={(e) => setName(e.target.value)}
               onClick={(e) => e.stopPropagation()}
-              className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white placeholder-zinc-500 outline-none focus:border-indigo-500"
+              className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white placeholder-zinc-500 outline-none focus:border-[#1076fc]"
             />
           </div>
 
@@ -773,12 +773,12 @@ export const GuestbookWidget: React.FC<GuestbookWidgetProps> = ({ element, isInt
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onClick={(e) => e.stopPropagation()}
-              className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-indigo-500"
+              className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-[#1076fc]"
             />
             <button
               type="submit"
               disabled={!message.trim()}
-              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-indigo-600/30 shrink-0"
+              className="px-3 py-1.5 rounded-lg bg-[#1076fc] hover:bg-[#2584ff] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-[#1076fc]/30 shrink-0"
             >
               <span>Post</span>
               <Send className="w-3 h-3" />
@@ -858,7 +858,7 @@ export const ReactionWidget: React.FC<ReactionWidgetProps> = ({ element, isInter
     <div
       onClick={handleTap}
       className={`w-full h-full flex items-center justify-center gap-3 px-4 py-2 select-none relative cursor-pointer rounded-[inherit] transition-transform duration-150 active:scale-95 hover:scale-105 group ${
-        isBouncing ? 'animate-bounce' : ''
+        isBouncing ? 'animate-float' : ''
       }`}
       style={{
         fontFamily: s.fontFamily,
@@ -1069,7 +1069,7 @@ export const AudioWidget: React.FC<AudioWidgetProps> = ({ element, isInteractive
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-indigo-950/60 text-indigo-400">
+          <div className="w-full h-full flex items-center justify-center bg-sky-950/60 text-[#38bdf8]">
             <Music size={22} />
           </div>
         )}
@@ -1220,7 +1220,7 @@ export const BeforeAfterWidget: React.FC<BeforeAfterWidgetProps> = ({ element, i
         userSelect: 'none',
         borderRadius: 'inherit',
         cursor: isInteractive ? 'ew-resize' : 'default',
-        backgroundColor: '#101510',
+        backgroundColor: '#0a0c12',
       }}
     >
       {/* After Image (Full background) */}
@@ -1419,10 +1419,10 @@ export const TestimonialWidget: React.FC<TestimonialWidgetProps> = ({ element })
           <img
             src={config.avatarUrl}
             alt={author}
-            className="w-9 h-9 rounded-full object-cover ring-2 ring-indigo-500/40"
+            className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1076fc]/40"
           />
         ) : (
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#1076fc] to-sky-500 flex items-center justify-center text-white text-xs font-bold">
             {author.charAt(0)}
           </div>
         )}

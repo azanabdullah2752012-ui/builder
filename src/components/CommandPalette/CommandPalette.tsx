@@ -131,7 +131,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         id: 'find-replace', label: 'Find & Replace', description: 'Search and replace text in canvas elements',
         icon: <Search size={15} />, category: 'Quick Actions',
         keywords: ['find', 'search', 'replace', 'lookup', 'text'],
-        badge: '⌘F', badgeColor: '#252F23',
+        badge: '⌘F', badgeColor: '#1a1f2e',
         action: () => {
           onClose();
           window.dispatchEvent(new CustomEvent('editor:open-find-replace'));
@@ -160,7 +160,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Canvas Elements',
           keywords,
           badge: el.type.slice(0, 4).toUpperCase(),
-          badgeColor: '#1C241B',
+          badgeColor: '#131620',
           action: () => {
             selectElement(el.id);
             onClose();
@@ -447,8 +447,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
       <div
         style={{
           width: '100%', maxWidth: 620,
-          backgroundColor: '#101510',
-          border: '1px solid #354331',
+          backgroundColor: '#0c0e14',
+          border: '1px solid #23283a',
           borderRadius: 14,
           boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(184,243,107,0.15)',
           overflow: 'hidden',
@@ -459,9 +459,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '12px 16px',
-          borderBottom: '1px solid #354331',
+          borderBottom: '1px solid #23283a',
         }}>
-          <Search size={16} color="#B8F36B" style={{ flexShrink: 0 }} />
+          <Search size={16} color="#1076fc" style={{ flexShrink: 0 }} />
           <input
             ref={inputRef}
             value={query}
@@ -469,7 +469,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
             placeholder="Type a command, element, or section…"
             style={{
               flex: 1, background: 'transparent', border: 'none', outline: 'none',
-              color: '#F4F5EF', fontSize: 15, fontFamily: 'inherit',
+              color: '#f8fafc', fontSize: 15, fontFamily: 'inherit',
             }}
           />
           {query && (
@@ -530,11 +530,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                             display: 'flex', alignItems: 'center', gap: 10,
                             padding: '7px 16px', cursor: 'pointer',
                             background: isSelected ? 'rgba(184,243,107,0.12)' : 'transparent',
-                            borderLeft: isSelected ? '2px solid #B8F36B' : '2px solid transparent',
+                            borderLeft: isSelected ? '2px solid #1076fc' : '2px solid transparent',
                           }}
                         >
                           <span style={{
-                            color: isSelected ? '#B8F36B' : '#A0A99A',
+                            color: isSelected ? '#1076fc' : '#94a3b8',
                             flexShrink: 0, display: 'flex', alignItems: 'center',
                           }}>
                             {cmd.icon}
@@ -542,12 +542,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                           <span style={{ flex: 1, minWidth: 0 }}>
                             <span style={{
                               fontSize: 13, fontWeight: 500,
-                              color: isSelected ? '#F4F5EF' : '#A0A99A',
+                              color: isSelected ? '#f8fafc' : '#94a3b8',
                             }}>
                               {cmd.label}
                             </span>
                             {cmd.description && (
-                              <span style={{ fontSize: 11, color: '#A0A99A', marginLeft: 8 }}>
+                              <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 8 }}>
                                 {cmd.description}
                               </span>
                             )}
@@ -556,14 +556,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                             <span style={{
                               fontSize: 9, fontWeight: 700, letterSpacing: '0.06em',
                               padding: '2px 6px', borderRadius: 4,
-                              background: cmd.badgeColor || '#252F23',
-                              color: '#B8F36B',
+                              background: cmd.badgeColor || '#1a1f2e',
+                              color: '#1076fc',
                             }}>
                               {cmd.badge}
                             </span>
                           )}
                           {isSelected && (
-                            <ArrowRight size={12} color="#B8F36B" style={{ flexShrink: 0 }} />
+                            <ArrowRight size={12} color="#1076fc" style={{ flexShrink: 0 }} />
                           )}
                         </div>
                       );
